@@ -1,2 +1,3 @@
-# TwitchBot
-I was bored and made a Twitch bot that can auto mod based on keywords.
+A TwitchBot that uses Python and IRC.
+
+Edit the scriptconfig.py as needed.

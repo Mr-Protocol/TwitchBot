@@ -1,0 +1,179 @@
+#---------------------------------------------------------------------------
+#---------------------------------- CONFIG ---------------------------------
+#---------------------------------------------------------------------------
+#Example: username = 'mr_protocol'
+username = ''
+
+#Enter OAUTH token here without the oauth: in the front. It will be added later in the script.
+#To get an OAUTH token: https://twitchapps.com/tmi/ and link to your account.
+#Example: token = 'abc123456defghijklmnop'
+token = ''
+
+#Streamer name/channels here
+#Example: channels = '#mr_protocol'
+#Example: channels = '#mr_protocol,#shroud,#drdisrespectlive'
+channels = ''
+
+#Don't trigger on subscribers of channel
+DontTriggerSubs = 1
+
+#Enable ChanFilters
+ChanFilters = 1
+
+#Enable ChanFilters. Prevents showing filtered channels to terminal output.
+#ChanTermFilters = ['#mr_protocol', '#shroud']
+ChanTermFilters = []
+
+#---------------------------------------------------------------------------
+#------------------------------- Announcements -----------------------------
+#---------------------------------------------------------------------------
+
+#Announce new subs in chat.
+AnnounceNewSubs = 1
+
+#Announce new subs channels and messages.
+#AnnounceNewSubsChanMsg = {'#mr_protocol':[('New Sub Hype!', 1)]} 1 = tag user, 0 = don't tag user
+AnnounceNewSubsChanMsg = {
+    '#mr_protocol':[
+        ('New Sub Hype!', 1)
+    ],
+    '#ADDANOTHERCHANNELHERE':[
+        ('!newsub', 1)
+    ]
+}
+
+#Announce resubs
+AnnounceResubs = 0
+
+#Announce resubs channels and messages.
+#AnnounceReSubsChanMsg = {'#mr_protocol':[('Re-Sub Hype!', 1)], '#shroud':[('Welcome Back with the resub!',1)]} 1 = tag user, 0 = don't tag user
+AnnounceReSubsChanMsg = {
+    '#mr_protocol':[
+        ('Re-Sub Hype!', 1)
+    ],
+    '#ADDANOTHERCHANNELHERE':[
+        ('Welcome Back with the resub!', 1)
+    ]
+}
+
+#Announce gifted subs
+AnnounceGiftSubs = 1
+
+#Announce gift subs channels and messages.
+#AnnounceGiftSubsChanMsg = {'#mr_protocol':[('New Sub Hype!',1)]} 1 = tag gifted user, 0 = don't tag
+AnnounceGiftSubsChanMsg = {
+    '#mr_protocol':[
+        ('Gifted Sub Hype!', 1)
+    ],
+    '#ADDANOTHERCHANNELHERE':[
+        ('!newsub', 0)
+    ]
+}
+
+#Thank you message if someone gifts you a sub
+GiftThanksMsg = 'Thanks for the gifted sub!'
+
+#Announce Raids
+AnnounceRaids = 1
+
+#Announce raid message puts this text around (beginning and end) the system message of who raided and how many
+RaidMsg = 'CurseLit CurseLit CurseLit CurseLit twitchRaid twitchRaid twitchRaid twitchRaid twitchRaid twitchRaid twitchRaid twitchRaid CurseLit CurseLit CurseLit CurseLit'
+
+#Announce raid message channels
+#AnnounceRaidChannels = ['#mr_protocol']
+AnnounceRaidChannels = []
+
+#---------------------------------------------------------------------------
+#------------------------------ Chat Triggers ------------------------------
+#---------------------------------------------------------------------------
+
+#Chat Triggers and Mod Triggers are automatically logged.
+
+#Chat/Mod trigger safelist
+SafelistUsers = ['mr_protocol']
+
+#Add automated text to the end of triggers message.
+AutomatedRespondEnabled = 0
+
+#Automated text to append to normal triggers
+AutomatedResponseMsg = '(Automated Response)'
+
+#Chat Triggers - ('Trigger','response', 1) 1 = tag user, 0 = don't tag user
+ChatTriggers = {
+    '#mr_protocol':[
+        ('Hype!', 'MORE HYPE!', 0),
+        ('FeelsBadMan', 'FeelsBadMan', 0)
+    ],
+    '#shroud':[
+        ('Hype!', 'MORE HYPE!', 0),
+        ('FeelsBadMan', 'FeelsBadMan', 0)
+    ],
+    '#drdisrespectlive':[
+        ('Hype!', 'MORE HYPE!', 0),
+        ('FeelsBadMan', 'FeelsBadMan', 0)
+    ],
+    #GLOBAL will try and do the commands in any channel.
+    'GLOBAL':[
+        ('thisisjustaplaceholder', 'LUL', 0)
+    ]
+}
+
+#Mod Triggers - ('Trigger','response')
+#if the response is /timeout you can leave blank for default timeout or specify a number of seconds
+#('trigger','/timeout 10')
+ModTriggers = {
+    '#mr_protocol':[
+        ('thisisjustaplaceholder','/timeout 1')
+    ],
+    '#shroud':[
+        ('thisisjustaplaceholder','/timeout 1')
+    ],
+    '#drdisrespectlive':[
+        ('thisisjustaplaceholder','/timeout 1')
+    ],
+    #GLOBAL will try and do the commands in any channel, does not check if you have mod.
+    'GLOBAL':[
+        ('░░░░░░░░░█▒░░░░▄▀','/ban'),
+        ('█████▀▒░░░░░░░░░░▄▄█','/ban'),
+        ('█▒░░░█▒█░░░░█─▄▄▀▒▀▀▀▄▄▀','/ban'), #3 penis ascii art
+        ('▀▄▄▀░░░░▀▄▒▒▒▒▒▒▒▒▒▒▀▄','/ban'),
+        ('███▓▓▒▒▒▀▀▀█▄░░░░█','/ban'),
+        ('██▒▒░░░▒▒░░░░░░█▀▄','/ban'),
+        ('░░░█▐▀▀▀░▀▀▀▀░░▐░█','/timeout 300'), #ascii mario naked pooping on name
+        ('░░▐▐░░░▄░░░░▒▐▒░░░▄░░░','/timeout 900')
+    ]
+}
+
+#Keyword Repeater
+#Useful for when you have to type a keyword to enter a giveaway.
+#Use a Chat Trigger to setup a response if a message says "You Win"
+EnableKeywordRepeater = 0
+
+#Repeat/Send keyword after # of consecutive repeats.
+KeywordRepeaterCount = 7
+
+#---------------------------------------------------------------------------
+#----------------------------------- Logs ----------------------------------
+#---------------------------------------------------------------------------
+
+#Log chat username highlights (Global)
+LogHighlights = 1
+
+#Log all chat messages
+LogChatMessages = 1
+
+#Chat Log only these channels
+#ChatLogChannels = ['#shroud', '#drdisrespectlive']
+#ChatLogChannels = ['GLOBAL'] #Logs all joined channels
+ChatLogChannels = []
+
+#Send system messages to log file.
+LogSystemMessages = 1
+
+#Log raw system message or simplified. 1=raw 0=simplified
+RawSystemMsgs = 0
+
+#Log System messages from these channels
+#SysMsgLogChannels = ['#mr_protocol', '#shroud']
+#SysMsgLogChannel = ['GLOBAL'] #Logs all joined channels
+SysMsgLogChannels = ['GLOBAL']
