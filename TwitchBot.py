@@ -13,6 +13,7 @@ import irc.bot
 import requests
 import time
 import datetime
+from datetime import timezone
 import shutil
 import re
 import os
@@ -23,9 +24,6 @@ import scriptconfig as cfg
 #--------------------------------------------------------------------------
 #---------------------------------- MAGIC ---------------------------------
 #--------------------------------------------------------------------------
-def strTimeStamp():
-    now = datetime.datetime.now()
-    return str(now.strftime('%Y-%m-%d %H:%M:%S'))
 
 class TwitchBot(irc.bot.SingleServerIRCBot):
     def __init__(self, username, token, channels):
@@ -35,11 +33,11 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         port = 6667
         os.system('cls' if os.name == 'nt' else 'clear')
         self.CheckChannels()
-        system(f'title TwitchBot @ {strTimeStamp()}  - {cfg.username} in channel(s): {cfg.channels}')
+        system(f'title TwitchBot @ {self.TimeStamp()}  - {cfg.username} in channel(s): {cfg.channels}')
         self.PrintTriggers()
         self.ClearLogs()
         self.DisplayOptions()
-        print (f'{strTimeStamp()}\r\nConnecting to {server} on port {port} as {username}...\r\n')
+        print (f'{self.TimeStamp()}\r\nConnecting to {server} on port {port} as {username}...\r\n')
         irc.bot.SingleServerIRCBot.__init__(self, [(server, port, 'oauth:'+token)], username, username)
         self.epoch = 0
         self.dbModChannels = ['GLOBAL']
@@ -49,6 +47,13 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             splitchans = cfg.channels.split(',')
             for x in splitchans:
                 self.dbRepeaterKeyword.update({x: ('', 0)})
+    
+    def TimeStamp(self):
+        if cfg.LogTimeZone:
+            tstamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        else:
+            tstamp = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S') + '-UTC'
+        return f'{tstamp}'
 
     #Check for valid channels starting with #, and doesn't end with a comma
     def CheckChannels(self):
@@ -171,7 +176,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 chatheader = ' - !SUB!-'
             else:
                 chatheader = ' - '
-            print (f'{strTimeStamp()} {currentchannel}{chatheader}{chatuser}: {themsg}')
+            print (f'{self.TimeStamp()} {currentchannel}{chatheader}{chatuser}: {themsg}')
         
         #Chat Highlights Log - Will log messages that contain username
         if cfg.LogHighlights and str.lower(cfg.username) in str.lower(themsg):
@@ -182,7 +187,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     if error.errno != errno.EEXIST:
                         raise
             f = open (f'Logs/Chat/{currentchannel}_HighlightsLog.txt', 'a+', encoding='utf-8-sig')
-            f.write(f'{strTimeStamp()} {currentchannel} - {chatuser}: {themsg}\r\n')
+            f.write(f'{self.TimeStamp()} {currentchannel} - {chatuser}: {themsg}\r\n')
             f.close()
         
         #Chat Logging To File
@@ -203,7 +208,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                         if error.errno != errno.EEXIST:
                             raise
                 f = open (f'Logs/Chat/{currentchannel}_ChatLog.txt', 'a+', encoding='utf-8-sig')
-                f.write(f'{strTimeStamp()} {currentchannel}{chatheader}{chatuser}: {themsg}\r\n')
+                f.write(f'{self.TimeStamp()} {currentchannel}{chatheader}{chatuser}: {themsg}\r\n')
                 f.close()
         
         #Repeater Mode aka Giveaway Mode
@@ -246,14 +251,14 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                                 if error.errno != errno.EEXIST:
                                     raise
                         f = open (f'Logs/ChatTriggers/{currentchannel}_ChatTriggerLog.txt', 'a+')
-                        f.write(f'{strTimeStamp()} TRIGGER EVENT: {chatuser}: {themsg}\r\n')
+                        f.write(f'{self.TimeStamp()} TRIGGER EVENT: {chatuser}: {themsg}\r\n')
                         f.close()
                         if time.time() - self.epoch >= 90: #A little anti-spam for triggered words
                             self.epoch = time.time()
                             c.privmsg(currentchannel, cresponse)
-                            print(f'{strTimeStamp()} {currentchannel} - {cfg.username}: {cresponse}')
+                            print(f'{self.TimeStamp()} {currentchannel} - {cfg.username}: {cresponse}')
                             f = open (f'Logs/ChatTriggers/{currentchannel}_ChatTriggerLog.txt', 'a+')
-                            f.write(f'{strTimeStamp()} SENT: {cfg.username}: {cresponse}\r\n')
+                            f.write(f'{self.TimeStamp()} SENT: {cfg.username}: {cresponse}\r\n')
                             f.close()
            
             #Mod Triggers - uses the lcase themsg and splits words via spaces
@@ -276,17 +281,17 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                                             try:
                                                 x = mresponse.split(' ')
                                                 c.privmsg(currentchannel, f'{x[0]} {chatuser} {x[1]}')
-                                                print(f'{strTimeStamp()} {currentchannel} - {cfg.username}: {x[0]} {chatuser} {x[1]}')
+                                                print(f'{self.TimeStamp()} {currentchannel} - {cfg.username}: {x[0]} {chatuser} {x[1]}')
                                                 f = open (f'Logs/ModTriggers/{currentchannel}_ModTriggerLog.txt', 'a+', encoding='utf-8-sig')
-                                                f.write(f'{strTimeStamp()} TRIGGER EVENT: {chatuser}: {themsg}\r\n')
-                                                f.write(f'{strTimeStamp()} SENT: {cfg.username}: {x[0]} {chatuser} {x[1]}\r\n')
+                                                f.write(f'{self.TimeStamp()} TRIGGER EVENT: {chatuser}: {themsg}\r\n')
+                                                f.write(f'{self.TimeStamp()} SENT: {cfg.username}: {x[0]} {chatuser} {x[1]}\r\n')
                                                 f.close()
                                             except:
                                                 c.privmsg(currentchannel, f'{mresponse} {chatuser}')
-                                                print(f'{strTimeStamp()} {currentchannel} - {cfg.username}: {mresponse} {chatuser}')
+                                                print(f'{self.TimeStamp()} {currentchannel} - {cfg.username}: {mresponse} {chatuser}')
                                                 f = open (f'Logs/ModTriggers/{currentchannel}_ModTriggerLog.txt', 'a+', encoding='utf-8-sig')
-                                                f.write(f'{strTimeStamp()} TRIGGER EVENT: {chatuser}: {themsg}\r\n')
-                                                f.write(f'{strTimeStamp()} SENT: {cfg.username}: {mresponse} {chatuser}\r\n')
+                                                f.write(f'{self.TimeStamp()} TRIGGER EVENT: {chatuser}: {themsg}\r\n')
+                                                f.write(f'{self.TimeStamp()} SENT: {cfg.username}: {mresponse} {chatuser}\r\n')
                                                 f.close()
                                 #Search for literal mod commands
                                 elif ' ' in mtrigger:
@@ -300,17 +305,17 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                                         try:
                                             x = mresponse.split(' ')
                                             c.privmsg(currentchannel, f'{x[0]} {chatuser} {x[1]}')
-                                            print(f'{strTimeStamp()} {currentchannel} - {cfg.username}: {x[0]} {chatuser} {x[1]}')
+                                            print(f'{self.TimeStamp()} {currentchannel} - {cfg.username}: {x[0]} {chatuser} {x[1]}')
                                             f = open (f'Logs/ModTriggers/{currentchannel}_ModTriggerLog.txt', 'a+', encoding='utf-8-sig')
-                                            f.write(f'{strTimeStamp()} TRIGGER EVENT: {chatuser}: {themsg}\r\n')
-                                            f.write(f'{strTimeStamp()} SENT: {cfg.username}: {x[0]} {chatuser} {x[1]}\r\n')
+                                            f.write(f'{self.TimeStamp()} TRIGGER EVENT: {chatuser}: {themsg}\r\n')
+                                            f.write(f'{self.TimeStamp()} SENT: {cfg.username}: {x[0]} {chatuser} {x[1]}\r\n')
                                             f.close()
                                         except:
                                             c.privmsg(currentchannel, f'{mresponse} {chatuser}')
-                                            print(f'{strTimeStamp()} {currentchannel} - {cfg.username}: {mresponse} {chatuser}')
+                                            print(f'{self.TimeStamp()} {currentchannel} - {cfg.username}: {mresponse} {chatuser}')
                                             f = open (f'Logs/ModTriggers/{currentchannel}_ModTriggerLog.txt', 'a+', encoding='utf-8-sig')
-                                            f.write(f'{strTimeStamp()} TRIGGER EVENT: {chatuser}: {themsg}\r\n')
-                                            f.write(f'{strTimeStamp()} SENT: {cfg.username}: {mresponse} {chatuser}\r\n')
+                                            f.write(f'{self.TimeStamp()} TRIGGER EVENT: {chatuser}: {themsg}\r\n')
+                                            f.write(f'{self.TimeStamp()} SENT: {cfg.username}: {mresponse} {chatuser}\r\n')
                                             f.close()
        
     def on_userstate(self, c, e):
@@ -342,7 +347,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         if currentchannel in cfg.ChanTermFilters:
             pass
         else:   
-            print (f'{strTimeStamp()} {currentchannel} - {sysmsg}')
+            print (f'{self.TimeStamp()} {currentchannel} - {sysmsg}')
         
         #Log system mesages
         if cfg.LogSystemMessages:
@@ -355,9 +360,9 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                             raise
                 f = open (f'Logs/System/{currentchannel}_SystemMsgLog_{sysmsgid}.txt', 'a+', encoding='utf-8-sig')
                 if cfg.RawSystemMsgs:
-                    f.write(f'{strTimeStamp()} {str(e)}\r\n')
+                    f.write(f'{self.TimeStamp()} {str(e)}\r\n')
                 else:
-                    f.write (f'{strTimeStamp()} {sysmsg}\r\n')
+                    f.write (f'{self.TimeStamp()} {sysmsg}\r\n')
                 f.close()
         
         #------------------------- Sub actions -------------------------
@@ -391,8 +396,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             if sysmsgid == 'subgift' and str.lower(subgiftrecipient) == str.lower(cfg.username):
                 c.privmsg(currentchannel, f'{cfg.GiftThanksMsg} {chatuser}')
                 f = open (f'Logs/{currentchannel}_GiftedSub.txt', 'a+', encoding='utf-8-sig')
-                f.write(f'{strTimeStamp()} - {sysmsg}\r\n')
-                f.write(f'{strTimeStamp()} - {cfg.username}: {cfg.GiftThanksMsg} {chatuser}\r\n')
+                f.write(f'{self.TimeStamp()} - {sysmsg}\r\n')
+                f.write(f'{self.TimeStamp()} - {cfg.username}: {cfg.GiftThanksMsg} {chatuser}\r\n')
                 f.close()
         
 def main():
