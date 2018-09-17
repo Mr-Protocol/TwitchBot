@@ -141,12 +141,11 @@ ModTriggers = {
     #GLOBAL will try and do the commands in any channel, does not check if you have mod.
 
     'GLOBAL':[
-        ('░░░░░░░░░█▒░░░░▄▀','/timeout 86400'),
-        ('█████▀▒░░░░░░░░░░▄▄█','/timeout 86400'),
-        ('█▒░░░█▒█░░░░█─▄▄▀▒▀▀▀▄▄▀','/timeout 86400 Hydra dick ascii'), #3 dick ascii art
-        ('▀▄▄▀░░░░▀▄▒▒▒▒▒▒▒▒▒▒▀▄','/timeout 86400'),
-        ('███▓▓▒▒▒▀▀▀█▄░░░░█','/timeout 86400'),
-        ('██▒▒░░░▒▒░░░░░░█▀▄','/timeout 86400 fat dick ascii'), #ascii fat dick
+        ('░░░░░░░░░█▒░░░░▄▀','/timeout 1d ascii penis'),
+        ('█████▀▒░░░░░░░░░░▄▄█','/timeout 1d'),
+        ('█▒░░░█▒█░░░░█─▄▄▀▒▀▀▀▄▄▀','/timeout 1d Hydra dick ascii'), #3 dick ascii art
+        ('▀▄▄▀░░░░▀▄▒▒▒▒▒▒▒▒▒▒▀▄','/timeout 1d'),
+        ('██▒▒░░░▒▒░░░░░░█▀▄','/timeout 1d fat cock ascii'), #ascii fat dick
         ('░░░█▐▀▀▀░▀▀▀▀░░▐░█','/timeout 300 naked mario poop'), #ascii mario naked pooping on name
         ('░░▐▐░░░▄░░░░▒▐▒░░░▄░░░','/timeout 900')
     ]
