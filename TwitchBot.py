@@ -18,7 +18,7 @@ import re
 import os
 from os import system
 import errno
-import myscriptconfig as cfg
+import scriptconfig as cfg
 
 #--------------------------------------------------------------------------
 #---------------------------------- MAGIC ---------------------------------
@@ -43,11 +43,12 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         irc.bot.SingleServerIRCBot.__init__(self, [(server, port, 'oauth:'+token)], username, username)
         self.epoch = 0
         self.dbModChannels = ['GLOBAL']
-        self.RepeaterEpoch = 0
-        self.dbRepeaterKeyword = {}
-        splitchans = cfg.channels.split(',')
-        for x in splitchans:
-            self.dbRepeaterKeyword.update({x: ('', 0)})
+        if cfg.EnableKeywordRepeater:
+            self.RepeaterEpoch = 0
+            self.dbRepeaterKeyword = {}
+            splitchans = cfg.channels.split(',')
+            for x in splitchans:
+                self.dbRepeaterKeyword.update({x: ('', 0)})
 
     #Check for valid channels starting with #, and doesn't end with a comma
     def CheckChannels(self):
@@ -360,38 +361,39 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 f.close()
         
         #------------------------- Sub actions -------------------------
-        if sysmsgid == 'sub' and cfg.AnnounceNewSubs:
-            if currentchannel in cfg.AnnounceNewSubsChanMsg:
-                tmpNewSubMsg = cfg.AnnounceNewSubsChanMsg[currentchannel][0][0]
-                if cfg.AnnounceNewSubsChanMsg[currentchannel][0][1]:
-                    tmpNewSubMsg = f'{tmpNewSubMsg} {chatuser}'
-                c.privmsg(currentchannel, tmpNewSubMsg)
-        
-        #Subtember allowed users to upgrade a gifted sub for $1 to continue for the next month. Considering it a resub for announce triggers
-        if (sysmsgid == 'resub' or sysmsgid == 'giftpaidupgrade') and cfg.AnnounceResubs:
-            if currentchannel in cfg.AnnounceReSubsChanMsg:
-                tmpReSubMsg = cfg.AnnounceReSubsChanMsg[currentchannel][0][0]
-                if cfg.AnnounceReSubsChanMsg[currentchannel][0][1]:
-                    tmpReSubMsg = f'{tmpReSubMsg} {chatuser}'
-                c.privmsg(currentchannel, tmpReSubMsg)
-        
-        if sysmsgid == 'subgift' and cfg.AnnounceGiftSubs:
-            if currentchannel in cfg.AnnounceGiftSubsChanMsg:
-                tmpGiftSubMsg = cfg.AnnounceGiftSubsChanMsg[currentchannel][0][0]
-                if cfg.AnnounceGiftSubsChanMsg[currentchannel][0][1]:
-                    tmpGiftSubMsg = f'{tmpGiftSubMsg} {chatuser}'
-                c.privmsg(currentchannel, tmpGiftSubMsg)            
+        if chatuser != cfg.username:
+            if sysmsgid == 'sub' and cfg.AnnounceNewSubs:
+                if currentchannel in cfg.AnnounceNewSubsChanMsg:
+                    tmpNewSubMsg = cfg.AnnounceNewSubsChanMsg[currentchannel][0][0]
+                    if cfg.AnnounceNewSubsChanMsg[currentchannel][0][1]:
+                        tmpNewSubMsg = f'{tmpNewSubMsg} {chatuser}'
+                    c.privmsg(currentchannel, tmpNewSubMsg)
             
-        if sysmsgid == 'raid' and cfg.AnnounceRaids and currentchannel in cfg.AnnounceRaidChannels:
-            c.privmsg(currentchannel, f'{cfg.RaidMsg} {sysmsg} {cfg.RaidMsg}')
-        
-        #What happens when the script username is gifted a sub
-        if sysmsgid == 'subgift' and str.lower(subgiftrecipient) == str.lower(cfg.username):
-            c.privmsg(currentchannel, f'{cfg.GiftThanksMsg} {chatuser}')
-            f = open (f'Logs/{currentchannel}_GiftedSub.txt', 'a+', encoding='utf-8-sig')
-            f.write(f'{strTimeStamp()} - {sysmsg}\r\n')
-            f.write(f'{strTimeStamp()} - {cfg.username}: {cfg.GiftThanksMsg} {chatuser}\r\n')
-            f.close()
+            #Subtember allowed users to upgrade a gifted sub for $1 to continue for the next month. Considering it a resub for announce triggers
+            if (sysmsgid == 'resub' or sysmsgid == 'giftpaidupgrade') and cfg.AnnounceResubs:
+                if currentchannel in cfg.AnnounceReSubsChanMsg:
+                    tmpReSubMsg = cfg.AnnounceReSubsChanMsg[currentchannel][0][0]
+                    if cfg.AnnounceReSubsChanMsg[currentchannel][0][1]:
+                        tmpReSubMsg = f'{tmpReSubMsg} {chatuser}'
+                    c.privmsg(currentchannel, tmpReSubMsg)
+            
+            if sysmsgid == 'subgift' and cfg.AnnounceGiftSubs:
+                if currentchannel in cfg.AnnounceGiftSubsChanMsg:
+                    tmpGiftSubMsg = cfg.AnnounceGiftSubsChanMsg[currentchannel][0][0]
+                    if cfg.AnnounceGiftSubsChanMsg[currentchannel][0][1]:
+                        tmpGiftSubMsg = f'{tmpGiftSubMsg} {chatuser}'
+                    c.privmsg(currentchannel, tmpGiftSubMsg)            
+                
+            if sysmsgid == 'raid' and cfg.AnnounceRaids and currentchannel in cfg.AnnounceRaidChannels:
+                c.privmsg(currentchannel, f'{cfg.RaidMsg} {sysmsg} {cfg.RaidMsg}')
+            
+            #What happens when the script username is gifted a sub
+            if sysmsgid == 'subgift' and str.lower(subgiftrecipient) == str.lower(cfg.username):
+                c.privmsg(currentchannel, f'{cfg.GiftThanksMsg} {chatuser}')
+                f = open (f'Logs/{currentchannel}_GiftedSub.txt', 'a+', encoding='utf-8-sig')
+                f.write(f'{strTimeStamp()} - {sysmsg}\r\n')
+                f.write(f'{strTimeStamp()} - {cfg.username}: {cfg.GiftThanksMsg} {chatuser}\r\n')
+                f.close()
         
 def main():
     bot = TwitchBot(cfg.username, cfg.token, cfg.channels)

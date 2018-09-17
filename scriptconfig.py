@@ -37,7 +37,7 @@ AnnounceNewSubsChanMsg = {
     '#mr_protocol':[
         ('New Sub Hype!', 1)
     ],
-    '#ADDANOTHERCHANNELHERE':[
+    '#thisisjustaplaceholder':[
         ('!newsub', 1)
     ]
 }
@@ -51,7 +51,7 @@ AnnounceReSubsChanMsg = {
     '#mr_protocol':[
         ('Re-Sub Hype!', 1)
     ],
-    '#ADDANOTHERCHANNELHERE':[
+    '#thisisjustaplaceholder':[
         ('Welcome Back with the resub!', 1)
     ]
 }
@@ -65,7 +65,7 @@ AnnounceGiftSubsChanMsg = {
     '#mr_protocol':[
         ('Gifted Sub Hype!', 1)
     ],
-    '#ADDANOTHERCHANNELHERE':[
+    '#thisisjustaplaceholder':[
         ('!newsub', 0)
     ]
 }
@@ -77,7 +77,7 @@ GiftThanksMsg = 'Thanks for the gifted sub!'
 AnnounceRaids = 1
 
 #Announce raid message puts this text around (beginning and end) the system message of who raided and how many
-RaidMsg = 'CurseLit CurseLit CurseLit CurseLit twitchRaid twitchRaid twitchRaid twitchRaid twitchRaid twitchRaid twitchRaid twitchRaid CurseLit CurseLit CurseLit CurseLit'
+RaidMsg = 'twitchRaid twitchRaid twitchRaid twitchRaid twitchRaid twitchRaid twitchRaid twitchRaid twitchRaid twitchRaid twitchRaid twitchRaid twitchRaid twitchRaid'
 
 #Announce raid message channels
 #AnnounceRaidChannels = ['#mr_protocol']
@@ -104,11 +104,11 @@ ChatTriggers = {
         ('Hype!', 'MORE HYPE!', 0),
         ('FeelsBadMan', 'FeelsBadMan', 0)
     ],
-    '#shroud':[
+    '#thisisjustaplaceholder':[
         ('Hype!', 'MORE HYPE!', 0),
         ('FeelsBadMan', 'FeelsBadMan', 0)
     ],
-    '#drdisrespectlive':[
+    '#thisisjustaplaceholder2':[
         ('Hype!', 'MORE HYPE!', 0),
         ('FeelsBadMan', 'FeelsBadMan', 0)
     ],
@@ -125,20 +125,20 @@ ModTriggers = {
     '#mr_protocol':[
         ('thisisjustaplaceholder','/timeout 1')
     ],
-    '#shroud':[
+    '#thisisjustaplaceholder2':[
         ('thisisjustaplaceholder','/timeout 1')
     ],
-    '#drdisrespectlive':[
+    '#thisisjustaplaceholder3':[
         ('thisisjustaplaceholder','/timeout 1')
     ],
     #GLOBAL will try and do the commands in any channel, does not check if you have mod.
     'GLOBAL':[
         ('░░░░░░░░░█▒░░░░▄▀','/ban'),
         ('█████▀▒░░░░░░░░░░▄▄█','/ban'),
-        ('█▒░░░█▒█░░░░█─▄▄▀▒▀▀▀▄▄▀','/ban'), #3 penis ascii art
+        ('█▒░░░█▒█░░░░█─▄▄▀▒▀▀▀▄▄▀','/ban'), #3 dick ascii art
         ('▀▄▄▀░░░░▀▄▒▒▒▒▒▒▒▒▒▒▀▄','/ban'),
         ('███▓▓▒▒▒▀▀▀█▄░░░░█','/ban'),
-        ('██▒▒░░░▒▒░░░░░░█▀▄','/ban'),
+        ('██▒▒░░░▒▒░░░░░░█▀▄','/ban'), #ascii fatty dick
         ('░░░█▐▀▀▀░▀▀▀▀░░▐░█','/timeout 300'), #ascii mario naked pooping on name
         ('░░▐▐░░░▄░░░░▒▐▒░░░▄░░░','/timeout 900')
     ]
