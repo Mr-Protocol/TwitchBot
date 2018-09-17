@@ -14,9 +14,6 @@ token = ''
 #Example: channels = '#mr_protocol,#shroud,#drdisrespectlive'
 channels = ''
 
-#Don't trigger on subscribers of channel
-DontTriggerSubs = 1
-
 #Enable ChanFilters
 ChanFilters = 1
 
@@ -91,6 +88,9 @@ AnnounceRaidChannels = []
 
 #Chat/Mod trigger safelist
 SafelistUsers = ['mr_protocol']
+
+#Don't trigger on subscribers of channel
+DontTriggerSubs = 0
 
 #Add automated text to the end of triggers message.
 AutomatedRespondEnabled = 0
