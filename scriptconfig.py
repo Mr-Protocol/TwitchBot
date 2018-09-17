@@ -139,7 +139,6 @@ ModTriggers = {
         ('thisisjustaplaceholder','/timeout 1')
     ],
     #GLOBAL will try and do the commands in any channel, does not check if you have mod.
-
     'GLOBAL':[
         ('░░░░░░░░░█▒░░░░▄▀','/timeout 1d ascii penis'),
         ('█████▀▒░░░░░░░░░░▄▄█','/timeout 1d'),

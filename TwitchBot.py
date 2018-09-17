@@ -40,7 +40,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         print (f'{self.TimeStamp()}\r\nConnecting to {server} on port {port} as {username}...\r\n')
         irc.bot.SingleServerIRCBot.__init__(self, [(server, port, 'oauth:'+token)], username, username)
         self.epoch = 0
-        self.dbModChannels = ['GLOBAL']
+        self.dbModChannels = []
         if cfg.EnableKeywordRepeater:
             self.RepeaterEpoch = 0
             self.dbRepeaterKeyword = {}
@@ -230,36 +230,34 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             pass
         elif cfg.DontTriggerSubs and isasub == '1':
             pass
-        else:
-            splitmsg = (str.lower(themsg)).split(' ')
-            #print (splitmsg)
-            
+        else:        
             #Chat Triggers - uses lcase themsg directly
             for ChanAndGlobal in cfg.ChatTriggers:
-                for x in range(len(cfg.ChatTriggers[ChanAndGlobal])):
-                    if str.lower(cfg.ChatTriggers[ChanAndGlobal][x][0]) in str.lower(themsg):
-                        cresponse = cfg.ChatTriggers[ChanAndGlobal][x][1]
-                        if cfg.ChatTriggers[ChanAndGlobal][x][2]:
-                            cresponse = f'{cresponse} {chatuser}'
-                        if cfg.AutomatedRespondEnabled:
-                            cresponse = f'{cresponse} {cfg.AutomatedResponseMsg}'
-                        #Log it
-                        if not os.path.exists('Logs/ChatTriggers/'):
-                            try:
-                                os.makedirs('Logs/ChatTriggers/')
-                            except OSError as error:
-                                if error.errno != errno.EEXIST:
-                                    raise
-                        f = open (f'Logs/ChatTriggers/{currentchannel}_ChatTriggerLog.txt', 'a+')
-                        f.write(f'{self.TimeStamp()} TRIGGER EVENT: {chatuser}: {themsg}\r\n')
-                        f.close()
-                        if time.time() - self.epoch >= 90: #A little anti-spam for triggered words
-                            self.epoch = time.time()
-                            c.privmsg(currentchannel, cresponse)
-                            print(f'{self.TimeStamp()} {currentchannel} - {cfg.username}: {cresponse}')
+                if currentchannel == ChanAndGlobal or ChanAndGlobal == 'GLOBAL':
+                    for x in range(len(cfg.ChatTriggers[ChanAndGlobal])):
+                        if str.lower(cfg.ChatTriggers[ChanAndGlobal][x][0]) in str.lower(themsg):
+                            cresponse = cfg.ChatTriggers[ChanAndGlobal][x][1]
+                            if cfg.ChatTriggers[ChanAndGlobal][x][2]:
+                                cresponse = f'{cresponse} {chatuser}'
+                            if cfg.AutomatedRespondEnabled:
+                                cresponse = f'{cresponse} {cfg.AutomatedResponseMsg}'
+                            #Log it
+                            if not os.path.exists('Logs/ChatTriggers/'):
+                                try:
+                                    os.makedirs('Logs/ChatTriggers/')
+                                except OSError as error:
+                                    if error.errno != errno.EEXIST:
+                                        raise
                             f = open (f'Logs/ChatTriggers/{currentchannel}_ChatTriggerLog.txt', 'a+')
-                            f.write(f'{self.TimeStamp()} SENT: {cfg.username}: {cresponse}\r\n')
+                            f.write(f'{self.TimeStamp()} TRIGGER EVENT: {chatuser}: {themsg}\r\n')
                             f.close()
+                            if time.time() - self.epoch >= 90: #A little anti-spam for triggered words
+                                self.epoch = time.time()
+                                c.privmsg(currentchannel, cresponse)
+                                print(f'{self.TimeStamp()} {currentchannel} - {cfg.username}: {cresponse}')
+                                f = open (f'Logs/ChatTriggers/{currentchannel}_ChatTriggerLog.txt', 'a+')
+                                f.write(f'{self.TimeStamp()} SENT: {cfg.username}: {cresponse}\r\n')
+                                f.close()
            
             #Mod Triggers - uses the lcase themsg and splits words via spaces
             if currentchannel in self.dbModChannels:
@@ -267,62 +265,31 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     if currentchannel == ChanAndGlobal or ChanAndGlobal == 'GLOBAL':
                         for x in range(len(cfg.ModTriggers[ChanAndGlobal])):
                             if str.lower(cfg.ModTriggers[ChanAndGlobal][x][0]) in str.lower(themsg):
-                                mtrigger = cfg.ModTriggers[ChanAndGlobal][x][0]
                                 mresponse = cfg.ModTriggers[ChanAndGlobal][x][1]
-                                if ' ' not in mtrigger:
-                                    for word in splitmsg:
-                                        if str.lower(mtrigger) in str.lower(word):
-                                            if not os.path.exists('Logs/ModTriggers/'):
-                                                try:
-                                                    os.makedirs('Logs/ModTriggers/')
-                                                except OSError as error:
-                                                    if error.errno != errno.EEXIST:
-                                                        raise
-                                            try:
-                                                splitresponse = mresponse.split(' ')
-                                                modoptions = ''
-                                                for x in splitresponse[1:]:
-                                                    modoptions = f'{modoptions} {x}'
-                                                c.privmsg(currentchannel, f'{splitresponse[0]} {chatuser}{modoptions}')
-                                                print(f'{self.TimeStamp()} {currentchannel} - {cfg.username}: {splitresponse[0]} {chatuser}{modoptions}')
-                                                f = open (f'Logs/ModTriggers/{currentchannel}_ModTriggerLog.txt', 'a+', encoding='utf-8-sig')
-                                                f.write(f'{self.TimeStamp()} TRIGGER EVENT: {chatuser}: {themsg}\r\n')
-                                                f.write(f'{self.TimeStamp()} SENT: {cfg.username}: {splitresponse[0]} {chatuser}{modoptions}\r\n')
-                                                f.close()
-                                            except:
-                                                c.privmsg(currentchannel, f'{mresponse} {chatuser}')
-                                                print(f'{self.TimeStamp()} {currentchannel} - {cfg.username}: {mresponse} {chatuser}')
-                                                f = open (f'Logs/ModTriggers/{currentchannel}_ModTriggerLog.txt', 'a+', encoding='utf-8-sig')
-                                                f.write(f'{self.TimeStamp()} TRIGGER EVENT: {chatuser}: {themsg}\r\n')
-                                                f.write(f'{self.TimeStamp()} SENT: {cfg.username}: {mresponse} {chatuser}\r\n')
-                                                f.close()
-                                #Search for literal mod commands
-                                elif ' ' in mtrigger:
-                                    if str.lower(mtrigger) in str.lower(themsg):
-                                        if not os.path.exists('Logs/ModTriggers/'):
-                                            try:
-                                                os.makedirs('Logs/ModTriggers/')
-                                            except OSError as error:
-                                                if error.errno != errno.EEXIST:
-                                                    raise
-                                        try:
-                                            splitresponse = mresponse.split(' ')
-                                            modoptions = ''
-                                            for x in splitresponse[1:]:
-                                                modoptions = f'{modoptions} {x}'
-                                            c.privmsg(currentchannel, f'{splitresponse[0]} {chatuser}{modoptions}')
-                                            print(f'{self.TimeStamp()} {currentchannel} - {cfg.username}: {splitresponse[0]} {chatuser}{modoptions}')
-                                            f = open (f'Logs/ModTriggers/{currentchannel}_ModTriggerLog.txt', 'a+', encoding='utf-8-sig')
-                                            f.write(f'{self.TimeStamp()} TRIGGER EVENT: {chatuser}: {themsg}\r\n')
-                                            f.write(f'{self.TimeStamp()} SENT: {cfg.username}: {splitresponse[0]} {chatuser}{modoptions}\r\n')
-                                            f.close()
-                                        except:
-                                            c.privmsg(currentchannel, f'{mresponse} {chatuser}')
-                                            print(f'{self.TimeStamp()} {currentchannel} - {cfg.username}: {mresponse} {chatuser}')
-                                            f = open (f'Logs/ModTriggers/{currentchannel}_ModTriggerLog.txt', 'a+', encoding='utf-8-sig')
-                                            f.write(f'{self.TimeStamp()} TRIGGER EVENT: {chatuser}: {themsg}\r\n')
-                                            f.write(f'{self.TimeStamp()} SENT: {cfg.username}: {mresponse} {chatuser}\r\n')
-                                            f.close()
+                                if not os.path.exists('Logs/ModTriggers/'):
+                                    try:
+                                        os.makedirs('Logs/ModTriggers/')
+                                    except OSError as error:
+                                        if error.errno != errno.EEXIST:
+                                            raise
+                                try:
+                                    splitresponse = mresponse.split(' ')
+                                    modoptions = ''
+                                    for x in splitresponse[1:]:
+                                        modoptions = f'{modoptions} {x}'
+                                    c.privmsg(currentchannel, f'{splitresponse[0]} {chatuser}{modoptions}')
+                                    print(f'{self.TimeStamp()} {currentchannel} - {cfg.username}: {splitresponse[0]} {chatuser}{modoptions}')
+                                    f = open (f'Logs/ModTriggers/{currentchannel}_ModTriggerLog.txt', 'a+', encoding='utf-8-sig')
+                                    f.write(f'{self.TimeStamp()} TRIGGER EVENT: {chatuser}: {themsg}\r\n')
+                                    f.write(f'{self.TimeStamp()} SENT: {cfg.username}: {splitresponse[0]} {chatuser}{modoptions}\r\n')
+                                    f.close()
+                                except:
+                                    c.privmsg(currentchannel, f'{mresponse} {chatuser}')
+                                    print(f'{self.TimeStamp()} {currentchannel} - {cfg.username}: {mresponse} {chatuser}')
+                                    f = open (f'Logs/ModTriggers/{currentchannel}_ModTriggerLog.txt', 'a+', encoding='utf-8-sig')
+                                    f.write(f'{self.TimeStamp()} TRIGGER EVENT: {chatuser}: {themsg}\r\n')
+                                    f.write(f'{self.TimeStamp()} SENT: {cfg.username}: {mresponse} {chatuser}\r\n')
+                                    f.close()
        
     def on_userstate(self, c, e):
         #print (e)
