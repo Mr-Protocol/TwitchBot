@@ -27,8 +27,8 @@ import scriptconfig as cfg
 
 class TwitchBot(irc.bot.SingleServerIRCBot):
     def __init__(self, username, token, channels):
-        self.token = token
         # Create IRC bot connection
+        self.token = token
         server = 'irc.chat.twitch.tv'
         port = 6667
         os.system('cls' if os.name == 'nt' else 'clear')
@@ -271,7 +271,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                                 mresponse = cfg.ModTriggers[ChanAndGlobal][x][1]
                                 if ' ' not in mtrigger:
                                     for word in splitmsg:
-                                        if str.lower(mtrigger) == str.lower(word):
+                                        if str.lower(mtrigger) in str.lower(word):
                                             if not os.path.exists('Logs/ModTriggers/'):
                                                 try:
                                                     os.makedirs('Logs/ModTriggers/')
