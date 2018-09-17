@@ -156,6 +156,9 @@ KeywordRepeaterCount = 7
 #----------------------------------- Logs ----------------------------------
 #---------------------------------------------------------------------------
 
+#Log timestamp timezone. 1=local, 0=UTC
+LogTimeZone = 0
+
 #Log chat username highlights (Global)
 LogHighlights = 1
 
