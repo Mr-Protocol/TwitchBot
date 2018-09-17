@@ -279,12 +279,15 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                                                     if error.errno != errno.EEXIST:
                                                         raise
                                             try:
-                                                x = mresponse.split(' ')
-                                                c.privmsg(currentchannel, f'{x[0]} {chatuser} {x[1]}')
-                                                print(f'{self.TimeStamp()} {currentchannel} - {cfg.username}: {x[0]} {chatuser} {x[1]}')
+                                                splitresponse = mresponse.split(' ')
+                                                modoptions = ''
+                                                for x in splitresponse[1:]:
+                                                    modoptions = f'{modoptions} {x}'
+                                                c.privmsg(currentchannel, f'{splitresponse[0]} {chatuser}{modoptions}')
+                                                print(f'{self.TimeStamp()} {currentchannel} - {cfg.username}: {splitresponse[0]} {chatuser}{modoptions}')
                                                 f = open (f'Logs/ModTriggers/{currentchannel}_ModTriggerLog.txt', 'a+', encoding='utf-8-sig')
                                                 f.write(f'{self.TimeStamp()} TRIGGER EVENT: {chatuser}: {themsg}\r\n')
-                                                f.write(f'{self.TimeStamp()} SENT: {cfg.username}: {x[0]} {chatuser} {x[1]}\r\n')
+                                                f.write(f'{self.TimeStamp()} SENT: {cfg.username}: {splitresponse[0]} {chatuser}{modoptions}\r\n')
                                                 f.close()
                                             except:
                                                 c.privmsg(currentchannel, f'{mresponse} {chatuser}')
@@ -303,12 +306,15 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                                                 if error.errno != errno.EEXIST:
                                                     raise
                                         try:
-                                            x = mresponse.split(' ')
-                                            c.privmsg(currentchannel, f'{x[0]} {chatuser} {x[1]}')
-                                            print(f'{self.TimeStamp()} {currentchannel} - {cfg.username}: {x[0]} {chatuser} {x[1]}')
+                                            splitresponse = mresponse.split(' ')
+                                            modoptions = ''
+                                            for x in splitresponse[1:]:
+                                                modoptions = f'{modoptions} {x}'
+                                            c.privmsg(currentchannel, f'{splitresponse[0]} {chatuser}{modoptions}')
+                                            print(f'{self.TimeStamp()} {currentchannel} - {cfg.username}: {splitresponse[0]} {chatuser}{modoptions}')
                                             f = open (f'Logs/ModTriggers/{currentchannel}_ModTriggerLog.txt', 'a+', encoding='utf-8-sig')
                                             f.write(f'{self.TimeStamp()} TRIGGER EVENT: {chatuser}: {themsg}\r\n')
-                                            f.write(f'{self.TimeStamp()} SENT: {cfg.username}: {x[0]} {chatuser} {x[1]}\r\n')
+                                            f.write(f'{self.TimeStamp()} SENT: {cfg.username}: {splitresponse[0]} {chatuser}{modoptions}\r\n')
                                             f.close()
                                         except:
                                             c.privmsg(currentchannel, f'{mresponse} {chatuser}')

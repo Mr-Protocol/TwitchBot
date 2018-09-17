@@ -121,25 +121,33 @@ ChatTriggers = {
 #Mod Triggers - ('Trigger','response')
 #if the response is /timeout you can leave blank for default timeout or specify a number of seconds
 #('trigger','/timeout 10')
+
+# Usage: "/timeout <login> [duration][time unit] [reason]" - Temporarily prevent a user from chatting.
+# Duration (optional, default=10 minutes) must be a positive integer; time unit (optional, default=s) must be one of s, m, h, d, w; maximum duration is 2 weeks.
+# Combinations like 1d2h are also allowed.
+
+#Usage: "/ban <username> [reason]" - Permanently prevent a user from chatting. Reason is optional and will be shown to the target user and other moderators. Use "unban" to remove a ban.
+
 ModTriggers = {
     '#mr_protocol':[
         ('thisisjustaplaceholder','/timeout 1')
     ],
-    '#thisisjustaplaceholder2':[
+    '#placeholder':[
         ('thisisjustaplaceholder','/timeout 1')
     ],
-    '#thisisjustaplaceholder3':[
+    '#placeholder2':[
         ('thisisjustaplaceholder','/timeout 1')
     ],
     #GLOBAL will try and do the commands in any channel, does not check if you have mod.
+
     'GLOBAL':[
-        ('░░░░░░░░░█▒░░░░▄▀','/ban'),
-        ('█████▀▒░░░░░░░░░░▄▄█','/ban'),
-        ('█▒░░░█▒█░░░░█─▄▄▀▒▀▀▀▄▄▀','/ban'), #3 dick ascii art
-        ('▀▄▄▀░░░░▀▄▒▒▒▒▒▒▒▒▒▒▀▄','/ban'),
-        ('███▓▓▒▒▒▀▀▀█▄░░░░█','/ban'),
-        ('██▒▒░░░▒▒░░░░░░█▀▄','/ban'), #ascii fatty dick
-        ('░░░█▐▀▀▀░▀▀▀▀░░▐░█','/timeout 300'), #ascii mario naked pooping on name
+        ('░░░░░░░░░█▒░░░░▄▀','/timeout 86400'),
+        ('█████▀▒░░░░░░░░░░▄▄█','/timeout 86400'),
+        ('█▒░░░█▒█░░░░█─▄▄▀▒▀▀▀▄▄▀','/timeout 86400 Hydra dick ascii'), #3 dick ascii art
+        ('▀▄▄▀░░░░▀▄▒▒▒▒▒▒▒▒▒▒▀▄','/timeout 86400'),
+        ('███▓▓▒▒▒▀▀▀█▄░░░░█','/timeout 86400'),
+        ('██▒▒░░░▒▒░░░░░░█▀▄','/timeout 86400 fat dick ascii'), #ascii fat dick
+        ('░░░█▐▀▀▀░▀▀▀▀░░▐░█','/timeout 300 naked mario poop'), #ascii mario naked pooping on name
         ('░░▐▐░░░▄░░░░▒▐▒░░░▄░░░','/timeout 900')
     ]
 }
