@@ -248,14 +248,14 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                                 except OSError as error:
                                     if error.errno != errno.EEXIST:
                                         raise
-                            f = open (f'Logs/ChatTriggers/{currentchannel}_ChatTriggerLog.txt', 'a+')
+                            f = open (f'Logs/ChatTriggers/{currentchannel}_ChatTriggerLog.txt', 'a+', encoding='utf-8-sig')
                             f.write(f'{self.TimeStamp()} TRIGGER EVENT: {chatuser}: {themsg}\r\n')
                             f.close()
                             if time.time() - self.epoch >= 90: #A little anti-spam for triggered words
                                 self.epoch = time.time()
                                 c.privmsg(currentchannel, cresponse)
                                 print(f'{self.TimeStamp()} {currentchannel} - {cfg.username}: {cresponse}')
-                                f = open (f'Logs/ChatTriggers/{currentchannel}_ChatTriggerLog.txt', 'a+')
+                                f = open (f'Logs/ChatTriggers/{currentchannel}_ChatTriggerLog.txt', 'a+', encoding='utf-8-sig')
                                 f.write(f'{self.TimeStamp()} SENT: {cfg.username}: {cresponse}\r\n')
                                 f.close()
            
