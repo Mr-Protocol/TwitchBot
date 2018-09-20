@@ -162,20 +162,20 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 isasub = x['value']
             if x['key'] == 'mod':
                 isamod = x['value']
+        if str.lower(chatuser) in currentchannel:
+            chatheader = ' - !HOST!-'
+        elif isamod == '1':
+            chatheader = ' - !MOD!-'
+        elif isasub == '1':
+            chatheader = ' - !SUB!-'
+        else:
+            chatheader = ' - '
         
-        #Chat Log - Prepend Host/Mod status to accounts in chat.
+        #Terminal Chat Log - Prepend Host/Mod status to accounts in chat.
         #Filter channels using ChanTermFilters to hide channel(s) chat from terminal
         if cfg.ChanFilters and currentchannel in cfg.ChanTermFilters:
             pass
         else:  
-            if str.lower(chatuser) in currentchannel:
-                chatheader = ' - !HOST!-'
-            elif isamod == '1':
-                chatheader = ' - !MOD!-'
-            elif isasub == '1':
-                chatheader = ' - !SUB!-'
-            else:
-                chatheader = ' - '
             print (f'{self.TimeStamp()} {currentchannel}{chatheader}{chatuser}: {themsg}')
         
         #Chat Highlights Log - Will log messages that contain username
@@ -193,14 +193,6 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         #Chat Logging To File
         if cfg.LogChatMessages:
             if 'GLOBAL' in cfg.ChatLogChannels or currentchannel in cfg.ChatLogChannels:
-                if str.lower(chatuser) in currentchannel:
-                    chatheader = ' - !HOST!-'
-                elif isamod == '1':
-                    chatheader = ' - !MOD!-'
-                elif isasub == '1':
-                    chatheader = ' - !SUB!-'
-                else:
-                    chatheader = ' - '
                 if not os.path.exists('Logs/Chat/'):
                     try:
                         os.makedirs('Logs/Chat/')
@@ -210,6 +202,14 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 f = open (f'Logs/Chat/{currentchannel}_ChatLog.txt', 'a+', encoding='utf-8-sig')
                 f.write(f'{self.TimeStamp()} {currentchannel}{chatheader}{chatuser}: {themsg}\r\n')
                 f.close()
+        
+        #Log potential messages for future mod triggers (ASCII ART)
+        if cfg.LogAscii:
+            for x in cfg.LogAsciiSet:
+                if x in themsg:
+                    f = open (f'Logs/Chat/{currentchannel}_ASCII.txt', 'a+', encoding='utf-8-sig')
+                    f.write(f'{self.TimeStamp()} {currentchannel}{chatheader}{chatuser}: {themsg}\r\n')
+                    f.close()
         
         #Repeater Mode aka Giveaway Mode
         if cfg.EnableKeywordRepeater: #Counting keyword           
@@ -295,6 +295,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         #print (e)
         #pass
         currentchannel = e.target
+        #Detects if cfg.username is a mod in a joined channel and adds it to a list
         for x in e.tags:
             if x['key'] == 'mod':
                 if x['value'] == '1':
@@ -332,9 +333,9 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                         if error.errno != errno.EEXIST:
                             raise
                 f = open (f'Logs/System/{currentchannel}_SystemMsgLog_{sysmsgid}.txt', 'a+', encoding='utf-8-sig')
-                if cfg.RawSystemMsgs:
+                if cfg.RawSystemMsgs: #Log RAW
                     f.write(f'{self.TimeStamp()} {str(e)}\r\n')
-                else:
+                else: #Log Simplified
                     f.write (f'{self.TimeStamp()} {sysmsg}\r\n')
                 f.close()
         
@@ -365,7 +366,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             if sysmsgid == 'raid' and cfg.AnnounceRaids and currentchannel in cfg.AnnounceRaidChannels:
                 c.privmsg(currentchannel, f'{cfg.RaidMsg} {sysmsg} {cfg.RaidMsg}')
             
-            #What happens when the script username is gifted a sub
+            #What happens when the cfg.username is gifted a sub
             if sysmsgid == 'subgift' and str.lower(subgiftrecipient) == str.lower(cfg.username):
                 c.privmsg(currentchannel, f'{cfg.GiftThanksMsg} {chatuser}')
                 f = open (f'Logs/{currentchannel}_GiftedSub.txt', 'a+', encoding='utf-8-sig')

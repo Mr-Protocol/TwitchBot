@@ -114,7 +114,13 @@ ChatTriggers = {
     ],
     #GLOBAL will try and do the commands in any channel.
     'GLOBAL':[
-        ('thisisjustaplaceholder', 'LUL', 0)
+        ('░░░░░░░░░█▒░░░░▄▀','Automated Drone Strike',1),
+        ('█████▀▒░░░░░░░░░░▄▄█','Automated Drone Strike',1),
+        ('█▒░░░█▒█░░░░█─▄▄▀▒▀▀▀▄▄▀','Automated Drone Strike',1), #3 dick ascii art
+        ('▀▄▄▀░░░░▀▄▒▒▒▒▒▒▒▒▒▒▀▄','Automated Drone Strike',1),
+        ('██▒▒░░░▒▒░░░░░░█▀▄','Automated Drone Strike',1), #ascii fat dick
+        ('░░░█▐▀▀▀░▀▀▀▀░░▐░█','Automated Drone Strike',1), #ascii mario naked pooping on name
+        ('░░▐▐░░░▄░░░░▒▐▒░░░▄░░░','Automated Drone Strike',1)
     ]
 }
 
@@ -140,13 +146,13 @@ ModTriggers = {
     ],
     #GLOBAL will try and do the commands in any channel, does not check if you have mod.
     'GLOBAL':[
-        ('░░░░░░░░░█▒░░░░▄▀','/timeout 1d ascii penis'),
-        ('█████▀▒░░░░░░░░░░▄▄█','/timeout 1d'),
-        ('█▒░░░█▒█░░░░█─▄▄▀▒▀▀▀▄▄▀','/timeout 1d Hydra dick ascii'), #3 dick ascii art
-        ('▀▄▄▀░░░░▀▄▒▒▒▒▒▒▒▒▒▒▀▄','/timeout 1d'),
-        ('██▒▒░░░▒▒░░░░░░█▀▄','/timeout 1d fat cock ascii'), #ascii fat dick
-        ('░░░█▐▀▀▀░▀▀▀▀░░▐░█','/timeout 300 naked mario poop'), #ascii mario naked pooping on name
-        ('░░▐▐░░░▄░░░░▒▐▒░░░▄░░░','/timeout 900')
+        ('░░░░░░░░░█▒░░░░▄▀','/timeout 5m ascii penis'),
+        ('█████▀▒░░░░░░░░░░▄▄█','/timeout 5m'),
+        ('█▒░░░█▒█░░░░█─▄▄▀▒▀▀▀▄▄▀','/timeout 5m Hydra dick ascii'), #3 dick ascii art
+        ('▀▄▄▀░░░░▀▄▒▒▒▒▒▒▒▒▒▒▀▄','/timeout 5m'),
+        ('██▒▒░░░▒▒░░░░░░█▀▄','/timeout 5m fat cock ascii'), #ascii fat dick
+        ('░░░█▐▀▀▀░▀▀▀▀░░▐░█','/timeout 60 naked mario poop'), #ascii mario naked pooping on name
+        ('░░▐▐░░░▄░░░░▒▐▒░░░▄░░░','/timeout 5m')
     ]
 }
 
@@ -162,6 +168,8 @@ KeywordRepeaterCount = 7
 #----------------------------------- Logs ----------------------------------
 #---------------------------------------------------------------------------
 
+#Chat Triggers and Mod Triggers are automatically logged.
+
 #Log timestamp timezone. 1=local, 0=UTC
 LogTimeZone = 0
 
@@ -170,6 +178,11 @@ LogHighlights = 1
 
 #Log all chat messages
 LogChatMessages = 1
+
+#Log ASCII Art
+LogAscii = 1
+#Containing chars
+LogAsciiSet = set('▄▀█▒▐░')
 
 #Chat Log only these channels
 #ChatLogChannels = ['#shroud', '#drdisrespectlive']
