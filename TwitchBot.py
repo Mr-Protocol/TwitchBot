@@ -139,6 +139,14 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         if cfg.AnnounceRaids:
             print ('Announcing raids in the following channels.')
             print (f'{cfg.AnnounceRaidChannels} - {cfg.RaidMsg} systemmsg {cfg.RaidMsg} \r\n')
+    
+    def CheckLogDir(self, logpath):
+        if not os.path.exists(f'Logs/{logpath}/'):
+            try:
+                os.makedirs(f'Logs/{logpath}/')
+            except OSError as error:
+                if error.errno != errno.EEXIST:
+                    raise
 
     def on_welcome(self, c, e):
         print (f'Joining {cfg.channels}\r\n')
@@ -180,25 +188,15 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         
         #Chat Highlights Log - Will log messages that contain username
         if cfg.LogHighlights and str.lower(cfg.username) in str.lower(themsg):
-            if not os.path.exists('Logs/Chat/'):
-                try:
-                    os.makedirs('Logs/Chat/')
-                except OSError as error:
-                    if error.errno != errno.EEXIST:
-                        raise
+            self.CheckLogDir('Chat')
             f = open (f'Logs/Chat/{currentchannel}_HighlightsLog.txt', 'a+', encoding='utf-8-sig')
-            f.write(f'{self.TimeStamp()} {currentchannel} - {chatuser}: {themsg}\r\n')
+            f.write(f'{self.TimeStamp()} {currentchannel}{chatheader}{chatuser}: {themsg}\r\n')
             f.close()
         
         #Chat Logging To File
         if cfg.LogChatMessages:
             if 'GLOBAL' in cfg.ChatLogChannels or currentchannel in cfg.ChatLogChannels:
-                if not os.path.exists('Logs/Chat/'):
-                    try:
-                        os.makedirs('Logs/Chat/')
-                    except OSError as error:
-                        if error.errno != errno.EEXIST:
-                            raise
+                self.CheckLogDir('Chat')
                 f = open (f'Logs/Chat/{currentchannel}_ChatLog.txt', 'a+', encoding='utf-8-sig')
                 f.write(f'{self.TimeStamp()} {currentchannel}{chatheader}{chatuser}: {themsg}\r\n')
                 f.close()
@@ -207,6 +205,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         if cfg.LogAscii:
             for x in cfg.LogAsciiSet:
                 if x in themsg:
+                    self.CheckLogDir('Chat')
                     f = open (f'Logs/Chat/{currentchannel}_ASCII.txt', 'a+', encoding='utf-8-sig')
                     f.write(f'{self.TimeStamp()} {currentchannel}{chatheader}{chatuser}: {themsg}\r\n')
                     f.close()
@@ -242,21 +241,16 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                             if cfg.AutomatedRespondEnabled:
                                 cresponse = f'{cresponse} {cfg.AutomatedResponseMsg}'
                             #Log it
-                            if not os.path.exists('Logs/ChatTriggers/'):
-                                try:
-                                    os.makedirs('Logs/ChatTriggers/')
-                                except OSError as error:
-                                    if error.errno != errno.EEXIST:
-                                        raise
+                            self.CheckLogDir('ChatTriggers')
                             f = open (f'Logs/ChatTriggers/{currentchannel}_ChatTriggerLog.txt', 'a+', encoding='utf-8-sig')
-                            f.write(f'{self.TimeStamp()} TRIGGER EVENT: {chatuser}: {themsg}\r\n')
+                            f.write(f'{self.TimeStamp()} TRIGGER EVENT: {currentchannel}{chatheader}{chatuser}: {themsg}\r\n')
                             f.close()
                             if time.time() - self.epoch >= 90: #A little anti-spam for triggered words
                                 self.epoch = time.time()
                                 c.privmsg(currentchannel, cresponse)
                                 print(f'{self.TimeStamp()} {currentchannel} - {cfg.username}: {cresponse}')
                                 f = open (f'Logs/ChatTriggers/{currentchannel}_ChatTriggerLog.txt', 'a+', encoding='utf-8-sig')
-                                f.write(f'{self.TimeStamp()} SENT: {cfg.username}: {cresponse}\r\n')
+                                f.write(f'{self.TimeStamp()} SENT: {chatheader}{cfg.username}: {cresponse}\r\n')
                                 f.close()
            
             #Mod Triggers - uses the lcase themsg and splits words via spaces
@@ -266,29 +260,24 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                         for x in range(len(cfg.ModTriggers[ChanAndGlobal])):
                             if str.lower(cfg.ModTriggers[ChanAndGlobal][x][0]) in str.lower(themsg):
                                 mresponse = cfg.ModTriggers[ChanAndGlobal][x][1]
-                                if not os.path.exists('Logs/ModTriggers/'):
-                                    try:
-                                        os.makedirs('Logs/ModTriggers/')
-                                    except OSError as error:
-                                        if error.errno != errno.EEXIST:
-                                            raise
+                                self.CheckLogDir('ModTriggers')
                                 try:
                                     splitresponse = mresponse.split(' ')
                                     modoptions = ''
                                     for x in splitresponse[1:]:
                                         modoptions = f'{modoptions} {x}'
                                     c.privmsg(currentchannel, f'{splitresponse[0]} {chatuser}{modoptions}')
-                                    print(f'{self.TimeStamp()} {currentchannel} - {cfg.username}: {splitresponse[0]} {chatuser}{modoptions}')
+                                    print(f'{self.TimeStamp()} {currentchannel} - !MOD!-{cfg.username}: {splitresponse[0]} {chatuser}{modoptions}')
                                     f = open (f'Logs/ModTriggers/{currentchannel}_ModTriggerLog.txt', 'a+', encoding='utf-8-sig')
-                                    f.write(f'{self.TimeStamp()} TRIGGER EVENT: {chatuser}: {themsg}\r\n')
-                                    f.write(f'{self.TimeStamp()} SENT: {cfg.username}: {splitresponse[0]} {chatuser}{modoptions}\r\n')
+                                    f.write(f'{self.TimeStamp()} TRIGGER EVENT: {chatheader}{chatuser}: {themsg}\r\n')
+                                    f.write(f'{self.TimeStamp()} SENT: !MOD!-{cfg.username}: {splitresponse[0]} {chatuser}{modoptions}\r\n')
                                     f.close()
                                 except:
                                     c.privmsg(currentchannel, f'{mresponse} {chatuser}')
-                                    print(f'{self.TimeStamp()} {currentchannel} - {cfg.username}: {mresponse} {chatuser}')
+                                    print(f'{self.TimeStamp()} {currentchannel} - !MOD!-{cfg.username}: {mresponse} {chatuser}')
                                     f = open (f'Logs/ModTriggers/{currentchannel}_ModTriggerLog.txt', 'a+', encoding='utf-8-sig')
-                                    f.write(f'{self.TimeStamp()} TRIGGER EVENT: {chatuser}: {themsg}\r\n')
-                                    f.write(f'{self.TimeStamp()} SENT: {cfg.username}: {mresponse} {chatuser}\r\n')
+                                    f.write(f'{self.TimeStamp()} TRIGGER EVENT: {chatheader}{chatuser}: {themsg}\r\n')
+                                    f.write(f'{self.TimeStamp()} SENT: !MOD!-{cfg.username}: {mresponse} {chatuser}\r\n')
                                     f.close()
        
     def on_userstate(self, c, e):
@@ -326,12 +315,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         #Log system mesages
         if cfg.LogSystemMessages:
             if 'GLOBAL' in cfg.SysMsgLogChannels or currentchannel in cfg.SysMsgLogChannels:
-                if not os.path.exists('Logs/System/'):
-                    try:
-                        os.makedirs('Logs/System/')
-                    except OSError as error:
-                        if error.errno != errno.EEXIST:
-                            raise
+                self.CheckLogDir('System')
                 f = open (f'Logs/System/{currentchannel}_SystemMsgLog_{sysmsgid}.txt', 'a+', encoding='utf-8-sig')
                 if cfg.RawSystemMsgs: #Log RAW
                     f.write(f'{self.TimeStamp()} {str(e)}\r\n')
