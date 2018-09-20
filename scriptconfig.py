@@ -114,13 +114,13 @@ ChatTriggers = {
     ],
     #GLOBAL will try and do the commands in any channel.
     'GLOBAL':[
-        ('░░░░░░░░░█▒░░░░▄▀','Automated Drone Strike',1),
-        ('█████▀▒░░░░░░░░░░▄▄█','Automated Drone Strike',1),
-        ('█▒░░░█▒█░░░░█─▄▄▀▒▀▀▀▄▄▀','Automated Drone Strike',1), #3 dick ascii art
-        ('▀▄▄▀░░░░▀▄▒▒▒▒▒▒▒▒▒▒▀▄','Automated Drone Strike',1),
-        ('██▒▒░░░▒▒░░░░░░█▀▄','Automated Drone Strike',1), #ascii fat dick
-        ('░░░█▐▀▀▀░▀▀▀▀░░▐░█','Automated Drone Strike',1), #ascii mario naked pooping on name
-        ('░░▐▐░░░▄░░░░▒▐▒░░░▄░░░','Automated Drone Strike',1)
+        ('░░░░░░░░░█▒░░░░▄▀','Automated Drone Strike - Target:',1),
+        ('█████▀▒░░░░░░░░░░▄▄█','Automated Drone Strike - Target:',1),
+        ('█▒░░░█▒█░░░░█─▄▄▀▒▀▀▀▄▄▀','Automated Drone Strike - Target:',1), #3 dick ascii art
+        ('▀▄▄▀░░░░▀▄▒▒▒▒▒▒▒▒▒▒▀▄','Automated Drone Strike - Target:',1),
+        ('██▒▒░░░▒▒░░░░░░█▀▄','Automated Drone Strike - Target:',1), #ascii fat dick
+        ('░░░█▐▀▀▀░▀▀▀▀░░▐░█','Automated Drone Strike - Target:',1), #ascii mario naked pooping on name
+        ('░░▐▐░░░▄░░░░▒▐▒░░░▄░░░','Automated Drone Strike - Target:',1)
     ]
 }
 
