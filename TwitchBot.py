@@ -201,7 +201,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 f.write(f'{self.TimeStamp()} {currentchannel}{chatheader}{chatuser}: {themsg}\r\n')
                 f.close()
         
-        #Log potential messages for future mod triggers (ASCII ART)
+        #ASCII ART - Log potential messages for future mod triggers
         if cfg.LogAscii:
             for x in cfg.LogAsciiSet:
                 if x in themsg:
@@ -209,6 +209,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     f = open (f'Logs/Chat/{currentchannel}_ASCII.txt', 'a+', encoding='utf-8-sig')
                     f.write(f'{self.TimeStamp()} {currentchannel}{chatheader}{chatuser}: {themsg}\r\n')
                     f.close()
+                    break
         
         #Repeater Mode aka Giveaway Mode
         if cfg.EnableKeywordRepeater: #Counting keyword           
