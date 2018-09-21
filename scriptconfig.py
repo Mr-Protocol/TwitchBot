@@ -114,19 +114,14 @@ ChatTriggers = {
     ],
     #GLOBAL will try and do the commands in any channel.
     'GLOBAL':[
-        ('░░░░░░░░░█▒░░░░▄▀','Automated Drone Strike - Target:',1),
-        ('█████▀▒░░░░░░░░░░▄▄█','Automated Drone Strike - Target:',1),
-        ('█▒░░░█▒█░░░░█─▄▄▀▒▀▀▀▄▄▀','Automated Drone Strike - Target:',1), #3 dick ascii art
-        ('▀▄▄▀░░░░▀▄▒▒▒▒▒▒▒▒▒▒▀▄','Automated Drone Strike - Target:',1),
-        ('██▒▒░░░▒▒░░░░░░█▀▄','Automated Drone Strike - Target:',1), #ascii fat dick
-        ('░░░█▐▀▀▀░▀▀▀▀░░▐░█','Automated Drone Strike - Target:',1), #ascii mario naked pooping on name
-        ('░░▐▐░░░▄░░░░▒▐▒░░░▄░░░','Automated Drone Strike - Target:',1)
+        ('Thisisjustaplaceholder','MORE HYPE!',1)
     ]
 }
 
-#Mod Triggers - ('Trigger','response')
-#if the response is /timeout you can leave blank for default timeout or specify a number of seconds
-#('trigger','/timeout 10')
+#Mod Triggers - ('Trigger','mod action','Text response',1/0)
+#If the mod action is /timeout you can leave blank for default timeout or specify a number of seconds
+#If no text response is desired, put None without quotes
+#The 1/0 means put either a 1 or 0 to tag the chat user in the txt response. 1=tag 0=no tag
 
 # Usage: "/timeout <login> [duration][time unit] [reason]" - Temporarily prevent a user from chatting.
 # Duration (optional, default=10 minutes) must be a positive integer; time unit (optional, default=s) must be one of s, m, h, d, w; maximum duration is 2 weeks.
@@ -136,23 +131,25 @@ ChatTriggers = {
 
 ModTriggers = {
     '#mr_protocol':[
-        ('thisisjustaplaceholder','/timeout 1')
+        ('thisisjustaplaceholder','/timeout 1',None,1)
     ],
     '#placeholder':[
-        ('thisisjustaplaceholder','/timeout 1')
+        ('thisisjustaplaceholder','/timeout 1',None,1)
     ],
     '#placeholder2':[
-        ('thisisjustaplaceholder','/timeout 1')
+        ('thisisjustaplaceholder','/timeout 1',None,1)
     ],
-    #GLOBAL will try and do the commands in any channel, does not check if you have mod.
+    #GLOBAL apply to all channels where username has mod.
     'GLOBAL':[
-        ('░░░░░░░░░█▒░░░░▄▀','/timeout 5m ascii penis'),
-        ('█████▀▒░░░░░░░░░░▄▄█','/timeout 5m'),
-        ('█▒░░░█▒█░░░░█─▄▄▀▒▀▀▀▄▄▀','/timeout 5m Hydra dick ascii'), #3 dick ascii art
-        ('▀▄▄▀░░░░▀▄▒▒▒▒▒▒▒▒▒▒▀▄','/timeout 5m'),
-        ('██▒▒░░░▒▒░░░░░░█▀▄','/timeout 5m fat cock ascii'), #ascii fat dick
-        ('░░░█▐▀▀▀░▀▀▀▀░░▐░█','/timeout 60 naked mario poop'), #ascii mario naked pooping on name
-        ('░░▐▐░░░▄░░░░▒▐▒░░░▄░░░','/timeout 5m')
+        ('░░░░░░░░░█▒░░░░▄▀','/timeout 1 ascii penis','Automated Drone Strike - Target:',1),
+        ('█████▀▒░░░░░░░░░░▄▄█','/timeout 5m','Automated Drone Strike - Target:',1),
+        ('█▒░░░█▒█░░░░█─▄▄▀▒▀▀▀▄▄▀','/timeout 5m Hydra dick ascii','Automated Drone Strike - Target:',1), #3 dick ascii art
+        ('▀▄▄▀░░░░▀▄▒▒▒▒▒▒▒▒▒▒▀▄','/timeout 5m','Automated Drone Strike - Target:',1),
+        ('██▒▒░░░▒▒░░░░░░█▀▄','/timeout 5m fat cock ascii','Automated Drone Strike - Target:',1), #ascii fat dick
+        ('░░░█▐▀▀▀░▀▀▀▀░░▐░█','/timeout 60 naked mario poop','Automated Drone Strike - Target:',1), #ascii mario naked pooping on name
+        ('░░▐▐░░░▄░░░░▒▐▒░░░▄░░░','/timeout 5m','Automated Drone Strike - Target:',1),
+        ('█░░░▐░░░░░░░░▄░█','/timeout 5m','Automated Drone Strike - Target:',1), #ascii poop or something
+        ('█░░░█░░░░▒▒▓█▒▒░░░▒▒▓','/timeout 5m','Automated Drone Strike - Target:',1) #another penis ascii
     ]
 }
 
