@@ -262,6 +262,13 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                             if str.lower(cfg.ModTriggers[ChanAndGlobal][x][0]) in str.lower(themsg):
                                 mresponse = cfg.ModTriggers[ChanAndGlobal][x][1]
                                 self.CheckLogDir('ModTriggers')
+                                #Handle mod text response
+                                if cfg.ModTriggers[ChanAndGlobal][x][2]:
+                                    txtreponse = cfg.ModTriggers[ChanAndGlobal][x][2]
+                                    if cfg.ModTriggers[ChanAndGlobal][x][3]:
+                                        txtreponse = f'{txtreponse} {chatuser}'
+                                    c.privmsg(currentchannel, f'{txtreponse}')
+                                    print(f'{self.TimeStamp()} {currentchannel} - !MOD!-{cfg.username}: {txtreponse}')
                                 try:
                                     splitresponse = mresponse.split(' ')
                                     modoptions = ''
@@ -269,6 +276,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                                         modoptions = f'{modoptions} {x}'
                                     c.privmsg(currentchannel, f'{splitresponse[0]} {chatuser}{modoptions}')
                                     print(f'{self.TimeStamp()} {currentchannel} - !MOD!-{cfg.username}: {splitresponse[0]} {chatuser}{modoptions}')
+                                    
                                     f = open (f'Logs/ModTriggers/{currentchannel}_ModTriggerLog.txt', 'a+', encoding='utf-8-sig')
                                     f.write(f'{self.TimeStamp()} TRIGGER EVENT: {chatheader}{chatuser}: {themsg}\r\n')
                                     f.write(f'{self.TimeStamp()} SENT: !MOD!-{cfg.username}: {splitresponse[0]} {chatuser}{modoptions}\r\n')
