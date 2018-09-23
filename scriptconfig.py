@@ -141,15 +141,12 @@ ModTriggers = {
     ],
     #GLOBAL apply to all channels where username has mod.
     'GLOBAL':[
-        ('░░░░░░░░░█▒░░░░▄▀','/timeout 1 ascii penis','Automated Drone Strike - Target:',1),
-        ('█████▀▒░░░░░░░░░░▄▄█','/timeout 5m','Automated Drone Strike - Target:',1),
-        ('█▒░░░█▒█░░░░█─▄▄▀▒▀▀▀▄▄▀','/timeout 5m Hydra dick ascii','Automated Drone Strike - Target:',1), #3 dick ascii art
-        ('▀▄▄▀░░░░▀▄▒▒▒▒▒▒▒▒▒▒▀▄','/timeout 5m','Automated Drone Strike - Target:',1),
-        ('██▒▒░░░▒▒░░░░░░█▀▄','/timeout 5m fat cock ascii','Automated Drone Strike - Target:',1), #ascii fat dick
-        ('░░░█▐▀▀▀░▀▀▀▀░░▐░█','/timeout 60 naked mario poop','Automated Drone Strike - Target:',1), #ascii mario naked pooping on name
-        ('░░▐▐░░░▄░░░░▒▐▒░░░▄░░░','/timeout 5m','Automated Drone Strike - Target:',1),
-        ('█░░░▐░░░░░░░░▄░█','/timeout 5m','Automated Drone Strike - Target:',1), #ascii poop or something
-        ('█░░░█░░░░▒▒▓█▒▒░░░▒▒▓','/timeout 5m','Automated Drone Strike - Target:',1) #another penis ascii
+        ('▄','/timeout 2m ASCII Art Char','Automated Drone Strike - Target:',1),
+        ('▀','/timeout 2m ASCII Art Char','Automated Drone Strike - Target:',1),
+        ('█','/timeout 2m ASCII Art Char','Automated Drone Strike - Target:',1),
+        ('▒','/timeout 2m ASCII Art Char','Automated Drone Strike - Target:',1),
+        ('▐','/timeout 2m ASCII Art Char','Automated Drone Strike - Target:',1),
+        ('░','/timeout 2m ASCII Art Char','Automated Drone Strike - Target:',1)
     ]
 }
 
