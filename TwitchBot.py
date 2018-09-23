@@ -276,7 +276,6 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                                         modoptions = f'{modoptions} {x}'
                                     c.privmsg(currentchannel, f'{splitresponse[0]} {chatuser}{modoptions}')
                                     print(f'{self.TimeStamp()} {currentchannel} - !MOD!-{cfg.username}: {splitresponse[0]} {chatuser}{modoptions}')
-                                    
                                     f = open (f'Logs/ModTriggers/{currentchannel}_ModTriggerLog.txt', 'a+', encoding='utf-8-sig')
                                     f.write(f'{self.TimeStamp()} TRIGGER EVENT: {chatheader}{chatuser}: {themsg}\r\n')
                                     f.write(f'{self.TimeStamp()} SENT: !MOD!-{cfg.username}: {splitresponse[0]} {chatuser}{modoptions}\r\n')
