@@ -160,7 +160,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         themsg = e.arguments[0]
         currentchannel = e.target
         #Used for debugging.
-        #print (e)
+        print (e)
         
         #Chat log with usernames and Moderator status.
         for x in e.tags:
@@ -287,10 +287,9 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                                     f.write(f'{self.TimeStamp()} TRIGGER EVENT: {chatheader}{chatuser}: {themsg}\r\n')
                                     f.write(f'{self.TimeStamp()} SENT: !MOD!-{cfg.username}: {mresponse} {chatuser}\r\n')
                                     f.close()
-       
+    
     def on_userstate(self, c, e):
         #print (e)
-        #pass
         currentchannel = e.target
         #Detects if cfg.username is a mod in a joined channel and adds it to a list
         for x in e.tags:
@@ -301,7 +300,6 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     self.dbModChannels.append(currentchannel)
 
     def on_usernotice(self, c, e):
-        #Example
         #print (e)
         currentchannel = e.target
         for x in e.tags:
@@ -366,6 +364,40 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 f.write(f'{self.TimeStamp()} - {cfg.username}: {cfg.GiftThanksMsg} {chatuser}\r\n')
                 f.close()
         
+    def on_clearchat(self, c, e):
+        #works
+        print (e)
+    
+    def on_globaluserstate(self, c, e):
+        print (e)
+    
+    def notice(self, c, e):
+        print (e)
+    
+    def on_roomstate(self, c, e):
+        print (e)
+    
+    def on_mode(self, c, e):
+        #works
+        print (e)
+
+    def on_names(self, c, e):
+        print (e)
+
+    def on_join(self, c, e):
+        #print (e)
+        pass
+    
+    def on_part(self, c, e):
+        #print (e)
+        pass
+    
+    def on_hosttarget(self, c, e):
+        print (e)
+    
+    def on_privmsg(self, c, e):
+        print (e)
+
 def main():
     bot = TwitchBot(cfg.username, cfg.token, cfg.channels)
     bot.start()
