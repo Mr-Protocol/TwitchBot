@@ -376,6 +376,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             currentchannel = e.target
             user = e.arguments[0]
             banduration = None
+            banreason = None
             for x in e.tags:
                 if x['key'] == 'ban-duration':
                     banduration = x['value']
