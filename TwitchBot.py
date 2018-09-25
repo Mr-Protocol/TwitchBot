@@ -160,7 +160,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         themsg = e.arguments[0]
         currentchannel = e.target
         #Used for debugging.
-        print (e)
+        #print (e)
         
         #Chat log with usernames and Moderator status.
         for x in e.tags:
@@ -313,7 +313,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 subgiftrecipient = x['value']
         
         #Filter channels from terminal output
-        if currentchannel in cfg.ChanTermFilters:
+        if cfg.ChanFilters and currentchannel in cfg.ChanTermFilters:
             pass
         else:   
             print (f'{self.TimeStamp()} {currentchannel} - {sysmsg}')
@@ -365,38 +365,100 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 f.close()
         
     def on_clearchat(self, c, e):
-        #works
-        print (e)
+        #Shows when a user is banned
+        #type: clearchat, source: tmi.twitch.tv, target: #CHANNEL, arguments: ['USERBANNED'], tags: [{'key': 'ban-duration', 'value': '10'}, {'key': 'ban-reason', 'value': 'Accented language detected, English only please! [warning] – ohbot'}, {'key': 'room-id', 'value': 'XXXXXXXX'}, {'key': 'target-msg-id', 'value': 'XXXXXXXXXXXXXXXXXXX'}, {'key': 'target-user-id', 'value': 'XXXXX'}, {'key': 'tmi-sent-ts', 'value': 'XXXXXXXXXXXXX'}]
+        #type: clearchat, source: tmi.twitch.tv, target: #CHANNEL, arguments: ['USERBANNED'], tags: [{'key': 'ban-reason', 'value': None}, {'key': 'room-id', 'value': 'XXXXXXXXXX'}, {'key': 'target-user-id', 'value': 'XXXXX'}, {'key': 'tmi-sent-ts', 'value': 'XXXXXXXXXXXXX'}]
+        #print (e)
+        
+        if cfg.ChanFilters and e.target in cfg.ChanTermFilters:
+            pass
+        else:
+            currentchannel = e.target
+            user = e.arguments[0]
+            banduration = None
+            for x in e.tags:
+                if x['key'] == 'ban-duration':
+                    banduration = x['value']
+                if x['key'] == 'ban-reason':
+                    banreason = x['value']
+            if banduration:
+                if banreason:
+                    print (f'{currentchannel} - {user} timeout for {banduration} seconds. {banreason}')
+                else:
+                    print (f'{currentchannel} - {user} timeout for {banduration} seconds.')
+            else:
+                if banreason:
+                    print (f'{currentchannel} - {user} is banned. {banreason}')
+                else:
+                    print (f'{currentchannel} - {user} is banned.')
     
     def on_globaluserstate(self, c, e):
-        print (e)
-    
-    def notice(self, c, e):
+        #Not sure if this is real or not
         print (e)
     
     def on_roomstate(self, c, e):
-        print (e)
+        #Shows current chat settings for channel
+        #type: roomstate, source: tmi.twitch.tv, target: #CHANNEL, arguments: [], tags: [{'key': 'broadcaster-lang', 'value': None}, {'key': 'emote-only', 'value': '0'}, {'key': 'followers-only', 'value': '2'}, {'key': 'r9k', 'value': '0'}, {'key': 'rituals', 'value': '0'}, {'key': 'room-id', 'value': 'XXXXXXXX'}, {'key': 'slow', 'value': '0'}, {'key': 'subs-only', 'value': '0'}]
+        #print (e)
+        pass
     
     def on_mode(self, c, e):
-        #works
-        print (e)
-
-    def on_names(self, c, e):
-        print (e)
+        #Shows +/- mod permissions
+        #print (e)
+        pass
 
     def on_join(self, c, e):
+        #User joins the channel
         #print (e)
         pass
     
     def on_part(self, c, e):
+        #User parts or leaves channel
         #print (e)
         pass
     
     def on_hosttarget(self, c, e):
-        print (e)
+        #Shows hosting info
+        #type: hosttarget, source: tmi.twitch.tv, target: #CHANNEL, arguments: ['channelbeinghosted -'], tags: []
+        #print (e)
+        pass
     
     def on_privmsg(self, c, e):
+        #Not sure if this is real or not
         print (e)
+    
+    def on_privnotice(self, c, e):
+        #Not sure if this is real or not
+        print (e)
+    
+    def on_pubnotice(self, c, e):
+        #Shows hosting message
+        #Shows other channel options: slow mode, emote mode, etc.
+        #type: pubnotice, source: tmi.twitch.tv, target: #CHANNEL, arguments: ['Now hosting User.'], tags: [{'key': 'msg-id', 'value': 'host_on'}]
+        #type: pubnotice, source: tmi.twitch.tv, target: #CHANNEL, arguments: ['Exited host mode.'], tags: [{'key': 'msg-id', 'value': 'host_off'}]
+        #type: pubnotice, source: tmi.twitch.tv, target: #CHANNEL, arguments: ['This room is now in subscribers-only mode.'], tags: [{'key': 'msg-id', 'value': 'subs_on'}]
+        #print (e)
+
+        if cfg.ChanFilters and e.target in cfg.ChanTermFilters:
+            pass
+        else:
+            currentchannel = e.target
+            noticemsg = e.arguments[0]
+            print (f'{self.TimeStamp()} {currentchannel} - {noticemsg}')
+
+    def on_whisper(self, c, e):
+        #Received twitch direct messages
+        #type: whisper, source: USER!USER@USER.tmi.twitch.tv, target: mr_protocol, arguments: ['THEMESSAGE'], tags: [{'key': 'badges', 'value': None}, {'key': 'color', 'value': None}, {'key': 'display-name', 'value': 'USERNAME'}, {'key': 'emotes', 'value': None}, {'key': 'message-id', 'value': 'XX'}, {'key': 'thread-id', 'value': 'XXXXXX_XXXXXXXX'}, {'key': 'turbo', 'value': '0'}, {'key': 'user-id', 'value': 'XXXXXXXX'}, {'key': 'user-type', 'value': None}]
+        #print (e)
+
+        if cfg.ChanFilters and e.target in cfg.ChanTermFilters:
+            pass
+        else:
+            whisper = e.arguments[0]
+            for x in e.tags:
+                if x['key'] == 'display-name':
+                    chatuser = x['value']
+            print (f'{self.TimeStamp()} Direct Message - {chatuser}: {whisper}')
 
 def main():
     bot = TwitchBot(cfg.username, cfg.token, cfg.channels)
