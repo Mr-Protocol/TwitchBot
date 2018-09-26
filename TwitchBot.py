@@ -454,7 +454,9 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         else:
             currentchannel = e.target
             noticemsg = e.arguments[0]
+            
             print (f'PUBNOTICE - {self.TimeStamp()} {currentchannel} - {noticemsg}')
+            
             if cfg.LogPubnotice:
                 self.CheckLogDir('pubnotice')
                 f = open (f'Logs/pubnotice/{currentchannel}_pubnotice.txt', 'a+', encoding='utf-8-sig')
@@ -466,14 +468,11 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         #type: whisper, source: USER!USER@USER.tmi.twitch.tv, target: mr_protocol, arguments: ['THEMESSAGE'], tags: [{'key': 'badges', 'value': None}, {'key': 'color', 'value': None}, {'key': 'display-name', 'value': 'USERNAME'}, {'key': 'emotes', 'value': None}, {'key': 'message-id', 'value': 'XX'}, {'key': 'thread-id', 'value': 'XXXXXX_XXXXXXXX'}, {'key': 'turbo', 'value': '0'}, {'key': 'user-id', 'value': 'XXXXXXXX'}, {'key': 'user-type', 'value': None}]
         #print (e)
 
-        if cfg.ChanFilters and e.target in cfg.ChanTermFilters:
-            pass
-        else:
-            whisper = e.arguments[0]
-            for x in e.tags:
-                if x['key'] == 'display-name':
-                    chatuser = x['value']
-            print (f'WHISPER - {self.TimeStamp()} Direct Message - {chatuser}: {whisper}')
+        whisper = e.arguments[0]
+        for x in e.tags:
+            if x['key'] == 'display-name':
+                chatuser = x['value']
+        print (f'WHISPER - {self.TimeStamp()} Direct Message - {chatuser}: {whisper}')
 
 def main():
     bot = TwitchBot(cfg.username, cfg.token, cfg.channels)
