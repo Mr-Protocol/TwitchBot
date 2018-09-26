@@ -141,12 +141,7 @@ ModTriggers = {
     ],
     #GLOBAL apply to all channels where username has mod.
     'GLOBAL':[
-        ('▄','/timeout 2m ASCII Art Char','Automated Drone Strike - Target:',1),
-        ('▀','/timeout 2m ASCII Art Char','Automated Drone Strike - Target:',1),
-        ('█','/timeout 2m ASCII Art Char','Automated Drone Strike - Target:',1),
-        ('▒','/timeout 2m ASCII Art Char','Automated Drone Strike - Target:',1),
-        ('▐','/timeout 2m ASCII Art Char','Automated Drone Strike - Target:',1),
-        ('░','/timeout 2m ASCII Art Char','Automated Drone Strike - Target:',1)
+        ('█','/timeout 2m ASCII Art Char',None,1), #most common ASCII Art Character
     ]
 }
 
@@ -164,7 +159,7 @@ KeywordRepeaterCount = 7
 
 #Chat Triggers and Mod Triggers are automatically logged.
 
-#Log timestamp timezone. 1=local, 0=UTC
+#Log timestamp timezone. 1=Local, 0=UTC
 LogTimeZone = 0
 
 #Log chat username highlights (Global)
@@ -193,3 +188,9 @@ RawSystemMsgs = 0
 #SysMsgLogChannels = ['#mr_protocol', '#shroud']
 #SysMsgLogChannel = ['GLOBAL'] #Logs all joined channels
 SysMsgLogChannels = ['GLOBAL']
+
+#Log pubnotice messages
+LogPubnotice = 1
+
+#Log clearchat messages
+LogClearchat = 1
