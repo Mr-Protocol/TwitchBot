@@ -203,13 +203,11 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         
         #ASCII ART - Log potential messages for future mod triggers
         if cfg.LogAscii:
-            for x in cfg.LogAsciiSet:
-                if x in themsg:
-                    self.CheckLogDir('Chat')
-                    f = open (f'Logs/Chat/{currentchannel}_ASCII.txt', 'a+', encoding='utf-8-sig')
-                    f.write(f'{self.TimeStamp()} {currentchannel}{chatheader}{chatuser}: {themsg}\r\n')
-                    f.close()
-                    break
+            if any(x in cfg.LogAsciiSet for x in themsg):
+                self.CheckLogDir('Chat')
+                f = open (f'Logs/Chat/{currentchannel}_ASCII.txt', 'a+', encoding='utf-8-sig')
+                f.write(f'{self.TimeStamp()} {currentchannel}{chatheader}{chatuser}: {themsg}\r\n')
+                f.close()
         
         #Repeater Mode aka Giveaway Mode
         if cfg.EnableKeywordRepeater: #Counting keyword           
@@ -370,28 +368,38 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         #type: clearchat, source: tmi.twitch.tv, target: #CHANNEL, arguments: ['USERBANNED'], tags: [{'key': 'ban-reason', 'value': None}, {'key': 'room-id', 'value': 'XXXXXXXXXX'}, {'key': 'target-user-id', 'value': 'XXXXX'}, {'key': 'tmi-sent-ts', 'value': 'XXXXXXXXXXXXX'}]
         #print (e)
         
+        currentchannel = e.target
+        user = e.arguments[0]
+        banduration = None
+        banreason = None
+        for x in e.tags:
+            if x['key'] == 'ban-duration':
+                banduration = x['value']
+            if x['key'] == 'ban-reason':
+                banreason = x['value']
+
         if cfg.ChanFilters and e.target in cfg.ChanTermFilters:
             pass
         else:
-            currentchannel = e.target
-            user = e.arguments[0]
-            banduration = None
-            banreason = None
-            for x in e.tags:
-                if x['key'] == 'ban-duration':
-                    banduration = x['value']
-                if x['key'] == 'ban-reason':
-                    banreason = x['value']
             if banduration:
                 if banreason:
-                    print (f'{currentchannel} - {user} timeout for {banduration} seconds. {banreason}')
+                    banmsg = f'{self.TimeStamp()} {currentchannel} - {user} timeout for {banduration} seconds. {banreason}'
                 else:
-                    print (f'{currentchannel} - {user} timeout for {banduration} seconds.')
+                    banmsg = f'{self.TimeStamp()} {currentchannel} - {user} timeout for {banduration} seconds.'
             else:
                 if banreason:
-                    print (f'{currentchannel} - {user} is banned. {banreason}')
+                    banmsg = f'{self.TimeStamp()} {currentchannel} - {user} is banned. {banreason}'
                 else:
-                    print (f'{currentchannel} - {user} is banned.')
+                    banmsg = f'{self.TimeStamp()} {currentchannel} - {user} is banned.'
+
+            print (f'CLEARCHAT - {banmsg}')
+            
+            if cfg.LogClearchat:
+                self.CheckLogDir('clearchat')
+                f = open (f'Logs/clearchat/{currentchannel}_clearchat.txt', 'a+', encoding='utf-8-sig')
+                f.write(f'{banmsg}\r\n')
+                f.close()
+
     
     def on_globaluserstate(self, c, e):
         #Not sure if this is real or not
@@ -438,6 +446,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         #type: pubnotice, source: tmi.twitch.tv, target: #CHANNEL, arguments: ['Now hosting User.'], tags: [{'key': 'msg-id', 'value': 'host_on'}]
         #type: pubnotice, source: tmi.twitch.tv, target: #CHANNEL, arguments: ['Exited host mode.'], tags: [{'key': 'msg-id', 'value': 'host_off'}]
         #type: pubnotice, source: tmi.twitch.tv, target: #CHANNEL, arguments: ['This room is now in subscribers-only mode.'], tags: [{'key': 'msg-id', 'value': 'subs_on'}]
+        #type: pubnotice, source: tmi.twitch.tv, target: #CHANNEL, arguments: ['USER has been timed out for 2 seconds.'], tags: [{'key': 'msg-id', 'value': 'timeout_success'}]
         #print (e)
 
         if cfg.ChanFilters and e.target in cfg.ChanTermFilters:
@@ -445,7 +454,12 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         else:
             currentchannel = e.target
             noticemsg = e.arguments[0]
-            print (f'{self.TimeStamp()} {currentchannel} - {noticemsg}')
+            print (f'PUBNOTICE - {self.TimeStamp()} {currentchannel} - {noticemsg}')
+            if cfg.LogPubnotice:
+                self.CheckLogDir('pubnotice')
+                f = open (f'Logs/pubnotice/{currentchannel}_pubnotice.txt', 'a+', encoding='utf-8-sig')
+                f.write(f'{self.TimeStamp()} {currentchannel} - {noticemsg}\r\n')
+                f.close()
 
     def on_whisper(self, c, e):
         #Received twitch direct messages
@@ -459,7 +473,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             for x in e.tags:
                 if x['key'] == 'display-name':
                     chatuser = x['value']
-            print (f'{self.TimeStamp()} Direct Message - {chatuser}: {whisper}')
+            print (f'WHISPER - {self.TimeStamp()} Direct Message - {chatuser}: {whisper}')
 
 def main():
     bot = TwitchBot(cfg.username, cfg.token, cfg.channels)
