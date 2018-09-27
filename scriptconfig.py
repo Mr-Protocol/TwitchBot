@@ -98,6 +98,9 @@ AutomatedRespondEnabled = 0
 #Automated text to append to normal triggers
 AutomatedResponseMsg = '(Automated Response)'
 
+#Enable Chat Triggers
+EnableChatTriggers = 0
+
 #Chat Triggers - ('Trigger','response', 1) 1 = tag user, 0 = don't tag user
 ChatTriggers = {
     '#mr_protocol':[
@@ -128,6 +131,9 @@ ChatTriggers = {
 # Combinations like 1d2h are also allowed.
 
 #Usage: "/ban <username> [reason]" - Permanently prevent a user from chatting. Reason is optional and will be shown to the target user and other moderators. Use "unban" to remove a ban.
+
+#Enable Mod Triggers
+EnableModTriggers = 0
 
 ModTriggers = {
     '#mr_protocol':[
