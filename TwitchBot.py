@@ -230,61 +230,64 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             pass
         else:        
             #Chat Triggers - uses lcase themsg directly
-            for ChanAndGlobal in cfg.ChatTriggers:
-                if currentchannel == ChanAndGlobal or ChanAndGlobal == 'GLOBAL':
-                    for x in range(len(cfg.ChatTriggers[ChanAndGlobal])):
-                        if str.lower(cfg.ChatTriggers[ChanAndGlobal][x][0]) in str.lower(themsg):
-                            cresponse = cfg.ChatTriggers[ChanAndGlobal][x][1]
-                            if cfg.ChatTriggers[ChanAndGlobal][x][2]:
-                                cresponse = f'{cresponse} {chatuser}'
-                            if cfg.AutomatedRespondEnabled:
-                                cresponse = f'{cresponse} {cfg.AutomatedResponseMsg}'
-                            #Log it
-                            self.CheckLogDir('ChatTriggers')
-                            f = open (f'Logs/ChatTriggers/{currentchannel}_ChatTriggerLog.txt', 'a+', encoding='utf-8-sig')
-                            f.write(f'{self.TimeStamp()} TRIGGER EVENT: {currentchannel}{chatheader}{chatuser}: {themsg}\r\n')
-                            f.close()
-                            if time.time() - self.epoch >= 90: #A little anti-spam for triggered words
-                                self.epoch = time.time()
-                                c.privmsg(currentchannel, cresponse)
-                                print(f'{self.TimeStamp()} {currentchannel} - {cfg.username}: {cresponse}')
+            if cfg.EnableChatTriggers:
+                for ChanAndGlobal in cfg.ChatTriggers:
+                    if currentchannel == ChanAndGlobal or ChanAndGlobal == 'GLOBAL':
+                        for x in range(len(cfg.ChatTriggers[ChanAndGlobal])):
+                            if str.lower(cfg.ChatTriggers[ChanAndGlobal][x][0]) in str.lower(themsg):
+                                cresponse = cfg.ChatTriggers[ChanAndGlobal][x][1]
+                                if cfg.ChatTriggers[ChanAndGlobal][x][2]:
+                                    cresponse = f'{cresponse} {chatuser}'
+                                if cfg.AutomatedRespondEnabled:
+                                    cresponse = f'{cresponse} {cfg.AutomatedResponseMsg}'
+                                #Log it
+                                self.CheckLogDir('ChatTriggers')
                                 f = open (f'Logs/ChatTriggers/{currentchannel}_ChatTriggerLog.txt', 'a+', encoding='utf-8-sig')
-                                f.write(f'{self.TimeStamp()} SENT: {chatheader}{cfg.username}: {cresponse}\r\n')
+                                f.write(f'{self.TimeStamp()} TRIGGER EVENT: {currentchannel}{chatheader}{chatuser}: {themsg}\r\n')
                                 f.close()
+                                if time.time() - self.epoch >= 90: #A little anti-spam for triggered words
+                                    self.epoch = time.time()
+                                    c.privmsg(currentchannel, cresponse)
+                                    print(f'{self.TimeStamp()} {currentchannel} - {cfg.username}: {cresponse}')
+                                    f = open (f'Logs/ChatTriggers/{currentchannel}_ChatTriggerLog.txt', 'a+', encoding='utf-8-sig')
+                                    f.write(f'{self.TimeStamp()} SENT: {chatheader}{cfg.username}: {cresponse}\r\n')
+                                    f.close()
+                                time.sleep(2)
            
             #Mod Triggers - uses the lcase themsg and splits words via spaces
-            if currentchannel in self.dbModChannels:
-                for ChanAndGlobal in cfg.ModTriggers:
-                    if currentchannel == ChanAndGlobal or ChanAndGlobal == 'GLOBAL':
-                        for x in range(len(cfg.ModTriggers[ChanAndGlobal])):
-                            if str.lower(cfg.ModTriggers[ChanAndGlobal][x][0]) in str.lower(themsg):
-                                mresponse = cfg.ModTriggers[ChanAndGlobal][x][1]
-                                self.CheckLogDir('ModTriggers')
-                                #Handle mod text response
-                                if cfg.ModTriggers[ChanAndGlobal][x][2]:
-                                    txtreponse = cfg.ModTriggers[ChanAndGlobal][x][2]
-                                    if cfg.ModTriggers[ChanAndGlobal][x][3]:
-                                        txtreponse = f'{txtreponse} {chatuser}'
-                                    c.privmsg(currentchannel, f'{txtreponse}')
-                                    print(f'{self.TimeStamp()} {currentchannel} - !MOD!-{cfg.username}: {txtreponse}')
-                                try:
-                                    splitresponse = mresponse.split(' ')
-                                    modoptions = ''
-                                    for x in splitresponse[1:]:
-                                        modoptions = f'{modoptions} {x}'
-                                    c.privmsg(currentchannel, f'{splitresponse[0]} {chatuser}{modoptions}')
-                                    print(f'{self.TimeStamp()} {currentchannel} - !MOD!-{cfg.username}: {splitresponse[0]} {chatuser}{modoptions}')
-                                    f = open (f'Logs/ModTriggers/{currentchannel}_ModTriggerLog.txt', 'a+', encoding='utf-8-sig')
-                                    f.write(f'{self.TimeStamp()} TRIGGER EVENT: {chatheader}{chatuser}: {themsg}\r\n')
-                                    f.write(f'{self.TimeStamp()} SENT: !MOD!-{cfg.username}: {splitresponse[0]} {chatuser}{modoptions}\r\n')
-                                    f.close()
-                                except:
-                                    c.privmsg(currentchannel, f'{mresponse} {chatuser}')
-                                    print(f'{self.TimeStamp()} {currentchannel} - !MOD!-{cfg.username}: {mresponse} {chatuser}')
-                                    f = open (f'Logs/ModTriggers/{currentchannel}_ModTriggerLog.txt', 'a+', encoding='utf-8-sig')
-                                    f.write(f'{self.TimeStamp()} TRIGGER EVENT: {chatheader}{chatuser}: {themsg}\r\n')
-                                    f.write(f'{self.TimeStamp()} SENT: !MOD!-{cfg.username}: {mresponse} {chatuser}\r\n')
-                                    f.close()
+            if cfg.EnableModTriggers:
+                if currentchannel in self.dbModChannels:
+                    for ChanAndGlobal in cfg.ModTriggers:
+                        if currentchannel == ChanAndGlobal or ChanAndGlobal == 'GLOBAL':
+                            for x in range(len(cfg.ModTriggers[ChanAndGlobal])):
+                                if str.lower(cfg.ModTriggers[ChanAndGlobal][x][0]) in str.lower(themsg):
+                                    mresponse = cfg.ModTriggers[ChanAndGlobal][x][1]
+                                    self.CheckLogDir('ModTriggers')
+                                    #Handle mod text response
+                                    if cfg.ModTriggers[ChanAndGlobal][x][2]:
+                                        txtreponse = cfg.ModTriggers[ChanAndGlobal][x][2]
+                                        if cfg.ModTriggers[ChanAndGlobal][x][3]:
+                                            txtreponse = f'{txtreponse} {chatuser}'
+                                        c.privmsg(currentchannel, f'{txtreponse}')
+                                        print(f'{self.TimeStamp()} {currentchannel} - !MOD!-{cfg.username}: {txtreponse}')
+                                    try:
+                                        splitresponse = mresponse.split(' ')
+                                        modoptions = ''
+                                        for x in splitresponse[1:]:
+                                            modoptions = f'{modoptions} {x}'
+                                        c.privmsg(currentchannel, f'{splitresponse[0]} {chatuser}{modoptions}')
+                                        print(f'{self.TimeStamp()} {currentchannel} - !MOD!-{cfg.username}: {splitresponse[0]} {chatuser}{modoptions}')
+                                        f = open (f'Logs/ModTriggers/{currentchannel}_ModTriggerLog.txt', 'a+', encoding='utf-8-sig')
+                                        f.write(f'{self.TimeStamp()} TRIGGER EVENT: {chatheader}{chatuser}: {themsg}\r\n')
+                                        f.write(f'{self.TimeStamp()} SENT: !MOD!-{cfg.username}: {splitresponse[0]} {chatuser}{modoptions}\r\n')
+                                        f.close()
+                                    except:
+                                        c.privmsg(currentchannel, f'{mresponse} {chatuser}')
+                                        print(f'{self.TimeStamp()} {currentchannel} - !MOD!-{cfg.username}: {mresponse} {chatuser}')
+                                        f = open (f'Logs/ModTriggers/{currentchannel}_ModTriggerLog.txt', 'a+', encoding='utf-8-sig')
+                                        f.write(f'{self.TimeStamp()} TRIGGER EVENT: {chatheader}{chatuser}: {themsg}\r\n')
+                                        f.write(f'{self.TimeStamp()} SENT: !MOD!-{cfg.username}: {mresponse} {chatuser}\r\n')
+                                        f.close()
     
     def on_userstate(self, c, e):
         #print (e)
@@ -331,25 +334,31 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         if chatuser != cfg.username:
             if sysmsgid == 'sub' and cfg.AnnounceNewSubs:
                 if currentchannel in cfg.AnnounceNewSubsChanMsg:
-                    tmpNewSubMsg = cfg.AnnounceNewSubsChanMsg[currentchannel][0][0]
-                    if cfg.AnnounceNewSubsChanMsg[currentchannel][0][1]:
-                        tmpNewSubMsg = f'{tmpNewSubMsg} {chatuser}'
-                    c.privmsg(currentchannel, tmpNewSubMsg)
+                    for x in range(len(cfg.AnnounceNewSubsChanMsg[currentchannel])):
+                        tmpNewSubMsg = cfg.AnnounceNewSubsChanMsg[currentchannel][x][0]
+                        if cfg.AnnounceNewSubsChanMsg[currentchannel][x][1]:
+                            tmpNewSubMsg = f'{tmpNewSubMsg} {chatuser}'
+                        c.privmsg(currentchannel, tmpNewSubMsg)
+                        time.sleep(2)
             
             #Subtember allowed users to upgrade a gifted sub for $1 to continue for the next month. Considering it a resub for announce triggers
             if (sysmsgid == 'resub' or sysmsgid == 'giftpaidupgrade') and cfg.AnnounceResubs:
                 if currentchannel in cfg.AnnounceReSubsChanMsg:
-                    tmpReSubMsg = cfg.AnnounceReSubsChanMsg[currentchannel][0][0]
-                    if cfg.AnnounceReSubsChanMsg[currentchannel][0][1]:
-                        tmpReSubMsg = f'{tmpReSubMsg} {chatuser}'
-                    c.privmsg(currentchannel, tmpReSubMsg)
+                    for x in range(len(cfg.AnnounceReSubsChanMsg[currentchannel])):
+                        tmpReSubMsg = cfg.AnnounceReSubsChanMsg[currentchannel][x][0]
+                        if cfg.AnnounceReSubsChanMsg[currentchannel][x][1]:
+                            tmpReSubMsg = f'{tmpReSubMsg} {chatuser}'
+                        c.privmsg(currentchannel, tmpReSubMsg)
+                        time.sleep(2)
             
             if sysmsgid == 'subgift' and cfg.AnnounceGiftSubs:
                 if currentchannel in cfg.AnnounceGiftSubsChanMsg:
-                    tmpGiftSubMsg = cfg.AnnounceGiftSubsChanMsg[currentchannel][0][0]
-                    if cfg.AnnounceGiftSubsChanMsg[currentchannel][0][1]:
-                        tmpGiftSubMsg = f'{tmpGiftSubMsg} {chatuser}'
-                    c.privmsg(currentchannel, tmpGiftSubMsg)            
+                    for x in range(len(cfg.AnnounceGiftSubsChanMsg[currentchannel])):
+                        tmpGiftSubMsg = cfg.AnnounceGiftSubsChanMsg[currentchannel][x][0]
+                        if cfg.AnnounceGiftSubsChanMsg[currentchannel][x][1]:
+                            tmpGiftSubMsg = f'{tmpGiftSubMsg} {chatuser}'
+                        c.privmsg(currentchannel, tmpGiftSubMsg)
+                        time.sleep(2)
                 
             if sysmsgid == 'raid' and cfg.AnnounceRaids and currentchannel in cfg.AnnounceRaidChannels:
                 c.privmsg(currentchannel, f'{cfg.RaidMsg} {sysmsg} {cfg.RaidMsg}')
