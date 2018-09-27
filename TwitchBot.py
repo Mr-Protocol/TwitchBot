@@ -40,6 +40,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         print (f'{self.TimeStamp()}\r\nConnecting to {server} on port {port} as {username}...\r\n')
         irc.bot.SingleServerIRCBot.__init__(self, [(server, port, 'oauth:'+token)], username, username)
         self.epoch = 0
+        self.epochCopyPasta = 0
         self.dbModChannels = []
         if cfg.EnableKeywordRepeater:
             self.RepeaterEpoch = 0
@@ -221,6 +222,17 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             else: #New keyword
                 self.dbRepeaterKeyword.update({currentchannel: (themsg, 0)})
         
+        #CopyPasta Mode
+        if cfg.EnableCopyPasta:
+            if currentchannel in cfg.CopyPastaTriggers:
+                for x in range(len(cfg.CopyPastaTriggers[currentchannel])):
+                    if str.lower(cfg.CopyPastaTriggers[currentchannel][x]) in str.lower(themsg):
+                        if time.time() - self.epochCopyPasta >= 90:
+                            self.epochCopyPasta = time.time()
+                            c.privmsg(currentchannel, themsg)
+                            print(f'{self.TimeStamp()} {currentchannel} {cfg.username}: {themsg}\r\n')
+
+
         #Skip parsing and triggers if the user is a mod/host or in safelist, also if user is a sub
         if isamod == '1':
             pass

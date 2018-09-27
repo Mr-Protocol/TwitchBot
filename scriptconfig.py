@@ -121,6 +121,27 @@ ChatTriggers = {
     ]
 }
 
+#Enable Copy Pasta
+EnableCopyPasta = 0
+
+#Copy Pasta mode will repeat a message based on a word/phrase trigger. Whatever the user said that contains the word/phrase will be repeated.
+#Copy Pasta Triggers - ('Trigger')
+CopyPastaTriggers = {
+    '#mr_protocol':[
+        ('prime')
+    ],
+    '#mystrikal':[
+        ('thisisjustaplaceholder')
+    ],
+    '#fawneyes':[
+        ('thisisjustaplaceholder')
+    ],
+    '#lululuvely':[
+        ('amazon prime'),
+        ('twitch prime')
+    ]
+}
+
 #Mod Triggers - ('Trigger','mod action','Text response',1/0)
 #If the mod action is /timeout you can leave blank for default timeout or specify a number of seconds
 #If no text response is desired, put None without quotes
@@ -134,6 +155,12 @@ ChatTriggers = {
 
 #Enable Mod Triggers
 EnableModTriggers = 0
+
+#Example
+# ModTriggers = {
+#     '#mr_protocol':[
+#         ('trigger word','/timeout 1 [Reason text]',None,1)
+#     ]
 
 ModTriggers = {
     '#mr_protocol':[
@@ -166,7 +193,7 @@ KeywordRepeaterCount = 7
 #Chat Triggers and Mod Triggers are automatically logged.
 
 #Log timestamp timezone. 1=Local, 0=UTC
-LogTimeZone = 0
+LogTimeZone = 1
 
 #Log chat username highlights (Global)
 LogHighlights = 1
@@ -174,15 +201,15 @@ LogHighlights = 1
 #Log all chat messages
 LogChatMessages = 1
 
-#Log ASCII Art
-LogAscii = 1
-#Containing chars
-LogAsciiSet = set('▄▀█▒▐░')
-
 #Chat Log only these channels
 #ChatLogChannels = ['#shroud', '#drdisrespectlive']
 #ChatLogChannels = ['GLOBAL'] #Logs all joined channels
 ChatLogChannels = []
+
+#Log ASCII Art
+LogAscii = 1
+#Containing chars
+LogAsciiSet = set('▄▀█▒▐░')
 
 #Send system messages to log file.
 LogSystemMessages = 1
