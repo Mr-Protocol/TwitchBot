@@ -240,16 +240,15 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         #Unique Chatters Info
         if cfg.EnableUniqueChatters:
             if currentchannel in self.dbUniqueChatters:
-                for x in range(len(self.dbUniqueChatters[currentchannel])):
-                    if str.lower(chatuser) in self.dbUniqueChatters[currentchannel]:
-                        self.dbUniqueChatters[currentchannel][str.lower(chatuser)] = self.dbUniqueChatters[currentchannel][str.lower(chatuser)] + 1
-                    else:
-                        self.dbUniqueChatters[currentchannel].update({str.lower(chatuser): 1})
+                if str.lower(chatuser) in self.dbUniqueChatters[currentchannel]:
+                    self.dbUniqueChatters[currentchannel][str.lower(chatuser)] += 1
+                else:
+                    self.dbUniqueChatters[currentchannel][str.lower(chatuser)] = 1
             else:
                 self.dbUniqueChatters[currentchannel] = {str.lower(chatuser): 1}
 
-            if themsg == '!uchatters' and str.lower(chatuser) in cfg.UniqueChattersMods:
-                uchattersmsg = f'There are {len(self.dbUniqueChatters[currentchannel])} unique chatters since {self.UniqueChattersStartTime}.'
+            if themsg == '!uchatters' and str.lower(chatuser) in cfg.UniqueChattersMods[currentchannel]:
+                uchattersmsg = f'There are {len(self.dbUniqueChatters[currentchannel])} chatters since {self.UniqueChattersStartTime}.'
                 c.privmsg(currentchannel, uchattersmsg)
 
             if '!ucount' in themsg[:7] and str.lower(chatuser) in cfg.UniqueChattersMods:
@@ -462,18 +461,19 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
     def on_mode(self, c, e):
         #Shows +/- mod permissions
         #print (e)
-
-        if cfg.ChanFilters and e.target in cfg.ChanTermFilters:
-            pass
-        else:
-            currentchannel = e.target
-            modstatus = e.arguments
-            if modstatus[0] == '+o':
-                print(f'MODE-{self.TimeStamp(cfg.LogTimeZone)} {currentchannel} +o {modstatus[1]} (mod).')
-            elif modstatus[0] == '-o':
-                print(f'MODE-{self.TimeStamp(cfg.LogTimeZone)} {currentchannel} -o {modstatus[1]} (demod).')
+        
+        if cfg.AnnounceModeChanges:
+            if cfg.ChanFilters and e.target in cfg.ChanTermFilters:
+                pass
             else:
-                print(f'MODE-{self.TimeStamp(cfg.LogTimeZone)} {currentchannel} {modstatus}')
+                currentchannel = e.target
+                modstatus = e.arguments
+                if modstatus[0] == '+o':
+                    print(f'MODE-{self.TimeStamp(cfg.LogTimeZone)} {currentchannel} +o {modstatus[1]} (mod).')
+                elif modstatus[0] == '-o':
+                    print(f'MODE-{self.TimeStamp(cfg.LogTimeZone)} {currentchannel} -o {modstatus[1]} (demod).')
+                else:
+                    print(f'MODE-{self.TimeStamp(cfg.LogTimeZone)} {currentchannel} {modstatus}')
 
     def on_join(self, c, e):
         #User joins the channel
