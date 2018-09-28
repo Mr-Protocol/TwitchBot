@@ -90,12 +90,15 @@ AnnounceUserJoins = 0
 AnnounceUserJoinList = ['GLOBAL']
 
 #Announce User Part/Leave Alerts
-AnnounceUserParts = 1
+AnnounceUserParts = 0
 
 #Announce User Part/Leave List
 #Add users to be alerted of joining channel.
 #Use 'GLOBAL' to show all
 AnnounceUserPartList = ['GLOBAL']
+
+#Show or hide user mode changes
+AnnounceModeChanges = 0
 
 #---------------------------------------------------------------------------
 #------------------------------ Chat Triggers ------------------------------
