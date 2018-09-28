@@ -80,6 +80,23 @@ RaidMsg = 'twitchRaid twitchRaid twitchRaid twitchRaid twitchRaid twitchRaid twi
 #AnnounceRaidChannels = ['#mr_protocol']
 AnnounceRaidChannels = []
 
+#Announce User Join Alerts
+#Very bursty, pretty much useless.
+AnnounceUserJoins = 0
+
+#Announce User Join List
+#Add users to be alerted of joining channel.
+#Use 'GLOBAL' to show all
+AnnounceUserJoinList = ['GLOBAL']
+
+#Announce User Part/Leave Alerts
+AnnounceUserParts = 1
+
+#Announce User Part/Leave List
+#Add users to be alerted of joining channel.
+#Use 'GLOBAL' to show all
+AnnounceUserPartList = ['GLOBAL']
+
 #---------------------------------------------------------------------------
 #------------------------------ Chat Triggers ------------------------------
 #---------------------------------------------------------------------------

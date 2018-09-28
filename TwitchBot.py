@@ -393,33 +393,34 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         user = e.arguments[0]
         banduration = None
         banreason = None
+
         for x in e.tags:
             if x['key'] == 'ban-duration':
                 banduration = x['value']
             if x['key'] == 'ban-reason':
                 banreason = x['value']
 
+        if banduration:
+            if banreason:
+                banmsg = f'{self.TimeStamp()} {currentchannel} - {user} timeout for {banduration} seconds. {banreason}'
+            else:
+                banmsg = f'{self.TimeStamp()} {currentchannel} - {user} timeout for {banduration} seconds.'
+        else:
+            if banreason:
+                banmsg = f'{self.TimeStamp()} {currentchannel} - {user} is banned. {banreason}'
+            else:
+                banmsg = f'{self.TimeStamp()} {currentchannel} - {user} is banned.'
+
         if cfg.ChanFilters and e.target in cfg.ChanTermFilters:
             pass
         else:
-            if banduration:
-                if banreason:
-                    banmsg = f'{self.TimeStamp()} {currentchannel} - {user} timeout for {banduration} seconds. {banreason}'
-                else:
-                    banmsg = f'{self.TimeStamp()} {currentchannel} - {user} timeout for {banduration} seconds.'
-            else:
-                if banreason:
-                    banmsg = f'{self.TimeStamp()} {currentchannel} - {user} is banned. {banreason}'
-                else:
-                    banmsg = f'{self.TimeStamp()} {currentchannel} - {user} is banned.'
+            print (f'CLEARCHAT-{banmsg}')
 
-            print (f'CLEARCHAT - {banmsg}')
-            
-            if cfg.LogClearchat:
-                self.CheckLogDir('clearchat')
-                f = open (f'Logs/clearchat/{currentchannel}_clearchat.txt', 'a+', encoding='utf-8-sig')
-                f.write(f'{banmsg}\r\n')
-                f.close()
+        if cfg.LogClearchat:
+            self.CheckLogDir('clearchat')
+            f = open (f'Logs/clearchat/{currentchannel}_clearchat.txt', 'a+', encoding='utf-8-sig')
+            f.write(f'{banmsg}\r\n')
+            f.close()
 
     
     def on_globaluserstate(self, c, e):
@@ -435,23 +436,61 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
     def on_mode(self, c, e):
         #Shows +/- mod permissions
         #print (e)
-        pass
+
+        if cfg.ChanFilters and e.target in cfg.ChanTermFilters:
+            pass
+        else:
+            currentchannel = e.target
+            modstatus = e.arguments
+            if modstatus[0] == '+o':
+                print(f'MODE-{self.TimeStamp()} {currentchannel} +o {modstatus[1]} (mod).')
+            elif modstatus[0] == '-o':
+                print(f'MODE-{self.TimeStamp()} {currentchannel} -o {modstatus[1]} (demod).')
+            else:
+                print(f'MODE-{self.TimeStamp()} {currentchannel} {modstatus}')
 
     def on_join(self, c, e):
         #User joins the channel
         #print (e)
-        pass
+
+        currentchannel = e.target
+        chatuser = e.source.split('!')[0]
+
+        if cfg.ChanFilters and currentchannel in cfg.ChanTermFilters:
+            pass
+        else:
+            if cfg.AnnounceUserJoins and chatuser in (uname for uname in cfg.AnnounceUserJoinList):
+                print(f'JOIN-{self.TimeStamp()} {currentchannel} - {chatuser} has joined.')
+            elif cfg.AnnounceUserJoins and 'GLOBAL' in (uname for uname in cfg.AnnounceUserJoinList):
+                print(f'JOIN-{self.TimeStamp()} {currentchannel} - {chatuser} has joined.')
     
     def on_part(self, c, e):
         #User parts or leaves channel
         #print (e)
-        pass
+        
+        currentchannel = e.target
+        chatuser = e.source.split('!')[0]
+
+        if cfg.ChanFilters and currentchannel in cfg.ChanTermFilters:
+            pass
+        else:
+            if cfg.AnnounceUserParts and chatuser in (uname for uname in cfg.AnnounceUserPartList):
+                print(f'PART-{self.TimeStamp()} {currentchannel} - {chatuser} has left.')
+            elif cfg.AnnounceUserParts and 'GLOBAL' in (uname for uname in cfg.AnnounceUserPartList):
+                print(f'PART-{self.TimeStamp()} {currentchannel} - {chatuser} has left.')
     
     def on_hosttarget(self, c, e):
         #Shows hosting info
         #type: hosttarget, source: tmi.twitch.tv, target: #CHANNEL, arguments: ['channelbeinghosted -'], tags: []
         #print (e)
-        pass
+
+        if cfg.ChanFilters and e.target in cfg.ChanTermFilters:
+            pass
+        else:
+            currentchannel = e.target
+            targetchannel = e.arguments[0].split(' ')[0]
+            print (f'HOSTTARGET-{self.TimeStamp()} {currentchannel} is hosting {targetchannel}.')
+
     
     def on_privmsg(self, c, e):
         #Not sure if this is real or not
@@ -470,19 +509,19 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         #type: pubnotice, source: tmi.twitch.tv, target: #CHANNEL, arguments: ['USER has been timed out for 2 seconds.'], tags: [{'key': 'msg-id', 'value': 'timeout_success'}]
         #print (e)
 
+        currentchannel = e.target
+        noticemsg = e.arguments[0]
+
         if cfg.ChanFilters and e.target in cfg.ChanTermFilters:
             pass
-        else:
-            currentchannel = e.target
-            noticemsg = e.arguments[0]
+        else:           
+            print (f'PUBNOTICE-{self.TimeStamp()} {currentchannel} - {noticemsg}')
             
-            print (f'PUBNOTICE - {self.TimeStamp()} {currentchannel} - {noticemsg}')
-            
-            if cfg.LogPubnotice:
-                self.CheckLogDir('pubnotice')
-                f = open (f'Logs/pubnotice/{currentchannel}_pubnotice.txt', 'a+', encoding='utf-8-sig')
-                f.write(f'{self.TimeStamp()} {currentchannel} - {noticemsg}\r\n')
-                f.close()
+        if cfg.LogPubnotice:
+            self.CheckLogDir('pubnotice')
+            f = open (f'Logs/pubnotice/{currentchannel}_pubnotice.txt', 'a+', encoding='utf-8-sig')
+            f.write(f'{self.TimeStamp()} {currentchannel} - {noticemsg}\r\n')
+            f.close()
 
     def on_whisper(self, c, e):
         #Received twitch direct messages
@@ -493,7 +532,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         for x in e.tags:
             if x['key'] == 'display-name':
                 chatuser = x['value']
-        print (f'WHISPER - {self.TimeStamp()} Direct Message - {chatuser}: {whisper}')
+        print (f'WHISPER-{self.TimeStamp()} Direct Message - {chatuser}: {whisper}')
 
 def main():
     bot = TwitchBot(cfg.username, cfg.token, cfg.channels)
