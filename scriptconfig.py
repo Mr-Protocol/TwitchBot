@@ -203,6 +203,14 @@ EnableKeywordRepeater = 0
 #Repeat/Send keyword after # of consecutive repeats.
 KeywordRepeaterCount = 7
 
+#Enable unique chatter counter
+#If a chat message from botusername is !uchatters it will display results for the channel
+#If a chat message from botusername is !ucount <username> will display the user's number
+EnableUniqueChatters = 1
+
+#Who can use UniqueChatters Commands
+UniqueChattersMods = ['mr_protocol']
+
 #---------------------------------------------------------------------------
 #----------------------------------- Logs ----------------------------------
 #---------------------------------------------------------------------------
