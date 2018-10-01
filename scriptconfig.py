@@ -184,17 +184,17 @@ EnableModTriggers = 0
 
 ModTriggers = {
     '#mr_protocol':[
-        ('thisisjustaplaceholder','/timeout 1',None,1)
+        ('thisisjustaplaceholder','/timeout 1 (Automated)',None,1)
     ],
     '#placeholder':[
-        ('thisisjustaplaceholder','/timeout 1',None,1)
+        ('thisisjustaplaceholder','/timeout 1 (Automated)',None,1)
     ],
     '#placeholder2':[
-        ('thisisjustaplaceholder','/timeout 1',None,1)
+        ('thisisjustaplaceholder','/timeout 1 (Automated)',None,1)
     ],
     #GLOBAL apply to all channels where username has mod.
     'GLOBAL':[
-        ('█','/timeout 2m ASCII Art Char',None,1), #most common ASCII Art Character
+        ('█','/timeout 2m ASCII Art Char (Automated)',None,1), #most common ASCII Art Character
     ]
 }
 
@@ -206,13 +206,13 @@ EnableKeywordRepeater = 0
 #Repeat/Send keyword after # of consecutive repeats.
 KeywordRepeaterCount = 7
 
-#Enable unique chatter counter
+#Enable Bot Commands
 #If a chat message from botusername is !uchatters it will display results for the channel
 #If a chat message from botusername is !ucount <username> will display the user's number
-EnableUniqueChatters = 1
+EnableBotCommands = 1
 
 #Who can use UniqueChatters Commands
-UniqueChattersMods = ['mr_protocol']
+BotCommandMods = ['mr_protocol']
 
 #---------------------------------------------------------------------------
 #----------------------------------- Logs ----------------------------------

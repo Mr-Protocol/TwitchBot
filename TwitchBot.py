@@ -37,7 +37,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         self.PrintTriggers()
         self.ClearLogs()
         self.DisplayOptions()
-        print (f'{self.TimeStamp(cfg.LogTimeZone)}\r\nConnecting to {server} on port {port} as {username}...\r\n')
+        print(f'{self.TimeStamp(cfg.LogTimeZone)}\r\nConnecting to {server} on port {port} as {username}...\r\n')
         irc.bot.SingleServerIRCBot.__init__(self, [(server, port, 'oauth:'+token)], username, username)
         self.epoch = 0
         if cfg.EnableCopyPasta:
@@ -50,11 +50,12 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             splitchans = cfg.channels.split(',')
             for x in splitchans:
                 self.dbRepeaterKeyword.update({x: ('', 0)})
-        if cfg.EnableUniqueChatters:
-            self.dbUniqueChatters = {}
-            self.UniqueChattersStartTime = self.TimeStamp(0)
+        if cfg.EnableBotCommands:
+            self.dbChatters = {}
+            self.ChattersStartTime = self.TimeStamp(0)
     
     def TimeStamp(self, tzone):
+
         if tzone:
             tstamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         else:
@@ -64,17 +65,17 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
     #Check for valid channels starting with #, and doesn't end with a comma
     def CheckChannels(self):
         if cfg.channels.endswith(','):
-            print ()
-            print ('Do not end channel list with a comma.\r\n')
+            print()
+            print('Do not end channel list with a comma.\r\n')
             exit()
         ckchannels = cfg.channels.split(',')
         for chan in ckchannels:
             if chan.startswith('#'):
                 pass
             else:
-                print ()
-                print ('Channels misconfigured, make sure there are # prepending the channel name. \r\n')
-                print (chan)
+                print()
+                print('Channels misconfigured, make sure there are # prepending the channel name. \r\n')
+                print(chan)
                 exit()
 
     def ClearLogs(self):
@@ -90,61 +91,61 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
     
     #Prints out triggers to terminal output
     def PrintTriggers(self):
-        print ('----- Review Triggers Below ----- \r\n')
-        print ('Chat Triggers: ')
+        print('----- Review Triggers Below ----- \r\n')
+        print('Chat Triggers: ')
         for k in cfg.ChatTriggers.keys():
-            print (k)
+            print(k)
             for v in cfg.ChatTriggers[k]:
-                print (v)
-        print ()
-        print ('Mod Triggers: ')
+                print(v)
+        print()
+        print('Mod Triggers: ')
         for k in cfg.ModTriggers.keys():
-            print (k)
+            print(k)
             for v in cfg.ModTriggers[k]:
-                print (v)
-        print ()
-        print ('Username Safe/Whitelist: ')
-        print (cfg.SafelistUsers)
-        print ()
+                print(v)
+        print()
+        print('Username Safe/Whitelist: ')
+        print(cfg.SafelistUsers)
+        print()
 
     def DisplayOptions(self):
         if cfg.ChanFilters:
-            print ('Channels filtered out from terminal.')
-            print (f'Filtered Channels: {cfg.ChanTermFilters}\r\n')
+            print('Channels filtered out from terminal.')
+            print(f'Filtered Channels: {cfg.ChanTermFilters}\r\n')
         if cfg.LogChatMessages:
-            print ('Logging chat messages.')
-            print (f'Logging Channels: {cfg.ChatLogChannels}\r\n')
+            print('Logging chat messages.')
+            print(f'Logging Channels: {cfg.ChatLogChannels}\r\n')
         if cfg.LogSystemMessages:
             if cfg.RawSystemMsgs:
                 print('Logging RAW user notice (system) messages.')
-                print (f'Logging Channels: {cfg.SysMsgLogChannels}\r\n')
+                print(f'Logging Channels: {cfg.SysMsgLogChannels}\r\n')
             else:
-                print ('Logging user notice (system) messages.')
-                print (f'Logging Channels: {cfg.SysMsgLogChannels}\r\n')
+                print('Logging user notice (system) messages.')
+                print(f'Logging Channels: {cfg.SysMsgLogChannels}\r\n')
         if cfg.AnnounceNewSubs:
-            print ('Announcing new subs in the following channels.')
+            print('Announcing new subs in the following channels.')
             for k,v in cfg.AnnounceNewSubsChanMsg.items():
-                print (f'{k} - {v}')
+                print(f'{k} - {v}')
                 if cfg.AnnounceNewSubsChanMsg[k][0][1]:
-                    print ('--- Tagging Sub users is enabled.')
-            print ()
+                    print('--- Tagging Sub users is enabled.')
+            print()
         if cfg.AnnounceResubs:
-            print ('Announcing resubs in the following channels.')
+            print('Announcing resubs in the following channels.')
             for k,v in cfg.AnnounceReSubsChanMsg.items():
-                print (f'{k} - {v}')
+                print(f'{k} - {v}')
                 if cfg.AnnounceReSubsChanMsg[k][0][1]:
-                    print ('--- Tagging Resub users is enabled.')
-            print ()
+                    print('--- Tagging Resub users is enabled.')
+            print()
         if cfg.AnnounceGiftSubs:
-            print ('Announcing gifted subs in the following channels.')
+            print('Announcing gifted subs in the following channels.')
             for k,v in cfg.AnnounceGiftSubsChanMsg.items():
-                print (f'{k} - {v}')
+                print(f'{k} - {v}')
                 if cfg.AnnounceGiftSubsChanMsg[k][0][1]:
-                    print ('--- Tagging Gifted users is enabled.')
-            print ()
+                    print('--- Tagging Gifted users is enabled.')
+            print()
         if cfg.AnnounceRaids:
-            print ('Announcing raids in the following channels.')
-            print (f'{cfg.AnnounceRaidChannels} - {cfg.RaidMsg} systemmsg {cfg.RaidMsg} \r\n')
+            print('Announcing raids in the following channels.')
+            print(f'{cfg.AnnounceRaidChannels} - {cfg.RaidMsg} systemmsg {cfg.RaidMsg} \r\n')
     
     def CheckLogDir(self, logpath):
         if not os.path.exists(f'Logs/{logpath}/'):
@@ -155,7 +156,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     raise
 
     def on_welcome(self, c, e):
-        print (f'Joining {cfg.channels}\r\n')
+        print(f'Joining {cfg.channels}\r\n')
         # You must request specific capabilities before you can use them
         c.cap('REQ', ':twitch.tv/membership')
         c.cap('REQ', ':twitch.tv/tags')
@@ -166,7 +167,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         themsg = e.arguments[0]
         currentchannel = e.target
         #Used for debugging.
-        #print (e)
+        #print(e)
         
         #Chat log with usernames and Moderator status.
         for x in e.tags:
@@ -190,7 +191,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         if cfg.ChanFilters and currentchannel in cfg.ChanTermFilters:
             pass
         else:  
-            print (f'{self.TimeStamp(cfg.LogTimeZone)} {currentchannel}{chatheader}{chatuser}: {themsg}')
+            print(f'{self.TimeStamp(cfg.LogTimeZone)} {currentchannel}{chatheader}{chatuser}: {themsg}')
         
         #Chat Highlights Log - Will log messages that contain username
         if cfg.LogHighlights and str.lower(cfg.username) in str.lower(themsg):
@@ -238,26 +239,30 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                             print(f'{self.TimeStamp(cfg.LogTimeZone)} {currentchannel} {cfg.username}: {themsg}\r\n')
 
         #Unique Chatters Info
-        if cfg.EnableUniqueChatters:
-            if currentchannel in self.dbUniqueChatters:
-                if str.lower(chatuser) in self.dbUniqueChatters[currentchannel]:
-                    self.dbUniqueChatters[currentchannel][str.lower(chatuser)] += 1
+        if cfg.EnableBotCommands:
+            if currentchannel in self.dbChatters:
+                if str.lower(chatuser) in self.dbChatters[currentchannel]:
+                    self.dbChatters[currentchannel][str.lower(chatuser)] += 1
                 else:
-                    self.dbUniqueChatters[currentchannel][str.lower(chatuser)] = 1
+                    self.dbChatters[currentchannel][str.lower(chatuser)] = 1
             else:
-                self.dbUniqueChatters[currentchannel] = {str.lower(chatuser): 1}
+                self.dbChatters[currentchannel] = {str.lower(chatuser): 1}
 
-            if themsg == '!uchatters' and str.lower(chatuser) in cfg.UniqueChattersMods[currentchannel]:
-                uchattersmsg = f'There are {len(self.dbUniqueChatters[currentchannel])} chatters since {self.UniqueChattersStartTime}.'
-                c.privmsg(currentchannel, uchattersmsg)
+            if themsg[:1] == '!' and str.lower(chatuser) in cfg.BotCommandMods:
+                if themsg == '!uchatters':
+                    uchattersmsg = f'There are {len(self.dbChatters[currentchannel])} chatters since {self.ChattersStartTime}.'
+                    c.privmsg(currentchannel, uchattersmsg)
 
-            if '!ucount' in themsg[:7] and str.lower(chatuser) in cfg.UniqueChattersMods:
-                ucountuser = themsg.split(' ')[1]
-                try:
-                    c.privmsg(currentchannel,f'The user {ucountuser} has {self.dbUniqueChatters[currentchannel][str.lower(ucountuser)]} messages since {self.UniqueChattersStartTime}.')
-                except:
-                    c.privmsg(currentchannel,f'User not found')
+                if '!ucount' in themsg[:7]:
+                    ucountuser = themsg.split(' ')[1]
+                    try:
+                        c.privmsg(currentchannel, f'The user {ucountuser} has {self.dbChatters[currentchannel][str.lower(ucountuser)]} messages since {self.ChattersStartTime}.')
+                    except:
+                        c.privmsg(currentchannel, f'User not found')
 
+                if themsg == '!bot':
+                    c.privmsg(currentchannel, f'I\'m not a bot, I\'m a real boy!')
+            
         #Skip parsing and triggers if the user is a mod/host or in safelist, also if user is a sub
         if isamod == '1':
             pass
@@ -327,7 +332,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                                         f.close()
     
     def on_userstate(self, c, e):
-        #print (e)
+        #print(e)
         currentchannel = e.target
         #Detects if cfg.username is a mod in a joined channel and adds it to a list
         for x in e.tags:
@@ -338,7 +343,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     self.dbModChannels.append(currentchannel)
 
     def on_usernotice(self, c, e):
-        #print (e)
+        #print(e)
         currentchannel = e.target
         for x in e.tags:
             if x['key'] == 'msg-id':
@@ -354,7 +359,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         if cfg.ChanFilters and currentchannel in cfg.ChanTermFilters:
             pass
         else:   
-            print (f'{self.TimeStamp(cfg.LogTimeZone)} {currentchannel} - {sysmsg}')
+            print(f'{self.TimeStamp(cfg.LogTimeZone)} {currentchannel} - {sysmsg}')
         
         #Log system mesages
         if cfg.LogSystemMessages:
@@ -412,7 +417,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         #Shows when a user is banned
         #type: clearchat, source: tmi.twitch.tv, target: #CHANNEL, arguments: ['USERBANNED'], tags: [{'key': 'ban-duration', 'value': '10'}, {'key': 'ban-reason', 'value': 'Accented language detected, English only please! [warning] – ohbot'}, {'key': 'room-id', 'value': 'XXXXXXXX'}, {'key': 'target-msg-id', 'value': 'XXXXXXXXXXXXXXXXXXX'}, {'key': 'target-user-id', 'value': 'XXXXX'}, {'key': 'tmi-sent-ts', 'value': 'XXXXXXXXXXXXX'}]
         #type: clearchat, source: tmi.twitch.tv, target: #CHANNEL, arguments: ['USERBANNED'], tags: [{'key': 'ban-reason', 'value': None}, {'key': 'room-id', 'value': 'XXXXXXXXXX'}, {'key': 'target-user-id', 'value': 'XXXXX'}, {'key': 'tmi-sent-ts', 'value': 'XXXXXXXXXXXXX'}]
-        #print (e)
+        #print(e)
         
         currentchannel = e.target
         user = e.arguments[0]
@@ -439,7 +444,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         if cfg.ChanFilters and e.target in cfg.ChanTermFilters:
             pass
         else:
-            print (f'CLEARCHAT-{banmsg}')
+            print(f'CLEARCHAT-{banmsg}')
 
         if cfg.LogClearchat:
             self.CheckLogDir('clearchat')
@@ -450,17 +455,17 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
     
     def on_globaluserstate(self, c, e):
         #Not sure if this is real or not
-        print (e)
+        print(e)
     
     def on_roomstate(self, c, e):
         #Shows current chat settings for channel
         #type: roomstate, source: tmi.twitch.tv, target: #CHANNEL, arguments: [], tags: [{'key': 'broadcaster-lang', 'value': None}, {'key': 'emote-only', 'value': '0'}, {'key': 'followers-only', 'value': '2'}, {'key': 'r9k', 'value': '0'}, {'key': 'rituals', 'value': '0'}, {'key': 'room-id', 'value': 'XXXXXXXX'}, {'key': 'slow', 'value': '0'}, {'key': 'subs-only', 'value': '0'}]
-        #print (e)
+        #print(e)
         pass
     
     def on_mode(self, c, e):
         #Shows +/- mod permissions
-        #print (e)
+        #print(e)
         
         if cfg.AnnounceModeChanges:
             if cfg.ChanFilters and e.target in cfg.ChanTermFilters:
@@ -477,7 +482,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
     def on_join(self, c, e):
         #User joins the channel
-        #print (e)
+        #print(e)
 
         currentchannel = e.target
         chatuser = e.source.split('!')[0]
@@ -492,7 +497,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
     
     def on_part(self, c, e):
         #User parts or leaves channel
-        #print (e)
+        #print(e)
         
         currentchannel = e.target
         chatuser = e.source.split('!')[0]
@@ -508,23 +513,26 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
     def on_hosttarget(self, c, e):
         #Shows hosting info
         #type: hosttarget, source: tmi.twitch.tv, target: #CHANNEL, arguments: ['channelbeinghosted -'], tags: []
-        #print (e)
+        #print(e)
 
         if cfg.ChanFilters and e.target in cfg.ChanTermFilters:
             pass
         else:
             currentchannel = e.target
             targetchannel = e.arguments[0].split(' ')[0]
-            print (f'HOSTTARGET-{self.TimeStamp(cfg.LogTimeZone)} {currentchannel} is hosting {targetchannel}.')
+            print(f'HOSTTARGET-{self.TimeStamp(cfg.LogTimeZone)} {currentchannel} is hosting {targetchannel}.')
 
     
     def on_privmsg(self, c, e):
-        #Not sure if this is real or not
-        print (e)
+        #type: privmsg, source: jtv!jtv@jtv.tmi.twitch.tv, target: mr_protocol, arguments: ['CutePuppy1337 is now hosting you.'], tags: []
+        print(e)
+        
+        hostmsg = e.arguments
+        print(f'{self.TimeStamp(cfg.LogTimeZone)} {hostmsg}')
     
     def on_privnotice(self, c, e):
         #Not sure if this is real or not
-        print (e)
+        print(e)
     
     def on_pubnotice(self, c, e):
         #Shows hosting message
@@ -533,7 +541,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         #type: pubnotice, source: tmi.twitch.tv, target: #CHANNEL, arguments: ['Exited host mode.'], tags: [{'key': 'msg-id', 'value': 'host_off'}]
         #type: pubnotice, source: tmi.twitch.tv, target: #CHANNEL, arguments: ['This room is now in subscribers-only mode.'], tags: [{'key': 'msg-id', 'value': 'subs_on'}]
         #type: pubnotice, source: tmi.twitch.tv, target: #CHANNEL, arguments: ['USER has been timed out for 2 seconds.'], tags: [{'key': 'msg-id', 'value': 'timeout_success'}]
-        #print (e)
+        #print(e)
 
         currentchannel = e.target
         noticemsg = e.arguments[0]
@@ -541,7 +549,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         if cfg.ChanFilters and e.target in cfg.ChanTermFilters:
             pass
         else:           
-            print (f'PUBNOTICE-{self.TimeStamp(cfg.LogTimeZone)} {currentchannel} - {noticemsg}')
+            print(f'PUBNOTICE-{self.TimeStamp(cfg.LogTimeZone)} {currentchannel} - {noticemsg}')
             
         if cfg.LogPubnotice:
             self.CheckLogDir('pubnotice')
@@ -552,13 +560,13 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
     def on_whisper(self, c, e):
         #Received twitch direct messages
         #type: whisper, source: USER!USER@USER.tmi.twitch.tv, target: mr_protocol, arguments: ['THEMESSAGE'], tags: [{'key': 'badges', 'value': None}, {'key': 'color', 'value': None}, {'key': 'display-name', 'value': 'USERNAME'}, {'key': 'emotes', 'value': None}, {'key': 'message-id', 'value': 'XX'}, {'key': 'thread-id', 'value': 'XXXXXX_XXXXXXXX'}, {'key': 'turbo', 'value': '0'}, {'key': 'user-id', 'value': 'XXXXXXXX'}, {'key': 'user-type', 'value': None}]
-        #print (e)
+        #print(e)
 
         whisper = e.arguments[0]
         for x in e.tags:
             if x['key'] == 'display-name':
                 chatuser = x['value']
-        print (f'WHISPER-{self.TimeStamp(cfg.LogTimeZone)} Direct Message - {chatuser}: {whisper}')
+        print(f'WHISPER-{self.TimeStamp(cfg.LogTimeZone)} Direct Message - {chatuser}: {whisper}')
 
 def main():
     bot = TwitchBot(cfg.username, cfg.token, cfg.channels)
