@@ -194,7 +194,7 @@ ModTriggers = {
     ],
     #GLOBAL apply to all channels where username has mod.
     'GLOBAL':[
-        ('█','/timeout 2m ASCII Art Char (Automated)',None,1), #most common ASCII Art Character
+        ('█','/timeout 2m ASCII Art Char (Automated)',None,1) #most common ASCII Art Character
     ]
 }
 
