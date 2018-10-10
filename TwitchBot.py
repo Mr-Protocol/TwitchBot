@@ -54,7 +54,9 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         self.ClearLogs()
         print(f'{self.TimeStamp(cfg.LogTimeZone)}\r\nConnecting to {server} on port {port} as {username}...\r\n')
         irc.bot.SingleServerIRCBot.__init__(self, [(server, port, 'oauth:'+token)], username, username)
-        self.epoch = 0
+        self.sub_epoch = 0
+        if cfg.EnableChatTriggers:
+            self.chat_epoch = 0
         if cfg.EnableCopyPasta:
             self.epochCopyPasta = 0
         if cfg.EnableModTriggers:
@@ -120,7 +122,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                         print(f'\r\nAdd chat trigger usage: !addtrig #channel/GLOBAL,txt_trigger,response,0/1 tag user\r\n')
                     else:
                         trigger = splitcmd[1].split(',')
-                        cfg.ModTriggers[str.lower(trigger[0])].append((trigger[1],trigger[2],trigger[3]))
+                        cfg.ChatTriggers[str.lower(trigger[0])].append((trigger[1],trigger[2],trigger[3]))
                         print(f'\r\nAdded {trigger}\r\n')
                 
                 elif '!chanfilter' in cmd:
@@ -316,8 +318,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                                 f = open (f'Logs/ChatTriggers/{currentchannel}_ChatTriggerLog.txt', 'a+', encoding='utf-8-sig')
                                 f.write(f'{self.TimeStamp(cfg.LogTimeZone)} TRIGGER EVENT: {currentchannel}{chatheader}{chatuser}: {themsg}\r\n')
                                 f.close()
-                                if time.time() - self.epoch >= 90: #A little anti-spam for triggered words
-                                    self.epoch = time.time()
+                                if time.time() - self.chat_epoch >= 90: #A little anti-spam for triggered words
+                                    self.chat_epoch = time.time()
                                     c.privmsg(currentchannel, cresponse)
                                     print(f'{self.TimeStamp(cfg.LogTimeZone)} {currentchannel} - {cfg.username}: {cresponse}')
                                     f = open (f'Logs/ChatTriggers/{currentchannel}_ChatTriggerLog.txt', 'a+', encoding='utf-8-sig')
@@ -401,8 +403,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 f.close()
         
         #------------------------- Sub actions -------------------------
-        if time.time() - self.epoch >= 90: #A little anti-spam
-            self.epoch = time.time()
+        if time.time() - self.sub_epoch >= 10: #A little anti-spam
+            self.sub_epoch = time.time()
             if chatuser != cfg.username:
                 if sysmsgid == 'sub' and cfg.AnnounceNewSubs:
                     if currentchannel in cfg.AnnounceNewSubsChanMsg:
