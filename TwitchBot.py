@@ -401,37 +401,39 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 f.close()
         
         #------------------------- Sub actions -------------------------
-        if chatuser != cfg.username:
-            if sysmsgid == 'sub' and cfg.AnnounceNewSubs:
-                if currentchannel in cfg.AnnounceNewSubsChanMsg:
-                    for x in range(len(cfg.AnnounceNewSubsChanMsg[currentchannel])):
-                        tmpNewSubMsg = cfg.AnnounceNewSubsChanMsg[currentchannel][x][0]
-                        if cfg.AnnounceNewSubsChanMsg[currentchannel][x][1]:
-                            tmpNewSubMsg = f'{tmpNewSubMsg} {chatuser}'
-                        c.privmsg(currentchannel, tmpNewSubMsg)
-                        time.sleep(1.5)
-            
-            #Subtember allowed users to upgrade a gifted sub for $1 to continue for the next month. Considering it a resub for announce triggers
-            if (sysmsgid == 'resub' or sysmsgid == 'giftpaidupgrade') and cfg.AnnounceResubs:
-                if currentchannel in cfg.AnnounceReSubsChanMsg:
-                    for x in range(len(cfg.AnnounceReSubsChanMsg[currentchannel])):
-                        tmpReSubMsg = cfg.AnnounceReSubsChanMsg[currentchannel][x][0]
-                        if cfg.AnnounceReSubsChanMsg[currentchannel][x][1]:
-                            tmpReSubMsg = f'{tmpReSubMsg} {chatuser}'
-                        c.privmsg(currentchannel, tmpReSubMsg)
-                        time.sleep(1.5)
-            
-            if sysmsgid == 'subgift' and cfg.AnnounceGiftSubs:
-                if currentchannel in cfg.AnnounceGiftSubsChanMsg:
-                    for x in range(len(cfg.AnnounceGiftSubsChanMsg[currentchannel])):
-                        tmpGiftSubMsg = cfg.AnnounceGiftSubsChanMsg[currentchannel][x][0]
-                        if cfg.AnnounceGiftSubsChanMsg[currentchannel][x][1]:
-                            tmpGiftSubMsg = f'{tmpGiftSubMsg} {chatuser}'
-                        c.privmsg(currentchannel, tmpGiftSubMsg)
-                        time.sleep(1.5)
+        if time.time() - self.epoch >= 90: #A little anti-spam
+            self.epoch = time.time()
+            if chatuser != cfg.username:
+                if sysmsgid == 'sub' and cfg.AnnounceNewSubs:
+                    if currentchannel in cfg.AnnounceNewSubsChanMsg:
+                        for x in range(len(cfg.AnnounceNewSubsChanMsg[currentchannel])):
+                            tmpNewSubMsg = cfg.AnnounceNewSubsChanMsg[currentchannel][x][0]
+                            if cfg.AnnounceNewSubsChanMsg[currentchannel][x][1]:
+                                tmpNewSubMsg = f'{tmpNewSubMsg} {chatuser}'
+                            c.privmsg(currentchannel, tmpNewSubMsg)
+                            time.sleep(1.5)
                 
-            if sysmsgid == 'raid' and cfg.AnnounceRaids and currentchannel in cfg.AnnounceRaidChannels:
-                c.privmsg(currentchannel, f'{cfg.RaidMsg} {sysmsg} {cfg.RaidMsg}')
+                #Subtember allowed users to upgrade a gifted sub for $1 to continue for the next month. Considering it a resub for announce triggers
+                if (sysmsgid == 'resub' or sysmsgid == 'giftpaidupgrade') and cfg.AnnounceResubs:
+                    if currentchannel in cfg.AnnounceReSubsChanMsg:
+                        for x in range(len(cfg.AnnounceReSubsChanMsg[currentchannel])):
+                            tmpReSubMsg = cfg.AnnounceReSubsChanMsg[currentchannel][x][0]
+                            if cfg.AnnounceReSubsChanMsg[currentchannel][x][1]:
+                                tmpReSubMsg = f'{tmpReSubMsg} {chatuser}'
+                            c.privmsg(currentchannel, tmpReSubMsg)
+                            time.sleep(1.5)
+                
+                if sysmsgid == 'subgift' and cfg.AnnounceGiftSubs:
+                    if currentchannel in cfg.AnnounceGiftSubsChanMsg:
+                        for x in range(len(cfg.AnnounceGiftSubsChanMsg[currentchannel])):
+                            tmpGiftSubMsg = cfg.AnnounceGiftSubsChanMsg[currentchannel][x][0]
+                            if cfg.AnnounceGiftSubsChanMsg[currentchannel][x][1]:
+                                tmpGiftSubMsg = f'{tmpGiftSubMsg} {chatuser}'
+                            c.privmsg(currentchannel, tmpGiftSubMsg)
+                            time.sleep(1.5)
+                    
+                if sysmsgid == 'raid' and cfg.AnnounceRaids and currentchannel in cfg.AnnounceRaidChannels:
+                    c.privmsg(currentchannel, f'{cfg.RaidMsg} {sysmsg} {cfg.RaidMsg}')
             
             #What happens when the cfg.username is gifted a sub
             if sysmsgid == 'subgift' and str.lower(subgiftrecipient) == str.lower(cfg.username):
