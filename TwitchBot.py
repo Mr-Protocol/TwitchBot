@@ -19,14 +19,31 @@ import re
 import os
 from os import system
 import errno
+import threading
 import scriptconfig as cfg
 
 #--------------------------------------------------------------------------
 #---------------------------------- MAGIC ---------------------------------
 #--------------------------------------------------------------------------
 
+class InputWatcher(threading.Thread):
+    def __init__(self):
+        super().__init__()
+        self.callback = None
+    
+    def register_callback(self, func):
+        self.callback = func
+
+    def run(self):
+        time.sleep(1)
+        while True:
+            input_command = input()
+            if self.callback != None:
+                self.callback(input_command)
+
 class TwitchBot(irc.bot.SingleServerIRCBot):
-    def __init__(self, username, token, channels):
+    def __init__(self, username, token, channels, input_handler):
+        input_handler.register_callback(self.BotCommands)
         # Create IRC bot connection
         self.token = token
         server = 'irc.chat.twitch.tv'
@@ -34,9 +51,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         os.system('cls' if os.name == 'nt' else 'clear')
         self.CheckChannels()
         system(f'title TwitchBot @ {self.TimeStamp(cfg.LogTimeZone)}  - {cfg.username} in channel(s): {cfg.channels}')
-        self.PrintTriggers()
         self.ClearLogs()
-        self.DisplayOptions()
         print(f'{self.TimeStamp(cfg.LogTimeZone)}\r\nConnecting to {server} on port {port} as {username}...\r\n')
         irc.bot.SingleServerIRCBot.__init__(self, [(server, port, 'oauth:'+token)], username, username)
         self.epoch = 0
@@ -53,6 +68,93 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         if cfg.EnableBotCommands:
             self.dbChatters = {}
             self.ChattersStartTime = self.TimeStamp(0)
+    
+    def BotCommands(self, cmd):
+        if cmd == '!enable':
+            cfg.EnableBotCommands = 1
+            print(f'Commands Enabled')
+
+        if cfg.EnableBotCommands:
+            try:
+                if cmd == "!commands":
+                    print(f'\r\n!addmod, !addtrig, !bot, !chantrig, !repeatercount, !repeateroff, !repeateron, !uchatters, !ucount\r\n')
+
+                elif '!uchatters' in cmd:
+                    splitcmd = cmd.split(' ')
+                    if len(splitcmd) == 1:
+                        print(f'Usage: !uchatters #channel')
+                    else:
+                        print(f'There are {len(self.dbChatters[splitcmd[1]])} chatters since {self.ChattersStartTime}.')
+
+                elif '!bot' in cmd:
+                    splitcmd = cmd.split(' ')
+                    if len(splitcmd) == 1:
+                        print(f'Usage: !bot #channel')
+                    else:
+                        self.connection.privmsg(splitcmd[1], f'Beep Bop Boop Beep... I\'m not a bot, I\'m a real man!')
+
+                elif '!ucount' in cmd:
+                    splitcmd = cmd.split(' ')
+                    if len(splitcmd) == 1:
+                        print(f'\r\nUsage: !ucount #channel username\r\n')
+                    else:
+                        currentchannel = splitcmd[1]
+                        ucountuser = splitcmd[2]
+                        try:
+                            print(f'\r\nThe user {ucountuser} has {self.dbChatters[currentchannel][str.lower(ucountuser)]} messages since {self.ChattersStartTime}.\r\n')
+                        except:
+                            print(f'\r\nUser not found\r\n')
+                
+                elif '!addmod' in cmd:
+                    splitcmd = cmd.split(' ',1)
+                    if len(splitcmd) == 1:
+                        print(f'\r\nAdd mod trigger usage: !addmod #channel/GLOBAL,txt_trigger,timeout/ban 2m reason\r\n')
+                    else:
+                        trigger = splitcmd[1].split(',')
+                        cfg.ModTriggers[str.lower(trigger[0])].append((trigger[1],trigger[2],None,1))
+                        print(f'\r\nAdded ModTrigger {trigger}\r\n')
+                
+                elif '!addtrig' in cmd:
+                    splitcmd = cmd.split(' ',1)
+                    if len(splitcmd) == 1:
+                        print(f'\r\nAdd chat trigger usage: !addtrig #channel/GLOBAL,txt_trigger,response,0/1 tag user\r\n')
+                    else:
+                        trigger = splitcmd[1].split(',')
+                        cfg.ModTriggers[str.lower(trigger[0])].append((trigger[1],trigger[2],trigger[3]))
+                        print(f'\r\nAdded {trigger}\r\n')
+                
+                elif '!chanfilter' in cmd:
+                    splitcmd = cmd.split(' ')
+                    if len(splitcmd) == 1:
+                        print(f'\r\nChan Filter On/Off Usage: !chanfilter on/off\r\n')
+                    else:
+                        if str.lower(splitcmd[1]) == 'on':
+                            cfg.ChanFilters = 1
+                            print(f'\r\nChanFilters Enabled\r\n')
+                        if str.lower(splitcmd[1]) == 'off':
+                            cfg.ChanFilters = 0
+                            print(f'\r\nChanFilters Disabled\r\n')
+                
+                elif cmd == '!repeateron':
+                    cfg.EnableKeywordRepeater = 1
+                    print(f'\r\nEnabled keyword repeater. Count trigger: {cfg.KeywordRepeaterCount}\r\n')
+                
+                elif cmd == '!repeateroff':
+                    cfg.EnableKeywordRepeater = 0
+                    print(f'\r\nDisabled keyword repeater.\r\n')
+
+                elif '!repeatercount' in cmd:
+                    splitcmd = cmd.split(' ')
+                    if len(splitcmd) == 1:
+                        print(f'\r\nUsage: !repeatercount #')
+                    else:
+                        cfg.KeywordRepeaterCount = splitcmd[1]
+                        print(f'\r\nKeyword repeater count set to: {splitcmd[1]}')
+                
+                else:
+                    print(f'\r\nNo Command...\r\n')
+            except:
+                print(f'\r\nSomething went wrong...\r\n')
     
     def TimeStamp(self, tzone):
 
@@ -83,69 +185,11 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         if str.lower(clearalllogs) == 'y':
             try:
                 shutil.rmtree('Logs')
-                time.sleep(2)
+                time.sleep(1.5)
                 os.makedirs('Logs')
             except:
                 os.makedirs('Logs')
         os.system('cls' if os.name == 'nt' else 'clear')
-    
-    #Prints out triggers to terminal output
-    def PrintTriggers(self):
-        print('----- Review Triggers Below ----- \r\n')
-        print('Chat Triggers: ')
-        for k in cfg.ChatTriggers.keys():
-            print(k)
-            for v in cfg.ChatTriggers[k]:
-                print(v)
-        print()
-        print('Mod Triggers: ')
-        for k in cfg.ModTriggers.keys():
-            print(k)
-            for v in cfg.ModTriggers[k]:
-                print(v)
-        print()
-        print('Username Safe/Whitelist: ')
-        print(cfg.SafelistUsers)
-        print()
-
-    def DisplayOptions(self):
-        if cfg.ChanFilters:
-            print('Channels filtered out from terminal.')
-            print(f'Filtered Channels: {cfg.ChanTermFilters}\r\n')
-        if cfg.LogChatMessages:
-            print('Logging chat messages.')
-            print(f'Logging Channels: {cfg.ChatLogChannels}\r\n')
-        if cfg.LogSystemMessages:
-            if cfg.RawSystemMsgs:
-                print('Logging RAW user notice (system) messages.')
-                print(f'Logging Channels: {cfg.SysMsgLogChannels}\r\n')
-            else:
-                print('Logging user notice (system) messages.')
-                print(f'Logging Channels: {cfg.SysMsgLogChannels}\r\n')
-        if cfg.AnnounceNewSubs:
-            print('Announcing new subs in the following channels.')
-            for k,v in cfg.AnnounceNewSubsChanMsg.items():
-                print(f'{k} - {v}')
-                if cfg.AnnounceNewSubsChanMsg[k][0][1]:
-                    print('--- Tagging Sub users is enabled.')
-            print()
-        if cfg.AnnounceResubs:
-            print('Announcing resubs in the following channels.')
-            for k,v in cfg.AnnounceReSubsChanMsg.items():
-                print(f'{k} - {v}')
-                if cfg.AnnounceReSubsChanMsg[k][0][1]:
-                    print('--- Tagging Resub users is enabled.')
-            print()
-        if cfg.AnnounceGiftSubs:
-            print('Announcing gifted subs in the following channels.')
-            for k,v in cfg.AnnounceGiftSubsChanMsg.items():
-                print(f'{k} - {v}')
-                if cfg.AnnounceGiftSubsChanMsg[k][0][1]:
-                    print('--- Tagging Gifted users is enabled.')
-            print()
-        if cfg.AnnounceRaids:
-            print('Announcing raids in the following channels.')
-            print(f'{cfg.AnnounceRaidChannels} - {cfg.RaidMsg} systemmsg {cfg.RaidMsg} \r\n')
     
     def CheckLogDir(self, logpath):
         if not os.path.exists(f'Logs/{logpath}/'):
@@ -247,21 +291,6 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     self.dbChatters[currentchannel][str.lower(chatuser)] = 1
             else:
                 self.dbChatters[currentchannel] = {str.lower(chatuser): 1}
-
-            if themsg[:1] == '!' and str.lower(chatuser) in cfg.BotCommandMods:
-                if themsg == '!uchatters':
-                    uchattersmsg = f'There are {len(self.dbChatters[currentchannel])} chatters since {self.ChattersStartTime}.'
-                    c.privmsg(currentchannel, uchattersmsg)
-
-                if '!ucount' in themsg[:7]:
-                    ucountuser = themsg.split(' ')[1]
-                    try:
-                        c.privmsg(currentchannel, f'The user {ucountuser} has {self.dbChatters[currentchannel][str.lower(ucountuser)]} messages since {self.ChattersStartTime}.')
-                    except:
-                        c.privmsg(currentchannel, f'User not found')
-
-                if themsg == '!bot':
-                    c.privmsg(currentchannel, f'I\'m not a bot, I\'m a real boy!')
             
         #Skip parsing and triggers if the user is a mod/host or in safelist, also if user is a sub
         if isamod == '1':
@@ -294,7 +323,6 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                                     f = open (f'Logs/ChatTriggers/{currentchannel}_ChatTriggerLog.txt', 'a+', encoding='utf-8-sig')
                                     f.write(f'{self.TimeStamp(cfg.LogTimeZone)} SENT: {chatheader}{cfg.username}: {cresponse}\r\n')
                                     f.close()
-                                time.sleep(2)
            
             #Mod Triggers - uses the lcase themsg and splits words via spaces
             if cfg.EnableModTriggers:
@@ -381,7 +409,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                         if cfg.AnnounceNewSubsChanMsg[currentchannel][x][1]:
                             tmpNewSubMsg = f'{tmpNewSubMsg} {chatuser}'
                         c.privmsg(currentchannel, tmpNewSubMsg)
-                        time.sleep(2)
+                        time.sleep(1.5)
             
             #Subtember allowed users to upgrade a gifted sub for $1 to continue for the next month. Considering it a resub for announce triggers
             if (sysmsgid == 'resub' or sysmsgid == 'giftpaidupgrade') and cfg.AnnounceResubs:
@@ -391,7 +419,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                         if cfg.AnnounceReSubsChanMsg[currentchannel][x][1]:
                             tmpReSubMsg = f'{tmpReSubMsg} {chatuser}'
                         c.privmsg(currentchannel, tmpReSubMsg)
-                        time.sleep(2)
+                        time.sleep(1.5)
             
             if sysmsgid == 'subgift' and cfg.AnnounceGiftSubs:
                 if currentchannel in cfg.AnnounceGiftSubsChanMsg:
@@ -400,7 +428,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                         if cfg.AnnounceGiftSubsChanMsg[currentchannel][x][1]:
                             tmpGiftSubMsg = f'{tmpGiftSubMsg} {chatuser}'
                         c.privmsg(currentchannel, tmpGiftSubMsg)
-                        time.sleep(2)
+                        time.sleep(1.5)
                 
             if sysmsgid == 'raid' and cfg.AnnounceRaids and currentchannel in cfg.AnnounceRaidChannels:
                 c.privmsg(currentchannel, f'{cfg.RaidMsg} {sysmsg} {cfg.RaidMsg}')
@@ -568,8 +596,13 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 chatuser = x['value']
         print(f'WHISPER-{self.TimeStamp(cfg.LogTimeZone)} Direct Message - {chatuser}: {whisper}')
 
-def main():
-    bot = TwitchBot(cfg.username, cfg.token, cfg.channels)
+def tbot():
+    input_watcher = InputWatcher()
+    input_watcher.start()
+    bot = TwitchBot(cfg.username, cfg.token, cfg.channels, input_watcher)
     bot.start()
+
 if __name__ == "__main__":
-    main()
+    tbot()
+
+

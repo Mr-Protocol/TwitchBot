@@ -211,9 +211,6 @@ KeywordRepeaterCount = 7
 #If a chat message from botusername is !ucount <username> will display the user's number
 EnableBotCommands = 1
 
-#Who can use UniqueChatters Commands
-BotCommandMods = ['mr_protocol']
-
 #---------------------------------------------------------------------------
 #----------------------------------- Logs ----------------------------------
 #---------------------------------------------------------------------------
