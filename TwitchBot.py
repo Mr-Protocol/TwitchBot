@@ -20,7 +20,7 @@ import os
 from os import system
 import errno
 import threading
-import scriptconfig as cfg
+import myscriptconfig as cfg
 
 #--------------------------------------------------------------------------
 #---------------------------------- MAGIC ---------------------------------
@@ -79,31 +79,31 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         if cfg.EnableBotCommands:
             try:
                 if cmd == "!commands":
-                    print(f'\r\n!addmod, !addtrig, !bot, !chantrig, !repeatercount, !repeateroff, !repeateron, !uchatters, !ucount\r\n')
+                    print(f'\r\n!addmod, !addtrig, !bot, !chanfilteron, !chanfilteroff, !chantrig, !repeatercount, !repeateroff, !repeateron, !uchatters, !ucount\r\n')
 
                 elif '!uchatters' in cmd:
                     splitcmd = cmd.split(' ')
                     if len(splitcmd) == 1:
                         print(f'Usage: !uchatters #channel')
                     else:
-                        print(f'There are {len(self.dbChatters[splitcmd[1]])} chatters since {self.ChattersStartTime}.')
+                        print(f'There are {len(str.lower(self.dbChatters[splitcmd[1]]))} chatters since {self.ChattersStartTime}.')
 
                 elif '!bot' in cmd:
                     splitcmd = cmd.split(' ')
                     if len(splitcmd) == 1:
                         print(f'Usage: !bot #channel')
                     else:
-                        self.connection.privmsg(splitcmd[1], f'Beep Bop Boop Beep... I\'m not a bot, I\'m a real man!')
+                        self.connection.privmsg(str.lower(splitcmd[1]), f'Beep Bop Boop Beep... I\'m not a bot, I\'m a real man!')
 
                 elif '!ucount' in cmd:
                     splitcmd = cmd.split(' ')
                     if len(splitcmd) == 1:
                         print(f'\r\nUsage: !ucount #channel username\r\n')
                     else:
-                        currentchannel = splitcmd[1]
-                        ucountuser = splitcmd[2]
+                        currentchannel = str.lower(splitcmd[1])
+                        ucountuser = str.lower(splitcmd[2])
                         try:
-                            print(f'\r\nThe user {ucountuser} has {self.dbChatters[currentchannel][str.lower(ucountuser)]} messages since {self.ChattersStartTime}.\r\n')
+                            print(f'\r\nThe user {ucountuser} has {self.dbChatters[currentchannel][ucountuser]} messages since {self.ChattersStartTime}.\r\n')
                         except:
                             print(f'\r\nUser not found\r\n')
                 
@@ -125,17 +125,13 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                         cfg.ChatTriggers[str.lower(trigger[0])].append((trigger[1],trigger[2],trigger[3]))
                         print(f'\r\nAdded {trigger}\r\n')
                 
-                elif '!chanfilter' in cmd:
-                    splitcmd = cmd.split(' ')
-                    if len(splitcmd) == 1:
-                        print(f'\r\nChan Filter On/Off Usage: !chanfilter on/off\r\n')
-                    else:
-                        if str.lower(splitcmd[1]) == 'on':
-                            cfg.ChanFilters = 1
-                            print(f'\r\nChanFilters Enabled\r\n')
-                        if str.lower(splitcmd[1]) == 'off':
-                            cfg.ChanFilters = 0
-                            print(f'\r\nChanFilters Disabled\r\n')
+                elif cmd == '!chanfilteron':
+                    cfg.ChanFilters = 1
+                    print(f'\r\nChanFilters Enabled\r\n')
+                
+                elif cmd == '!chanfilteroff':
+                    cfg.ChanFilters = 0
+                    print(f'\r\nChanFilters Disabled\r\n')
                 
                 elif cmd == '!repeateron':
                     cfg.EnableKeywordRepeater = 1
@@ -404,7 +400,6 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         
         #------------------------- Sub actions -------------------------
         if time.time() - self.sub_epoch >= 10: #A little anti-spam
-            self.sub_epoch = time.time()
             if chatuser != cfg.username:
                 if sysmsgid == 'sub' and cfg.AnnounceNewSubs:
                     if currentchannel in cfg.AnnounceNewSubsChanMsg:
@@ -413,6 +408,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                             if cfg.AnnounceNewSubsChanMsg[currentchannel][x][1]:
                                 tmpNewSubMsg = f'{tmpNewSubMsg} {chatuser}'
                             c.privmsg(currentchannel, tmpNewSubMsg)
+                            self.sub_epoch = time.time()
                             time.sleep(1.5)
                 
                 #Subtember allowed users to upgrade a gifted sub for $1 to continue for the next month. Considering it a resub for announce triggers
@@ -423,6 +419,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                             if cfg.AnnounceReSubsChanMsg[currentchannel][x][1]:
                                 tmpReSubMsg = f'{tmpReSubMsg} {chatuser}'
                             c.privmsg(currentchannel, tmpReSubMsg)
+                            self.sub_epoch = time.time()
                             time.sleep(1.5)
                 
                 if sysmsgid == 'subgift' and cfg.AnnounceGiftSubs:
@@ -432,18 +429,19 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                             if cfg.AnnounceGiftSubsChanMsg[currentchannel][x][1]:
                                 tmpGiftSubMsg = f'{tmpGiftSubMsg} {chatuser}'
                             c.privmsg(currentchannel, tmpGiftSubMsg)
+                            self.sub_epoch = time.time()
                             time.sleep(1.5)
                     
-                if sysmsgid == 'raid' and cfg.AnnounceRaids and currentchannel in cfg.AnnounceRaidChannels:
-                    c.privmsg(currentchannel, f'{cfg.RaidMsg} {sysmsg} {cfg.RaidMsg}')
+        if sysmsgid == 'raid' and cfg.AnnounceRaids and currentchannel in cfg.AnnounceRaidChannels:
+            c.privmsg(currentchannel, f'{cfg.RaidMsg} {sysmsg} {cfg.RaidMsg}')
             
-            #What happens when the cfg.username is gifted a sub
-            if sysmsgid == 'subgift' and str.lower(subgiftrecipient) == str.lower(cfg.username):
-                c.privmsg(currentchannel, f'{cfg.GiftThanksMsg} {chatuser}')
-                f = open (f'Logs/{currentchannel}_GiftedSub.txt', 'a+', encoding='utf-8-sig')
-                f.write(f'{self.TimeStamp(cfg.LogTimeZone)} - {sysmsg}\r\n')
-                f.write(f'{self.TimeStamp(cfg.LogTimeZone)} - {cfg.username}: {cfg.GiftThanksMsg} {chatuser}\r\n')
-                f.close()
+        #What happens when the cfg.username is gifted a sub
+        if sysmsgid == 'subgift' and str.lower(subgiftrecipient) == str.lower(cfg.username):
+            c.privmsg(currentchannel, f'{cfg.GiftThanksMsg} {chatuser}')
+            f = open (f'Logs/{currentchannel}_GiftedSub.txt', 'a+', encoding='utf-8-sig')
+            f.write(f'{self.TimeStamp(cfg.LogTimeZone)} - {sysmsg}\r\n')
+            f.write(f'{self.TimeStamp(cfg.LogTimeZone)} - {cfg.username}: {cfg.GiftThanksMsg} {chatuser}\r\n')
+            f.close()
         
     def on_clearchat(self, c, e):
         #Shows when a user is banned
