@@ -20,7 +20,7 @@ import os
 from os import system
 import errno
 import threading
-import scriptconfig as cfg
+import myscriptconfig as cfg
 
 #--------------------------------------------------------------------------
 #---------------------------------- MAGIC ---------------------------------
@@ -70,7 +70,15 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         if cfg.EnableBotCommands:
             self.dbChatters = {}
             self.ChattersStartTime = self.TimeStamp(0)
-    
+        keep_alive_thread = threading.Thread(target=self.KeepMeAlive)
+        keep_alive_thread.daemon = True
+        keep_alive_thread.start()
+
+    def KeepMeAlive(self):
+        while True:
+            time.sleep(60*10)
+            self.connection.ping(':tmi.twitch.tv')
+
     def BotCommands(self, cmd):
         if cmd == '!enable':
             cfg.EnableBotCommands = 1
