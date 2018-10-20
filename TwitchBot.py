@@ -20,7 +20,7 @@ import os
 from os import system
 import errno
 import threading
-import myscriptconfig as cfg
+import scriptconfig as cfg
 
 #--------------------------------------------------------------------------
 #---------------------------------- MAGIC ---------------------------------
@@ -120,18 +120,28 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     if len(splitcmd) == 1:
                         print(f'\r\nAdd mod trigger usage: !addmod #channel/GLOBAL,txt_trigger,timeout/ban 2m reason\r\n')
                     else:
-                        trigger = splitcmd[1].split(',')
-                        cfg.ModTriggers[str.lower(trigger[0])].append((trigger[1],trigger[2],None,1))
-                        print(f'\r\nAdded ModTrigger {trigger}\r\n')
+                        try:
+                            trigger = splitcmd[1].split(',')
+                            cfg.ModTriggers[str.lower(trigger[0])].append((trigger[1],trigger[2],None,1))
+                            print(f'\r\nAdded ModTrigger {trigger}\r\n')
+                        except:
+                            trigger = splitcmd[1].split(',')
+                            cfg.ModTriggers[str.lower(trigger[0])] = [(trigger[1],trigger[2],None,1)]
+                            print(f'\r\nAdded ModTrigger {trigger}\r\n')
                 
                 elif '!addtrig' in cmd:
                     splitcmd = cmd.split(' ',1)
                     if len(splitcmd) == 1:
                         print(f'\r\nAdd chat trigger usage: !addtrig #channel/GLOBAL,txt_trigger,response,0/1 tag user\r\n')
                     else:
-                        trigger = splitcmd[1].split(',')
-                        cfg.ChatTriggers[str.lower(trigger[0])].append((trigger[1],trigger[2],trigger[3]))
-                        print(f'\r\nAdded {trigger}\r\n')
+                        try:
+                            trigger = splitcmd[1].split(',')
+                            cfg.ChatTriggers[str.lower(trigger[0])].append((trigger[1],trigger[2],trigger[3]))
+                            print(f'\r\nAdded {trigger}\r\n')
+                        except:
+                            trigger = splitcmd[1].split(',')
+                            cfg.ChatTriggers[str.lower(trigger[0])] = [(trigger[1],trigger[2],trigger[3])]
+                            print(f'\r\nAdded {trigger}\r\n')
                 
                 elif cmd == '!chanfilteron':
                     cfg.ChanFilters = 1
@@ -163,7 +173,6 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 print(f'\r\nSomething went wrong...\r\n')
     
     def TimeStamp(self, tzone):
-
         if tzone:
             tstamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         else:
@@ -490,7 +499,6 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             f.write(f'{banmsg}\r\n')
             f.close()
 
-    
     def on_globaluserstate(self, c, e):
         #Not sure if this is real or not
         print(e)
@@ -560,7 +568,6 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             targetchannel = e.arguments[0].split(' ')[0]
             print(f'HOSTTARGET-{self.TimeStamp(cfg.LogTimeZone)} {currentchannel} is hosting {targetchannel}.')
 
-    
     def on_privmsg(self, c, e):
         #type: privmsg, source: jtv!jtv@jtv.tmi.twitch.tv, target: mr_protocol, arguments: ['CutePuppy1337 is now hosting you.'], tags: []
         print(e)
