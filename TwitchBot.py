@@ -92,14 +92,14 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 elif '!uchatters' in cmd:
                     splitcmd = cmd.split(' ')
                     if len(splitcmd) == 1:
-                        print(f'Usage: !uchatters #channel')
+                        print(f'\r\nUsage: !uchatters #channel\r\n')
                     else:
-                        print(f'There are {len(str.lower(self.dbChatters[splitcmd[1]]))} chatters since {self.ChattersStartTime}.')
+                        print(f'There are {len(self.dbChatters[str.lower(splitcmd[1])])} chatters since {self.ChattersStartTime}.')
 
                 elif '!bot' in cmd:
                     splitcmd = cmd.split(' ')
                     if len(splitcmd) == 1:
-                        print(f'Usage: !bot #channel')
+                        print(f'\r\nUsage: !bot #channel\r\n')
                     else:
                         self.connection.privmsg(str.lower(splitcmd[1]), f'Beep Bop Boop Beep... I\'m not a bot, I\'m a real man!')
 
