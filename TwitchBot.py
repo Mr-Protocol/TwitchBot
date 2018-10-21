@@ -87,90 +87,99 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         if cfg.EnableBotCommands:
             try:
                 if cmd == "!commands":
-                    print(f'\r\n!addmod, !addtrig, !bot, !chanfilteron, !chanfilteroff, !chantrig, !repeatercount, !repeateroff, !repeateron, !uchatters, !ucount\r\n')
+                    print(f'!addmod, !addtrig, !bot, !chanfilteron, !chanfilteroff, !chantrig, !printchatters, !repeatercount, !repeateroff, !repeateron, !uchatters, !ucount\r\n')
 
                 elif '!uchatters' in cmd:
                     splitcmd = cmd.split(' ')
                     if len(splitcmd) == 1:
-                        print(f'\r\nUsage: !uchatters #channel\r\n')
+                        print(f'Usage: !uchatters #channel\r\n')
                     else:
-                        print(f'There are {len(self.dbChatters[str.lower(splitcmd[1])])} chatters since {self.ChattersStartTime}.')
+                        print(f'There are {len(self.dbChatters[str.lower(splitcmd[1])])} chatters since {self.ChattersStartTime}.\r\n')
 
                 elif '!bot' in cmd:
                     splitcmd = cmd.split(' ')
                     if len(splitcmd) == 1:
-                        print(f'\r\nUsage: !bot #channel\r\n')
+                        print(f'Usage: !bot #channel\r\n')
                     else:
                         self.connection.privmsg(str.lower(splitcmd[1]), f'Beep Bop Boop Beep... I\'m not a bot, I\'m a real man!')
 
                 elif '!ucount' in cmd:
                     splitcmd = cmd.split(' ')
                     if len(splitcmd) == 1:
-                        print(f'\r\nUsage: !ucount #channel username\r\n')
+                        print(f'Usage: !ucount #channel username\r\n')
                     else:
                         currentchannel = str.lower(splitcmd[1])
                         ucountuser = str.lower(splitcmd[2])
                         try:
-                            print(f'\r\nThe user {ucountuser} has {self.dbChatters[currentchannel][ucountuser]} messages since {self.ChattersStartTime}.\r\n')
+                            print(f'The user {ucountuser} has {self.dbChatters[currentchannel][ucountuser]} messages since {self.ChattersStartTime}.\r\n')
                         except:
-                            print(f'\r\nUser not found\r\n')
+                            print(f'User not found\r\n')
                 
                 elif '!addmod' in cmd:
                     splitcmd = cmd.split(' ',1)
                     if len(splitcmd) == 1:
-                        print(f'\r\nAdd mod trigger usage: !addmod #channel/GLOBAL,txt_trigger,timeout/ban 2m reason\r\n')
+                        print(f'Add mod trigger usage: !addmod #channel/GLOBAL,txt_trigger,timeout/ban 2m reason\r\n')
                     else:
                         try:
                             trigger = splitcmd[1].split(',')
                             cfg.ModTriggers[str.lower(trigger[0])].append((trigger[1],trigger[2],None,1))
-                            print(f'\r\nAdded ModTrigger {trigger}\r\n')
+                            print(f'Added ModTrigger {trigger}\r\n')
                         except:
                             trigger = splitcmd[1].split(',')
                             cfg.ModTriggers[str.lower(trigger[0])] = [(trigger[1],trigger[2],None,1)]
-                            print(f'\r\nAdded ModTrigger {trigger}\r\n')
+                            print(f'Added ModTrigger {trigger}\r\n')
                 
                 elif '!addtrig' in cmd:
                     splitcmd = cmd.split(' ',1)
                     if len(splitcmd) == 1:
-                        print(f'\r\nAdd chat trigger usage: !addtrig #channel/GLOBAL,txt_trigger,response,0/1 tag user\r\n')
+                        print(f'Add chat trigger usage: !addtrig #channel/GLOBAL,txt_trigger,response,0/1 tag user\r\n')
                     else:
                         try:
                             trigger = splitcmd[1].split(',')
                             cfg.ChatTriggers[str.lower(trigger[0])].append((trigger[1],trigger[2],trigger[3]))
-                            print(f'\r\nAdded {trigger}\r\n')
+                            print(f'Added {trigger}\r\n')
                         except:
                             trigger = splitcmd[1].split(',')
                             cfg.ChatTriggers[str.lower(trigger[0])] = [(trigger[1],trigger[2],trigger[3])]
-                            print(f'\r\nAdded {trigger}\r\n')
+                            print(f'Added {trigger}\r\n')
                 
                 elif cmd == '!chanfilteron':
                     cfg.ChanFilters = 1
-                    print(f'\r\nChanFilters Enabled\r\n')
+                    print(f'ChanFilters Enabled\r\n')
                 
                 elif cmd == '!chanfilteroff':
                     cfg.ChanFilters = 0
-                    print(f'\r\nChanFilters Disabled\r\n')
+                    print(f'ChanFilters Disabled\r\n')
                 
                 elif cmd == '!repeateron':
                     cfg.EnableKeywordRepeater = 1
-                    print(f'\r\nEnabled keyword repeater. Count trigger: {cfg.KeywordRepeaterCount}\r\n')
+                    print(f'Enabled keyword repeater. Count trigger: {cfg.KeywordRepeaterCount}\r\n')
                 
                 elif cmd == '!repeateroff':
                     cfg.EnableKeywordRepeater = 0
-                    print(f'\r\nDisabled keyword repeater.\r\n')
+                    print(f'Disabled keyword repeater.\r\n')
 
                 elif '!repeatercount' in cmd:
                     splitcmd = cmd.split(' ')
                     if len(splitcmd) == 1:
-                        print(f'\r\nUsage: !repeatercount #')
+                        print(f'Usage: !repeatercount #')
                     else:
                         cfg.KeywordRepeaterCount = splitcmd[1]
-                        print(f'\r\nKeyword repeater count set to: {splitcmd[1]}')
+                        print(f'Keyword repeater count set to: {splitcmd[1]}\r\n')
                 
+                elif '!printchatters' in cmd:
+                    splitcmd = cmd.split(' ')
+                    if len(splitcmd) == 1:
+                        print(f'Prints chatters of #channel.')
+                        print(f'Usage: !printchatters #channel\r\n')
+                    else:
+                        currentchannel = str.lower(splitcmd[1])
+                        print(f'{self.dbChatters[currentchannel]}\r\n')
+
                 else:
-                    print(f'\r\nNo Command...\r\n')
+                    print(f'No Command...\r\n')
             except:
-                print(f'\r\nSomething went wrong...\r\n')
+                print(f'Something went wrong...\r\n')
     
     def TimeStamp(self, tzone):
         if tzone:
