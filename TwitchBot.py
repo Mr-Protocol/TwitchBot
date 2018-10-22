@@ -80,6 +80,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             self.connection.ping(':tmi.twitch.tv')
 
     def BotCommands(self, cmd):
+        cmd = str.lower(cmd)
         if cmd == '!enable':
             cfg.EnableBotCommands = 1
             print(f'Commands Enabled')
@@ -94,24 +95,26 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     if len(splitcmd) == 1:
                         print(f'Usage: !uchatters #channel\r\n')
                     else:
-                        print(f'There are {len(self.dbChatters[str.lower(splitcmd[1])])} chatters since {self.ChattersStartTime}.\r\n')
+                        print(f'There are {len(self.dbChatters[splitcmd[1]])} chatters since {self.ChattersStartTime}. in {splitcmd[1]}')
+                        print(f'Current Time: {self.TimeStamp(0)}\r\n')
 
                 elif '!bot' in cmd:
                     splitcmd = cmd.split(' ')
                     if len(splitcmd) == 1:
                         print(f'Usage: !bot #channel\r\n')
                     else:
-                        self.connection.privmsg(str.lower(splitcmd[1]), f'Beep Bop Boop Beep... I\'m not a bot, I\'m a real man!')
+                        self.connection.privmsg(splitcmd[1], f'Beep Bop Boop Beep... I\'m not a bot, I\'m a real man!')
 
                 elif '!ucount' in cmd:
                     splitcmd = cmd.split(' ')
                     if len(splitcmd) == 1:
                         print(f'Usage: !ucount #channel username\r\n')
                     else:
-                        currentchannel = str.lower(splitcmd[1])
-                        ucountuser = str.lower(splitcmd[2])
+                        currentchannel = splitcmd[1]
+                        ucountuser = splitcmd[2]
                         try:
-                            print(f'The user {ucountuser} has {self.dbChatters[currentchannel][ucountuser]} messages since {self.ChattersStartTime}.\r\n')
+                            print(f'The user {ucountuser} has {self.dbChatters[currentchannel][ucountuser]} messages since {self.ChattersStartTime}.')
+                            print(f'Current Time: {self.TimeStamp(0)}\r\n')
                         except:
                             print(f'User not found\r\n')
                 
@@ -122,11 +125,11 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     else:
                         try:
                             trigger = splitcmd[1].split(',')
-                            cfg.ModTriggers[str.lower(trigger[0])].append((trigger[1],trigger[2],None,1))
+                            cfg.ModTriggers[trigger[0]].append((trigger[1],trigger[2],None,1))
                             print(f'Added ModTrigger {trigger}\r\n')
                         except:
                             trigger = splitcmd[1].split(',')
-                            cfg.ModTriggers[str.lower(trigger[0])] = [(trigger[1],trigger[2],None,1)]
+                            cfg.ModTriggers[trigger[0]] = [(trigger[1],trigger[2],None,1)]
                             print(f'Added ModTrigger {trigger}\r\n')
                 
                 elif '!addtrig' in cmd:
@@ -136,11 +139,11 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     else:
                         try:
                             trigger = splitcmd[1].split(',')
-                            cfg.ChatTriggers[str.lower(trigger[0])].append((trigger[1],trigger[2],trigger[3]))
+                            cfg.ChatTriggers[trigger[0]].append((trigger[1],trigger[2],trigger[3]))
                             print(f'Added {trigger}\r\n')
                         except:
                             trigger = splitcmd[1].split(',')
-                            cfg.ChatTriggers[str.lower(trigger[0])] = [(trigger[1],trigger[2],trigger[3])]
+                            cfg.ChatTriggers[trigger[0]] = [(trigger[1],trigger[2],trigger[3])]
                             print(f'Added {trigger}\r\n')
                 
                 elif cmd == '!chanfilteron':
@@ -167,14 +170,14 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                         cfg.KeywordRepeaterCount = splitcmd[1]
                         print(f'Keyword repeater count set to: {splitcmd[1]}\r\n')
                 
-                elif '!printchatters' in cmd:
+                elif '!showchatters' in cmd:
                     splitcmd = cmd.split(' ')
                     if len(splitcmd) == 1:
-                        print(f'Prints chatters of #channel.')
-                        print(f'Usage: !printchatters #channel\r\n')
+                        print(f'Shows chatters of #channel.')
+                        print(f'Usage: !showchatters #channel\r\n')
                     else:
-                        currentchannel = str.lower(splitcmd[1])
-                        print(f'{self.dbChatters[currentchannel]}\r\n')
+                        currentchannel = splitcmd[1]
+                        print(f'Chatters in {currentchannel}: {self.dbChatters[currentchannel]}\r\n')
 
                 else:
                     print(f'No Command...\r\n')
@@ -425,7 +428,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 f.close()
         
         #------------------------- Sub actions -------------------------
-        if time.time() - self.sub_epoch >= 10: #A little anti-spam
+        if time.time() - self.sub_epoch >= 5: #A little anti-spam
             if chatuser != cfg.username:
                 if sysmsgid == 'sub' and cfg.AnnounceNewSubs:
                     if currentchannel in cfg.AnnounceNewSubsChanMsg:
@@ -435,7 +438,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                                 tmpNewSubMsg = f'{tmpNewSubMsg} {chatuser}'
                             c.privmsg(currentchannel, tmpNewSubMsg)
                             self.sub_epoch = time.time()
-                            time.sleep(1.5)
+                            if currentchannel not in self.dbModChannels:
+                                time.sleep(1.5)
                 
                 #Subtember allowed users to upgrade a gifted sub for $1 to continue for the next month. Considering it a resub for announce triggers
                 if (sysmsgid == 'resub' or sysmsgid == 'giftpaidupgrade') and cfg.AnnounceResubs:
@@ -446,7 +450,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                                 tmpReSubMsg = f'{tmpReSubMsg} {chatuser}'
                             c.privmsg(currentchannel, tmpReSubMsg)
                             self.sub_epoch = time.time()
-                            time.sleep(1.5)
+                            if currentchannel not in self.dbModChannels:
+                                time.sleep(1.5)
                 
                 if sysmsgid == 'subgift' and cfg.AnnounceGiftSubs:
                     if currentchannel in cfg.AnnounceGiftSubsChanMsg:
@@ -456,7 +461,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                                 tmpGiftSubMsg = f'{tmpGiftSubMsg} {chatuser}'
                             c.privmsg(currentchannel, tmpGiftSubMsg)
                             self.sub_epoch = time.time()
-                            time.sleep(1.5)
+                            if currentchannel not in self.dbModChannels:
+                                time.sleep(1.5)
                     
         if sysmsgid == 'raid' and cfg.AnnounceRaids and currentchannel in cfg.AnnounceRaidChannels:
             c.privmsg(currentchannel, f'{cfg.RaidMsg} {sysmsg} {cfg.RaidMsg}')
