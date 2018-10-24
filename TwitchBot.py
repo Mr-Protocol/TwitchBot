@@ -173,11 +173,12 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 elif '!showchatters' in cmd:
                     splitcmd = cmd.split(' ')
                     if len(splitcmd) == 1:
-                        print(f'Shows chatters of #channel.')
+                        print(f'Shows number of messages and chatters of #channel. Highest to lowest sort.')
                         print(f'Usage: !showchatters #channel\r\n')
                     else:
                         currentchannel = splitcmd[1]
-                        print(f'Chatters in {currentchannel}: {self.dbChatters[currentchannel]}\r\n')
+                        sorted_d = sorted(((value, key) for (key,value) in self.dbChatters[currentchannel].items()), reverse=True)
+                        print(f'Chatters in {currentchannel}: {sorted_d}\r\n')
 
                 else:
                     print(f'No Command...\r\n')
