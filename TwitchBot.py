@@ -236,6 +236,10 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         c.join(cfg.channels)
 
     def on_pubmsg(self, c, e):
+        self.ChatTextParsing(e)
+        
+    def ChatTextParsing(self, edata):
+        e = edata
         themsg = e.arguments[0]
         currentchannel = e.target
         #Used for debugging.
@@ -257,7 +261,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             chatheader = ' - !SUB!-'
         else:
             chatheader = ' - '
-        
+
         #Terminal Chat Log - Prepend Host/Mod status to accounts in chat.
         #Filter channels using ChanTermFilters to hide channel(s) chat from terminal
         if cfg.ChanFilters and currentchannel in cfg.ChanTermFilters:
@@ -294,7 +298,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 self.dbRepeaterKeyword.update({currentchannel: (themsg, self.dbRepeaterKeyword[currentchannel][1] + 1)})
                 if self.dbRepeaterKeyword[currentchannel][1] > cfg.KeywordRepeaterCount:
                     if time.time() - self.RepeaterEpoch >= 30: #A little anti-spam
-                        c.privmsg(currentchannel, themsg)
+                        self.connection.privmsg(currentchannel, themsg)
                         self.dbRepeaterKeyword.update({currentchannel: ('', 0)})
                         self.RepeaterEpoch = time.time()
             else: #New keyword
@@ -307,7 +311,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     if str.lower(cfg.CopyPastaTriggers[currentchannel][x]) in str.lower(themsg):
                         if time.time() - self.epochCopyPasta >= 90:
                             self.epochCopyPasta = time.time()
-                            c.privmsg(currentchannel, themsg)
+                            self.connection.privmsg(currentchannel, themsg)
                             print(f'{self.TimeStamp(cfg.LogTimeZone)} {currentchannel} {cfg.username}: {themsg}\r\n')
 
         #Unique Chatters Info
@@ -346,7 +350,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                                 f.close()
                                 if time.time() - self.chat_epoch >= 90: #A little anti-spam for triggered words
                                     self.chat_epoch = time.time()
-                                    c.privmsg(currentchannel, cresponse)
+                                    self.connection.privmsg(currentchannel, cresponse)
                                     print(f'{self.TimeStamp(cfg.LogTimeZone)} {currentchannel} - {cfg.username}: {cresponse}')
                                     f = open (f'Logs/ChatTriggers/{currentchannel}_ChatTriggerLog.txt', 'a+', encoding='utf-8-sig')
                                     f.write(f'{self.TimeStamp(cfg.LogTimeZone)} SENT: {chatheader}{cfg.username}: {cresponse}\r\n')
@@ -366,21 +370,21 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                                         txtreponse = cfg.ModTriggers[ChanAndGlobal][x][2]
                                         if cfg.ModTriggers[ChanAndGlobal][x][3]:
                                             txtreponse = f'{txtreponse} {chatuser}'
-                                        c.privmsg(currentchannel, f'{txtreponse}')
+                                        self.connection.privmsg(currentchannel, f'{txtreponse}')
                                         print(f'{self.TimeStamp(cfg.LogTimeZone)} {currentchannel} - !MOD!-{cfg.username}: {txtreponse}')
                                     try:
                                         splitresponse = mresponse.split(' ')
                                         modoptions = ''
                                         for x in splitresponse[1:]:
                                             modoptions = f'{modoptions} {x}'
-                                        c.privmsg(currentchannel, f'{splitresponse[0]} {chatuser}{modoptions}')
+                                        self.connection.privmsg(currentchannel, f'{splitresponse[0]} {chatuser}{modoptions}')
                                         print(f'{self.TimeStamp(cfg.LogTimeZone)} {currentchannel} - !MOD!-{cfg.username}: {splitresponse[0]} {chatuser}{modoptions}')
                                         f = open (f'Logs/ModTriggers/{currentchannel}_ModTriggerLog.txt', 'a+', encoding='utf-8-sig')
                                         f.write(f'{self.TimeStamp(cfg.LogTimeZone)} TRIGGER EVENT: {chatheader}{chatuser}: {themsg}\r\n')
                                         f.write(f'{self.TimeStamp(cfg.LogTimeZone)} SENT: !MOD!-{cfg.username}: {splitresponse[0]} {chatuser}{modoptions}\r\n')
                                         f.close()
                                     except:
-                                        c.privmsg(currentchannel, f'{mresponse} {chatuser}')
+                                        self.connection.privmsg(currentchannel, f'{mresponse} {chatuser}')
                                         print(f'{self.TimeStamp(cfg.LogTimeZone)} {currentchannel} - !MOD!-{cfg.username}: {mresponse} {chatuser}')
                                         f = open (f'Logs/ModTriggers/{currentchannel}_ModTriggerLog.txt', 'a+', encoding='utf-8-sig')
                                         f.write(f'{self.TimeStamp(cfg.LogTimeZone)} TRIGGER EVENT: {chatheader}{chatuser}: {themsg}\r\n')
@@ -572,6 +576,13 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             elif cfg.AnnounceUserParts and 'GLOBAL' in (uname for uname in cfg.AnnounceUserPartList):
                 print(f'PART-{self.TimeStamp(cfg.LogTimeZone)} {currentchannel} - {chatuser} has left.')
     
+    def on_action(self, c, e):
+        #When a user types /me in the chat and sends a message.
+        #type: action, source: mr_protocol!mr_protocol@mr_protocol.tmi.twitch.tv, target: #mr_protocol, arguments: ['testing 12345'], tags: [{'key': 'badges', 'value': 'broadcaster/1,premium/1'}, {'key': 'color', 'value': '#00FF7F'}, {'key': 'display-name', 'value': 'Mr_Protocol'}, {'key': 'emotes', 'value': None}, {'key': 'flags', 'value': None}, {'key': 'id', 'value': 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'}, {'key': 'mod', 'value': '0'}, {'key': 'room-id', 'value': 'XXXXXXX'}, {'key': 'subscriber', 'value': '0'}, {'key': 'tmi-sent-ts', 'value': 'XXXXXXXXXXX'}, {'key': 'turbo', 'value': '0'}, {'key': 'user-id', 'value': 'XXXXXXXX'}, {'key': 'user-type', 'value': None}]
+        #Used for debugging
+        #print(e)     
+        self.ChatTextParsing(e)
+
     def on_hosttarget(self, c, e):
         #Shows hosting info
         #type: hosttarget, source: tmi.twitch.tv, target: #CHANNEL, arguments: ['channelbeinghosted -'], tags: []
