@@ -234,7 +234,7 @@ ChatLogChannels = []
 #Log ASCII Art
 LogAscii = 1
 #Containing chars
-LogAsciiSet = set('▄▀█▒▐░')
+LogAsciiSet = set('▄▀█▒▐░⚫⚪🔴┈▔▃▏┳┊')
 
 #Send system messages to log file.
 LogSystemMessages = 1
