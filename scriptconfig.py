@@ -207,9 +207,11 @@ EnableKeywordRepeater = 0
 KeywordRepeaterCount = 7
 
 #Enable Bot Commands
-#If a chat message from botusername is !uchatters it will display results for the channel
-#If a chat message from botusername is !ucount <username> will display the user's number
+#Turns on terminal commands !enable or !commands or !help
 EnableBotCommands = 1
+
+#Enable tracking of chatters in channel
+EnableChatTracking = 1
 
 #---------------------------------------------------------------------------
 #----------------------------------- Logs ----------------------------------

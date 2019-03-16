@@ -67,7 +67,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             splitchans = cfg.channels.split(',')
             for x in splitchans:
                 self.dbRepeaterKeyword.update({x: ('', 0)})
-        if cfg.EnableBotCommands:
+        if cfg.EnableChatTracking:
             self.dbChatters = {}
             self.ChattersStartTime = self.TimeStamp(0)
         keep_alive_thread = threading.Thread(target=self.KeepMeAlive)
@@ -87,8 +87,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
         if cfg.EnableBotCommands:
             try:
-                if cmd == "!commands":
-                    print(f'!addmod, !addtrig, !bot, !chanfilteron, !chanfilteroff, !chantrig, !showchatters, !repeatercount, !repeateroff, !repeateron, !uchatters, !ucount\r\n')
+                if cmd == "!commands" or "!help":
+                    print(f'!addmod, !addtrig, !bot, !chanfilteron, !chanfilteroff, !chantrig, !commands, !help, !showchatters, !repeatercount, !repeateroff, !repeateron, !uchatters, !ucount\r\n')
 
                 elif '!uchatters' in cmd:
                     splitcmd = cmd.split(' ')
@@ -314,8 +314,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                             self.connection.privmsg(currentchannel, themsg)
                             print(f'{self.TimeStamp(cfg.LogTimeZone)} {currentchannel} {cfg.username}: {themsg}\r\n')
 
-        #Unique Chatters Info
-        if cfg.EnableBotCommands:
+        #Tracking Chatters Info
+        if cfg.EnableChatTracking:
             if currentchannel in self.dbChatters:
                 if str.lower(chatuser) in self.dbChatters[currentchannel]:
                     self.dbChatters[currentchannel][str.lower(chatuser)] += 1
@@ -323,41 +323,41 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     self.dbChatters[currentchannel][str.lower(chatuser)] = 1
             else:
                 self.dbChatters[currentchannel] = {str.lower(chatuser): 1}
-            
-        #Skip parsing and triggers if the user is a mod/host or in safelist, also if user is a sub
-        if isamod == '1':
-            pass
-        elif str.lower(chatuser) in cfg.SafelistUsers:
-            pass
-        elif cfg.DontTriggerSubs and isasub == '1':
-            pass
-        else:        
-            #Chat Triggers - uses lcase themsg directly
-            if cfg.EnableChatTriggers:
-                for ChanAndGlobal in cfg.ChatTriggers:
-                    if currentchannel == ChanAndGlobal or ChanAndGlobal == 'GLOBAL':
-                        for x in range(len(cfg.ChatTriggers[ChanAndGlobal])):
-                            if str.lower(cfg.ChatTriggers[ChanAndGlobal][x][0]) in str.lower(themsg):
-                                cresponse = cfg.ChatTriggers[ChanAndGlobal][x][1]
-                                if cfg.ChatTriggers[ChanAndGlobal][x][2]:
-                                    cresponse = f'{cresponse} {chatuser}'
-                                if cfg.AutomatedRespondEnabled:
-                                    cresponse = f'{cresponse} {cfg.AutomatedResponseMsg}'
-                                #Log it
-                                self.CheckLogDir('ChatTriggers')
+
+        #Chat Triggers - uses lcase themsg directly
+        if cfg.EnableChatTriggers:
+            for ChanAndGlobal in cfg.ChatTriggers:
+                if currentchannel == ChanAndGlobal or ChanAndGlobal == 'GLOBAL':
+                    for x in range(len(cfg.ChatTriggers[ChanAndGlobal])):
+                        if str.lower(cfg.ChatTriggers[ChanAndGlobal][x][0]) in str.lower(themsg):
+                            cresponse = cfg.ChatTriggers[ChanAndGlobal][x][1]
+                            if cfg.ChatTriggers[ChanAndGlobal][x][2]:
+                                cresponse = f'{cresponse} {chatuser}'
+                            if cfg.AutomatedRespondEnabled:
+                                cresponse = f'{cresponse} {cfg.AutomatedResponseMsg}'
+                            #Log it
+                            self.CheckLogDir('ChatTriggers')
+                            f = open (f'Logs/ChatTriggers/{currentchannel}_ChatTriggerLog.txt', 'a+', encoding='utf-8-sig')
+                            f.write(f'{self.TimeStamp(cfg.LogTimeZone)} TRIGGER EVENT: {currentchannel}{chatheader}{chatuser}: {themsg}\r\n')
+                            f.close()
+                            if time.time() - self.chat_epoch >= 90: #A little anti-spam for triggered words
+                                self.chat_epoch = time.time()
+                                self.connection.privmsg(currentchannel, cresponse)
+                                print(f'{self.TimeStamp(cfg.LogTimeZone)} {currentchannel} - {cfg.username}: {cresponse}')
                                 f = open (f'Logs/ChatTriggers/{currentchannel}_ChatTriggerLog.txt', 'a+', encoding='utf-8-sig')
-                                f.write(f'{self.TimeStamp(cfg.LogTimeZone)} TRIGGER EVENT: {currentchannel}{chatheader}{chatuser}: {themsg}\r\n')
+                                f.write(f'{self.TimeStamp(cfg.LogTimeZone)} SENT: {chatheader}{cfg.username}: {cresponse}\r\n')
                                 f.close()
-                                if time.time() - self.chat_epoch >= 90: #A little anti-spam for triggered words
-                                    self.chat_epoch = time.time()
-                                    self.connection.privmsg(currentchannel, cresponse)
-                                    print(f'{self.TimeStamp(cfg.LogTimeZone)} {currentchannel} - {cfg.username}: {cresponse}')
-                                    f = open (f'Logs/ChatTriggers/{currentchannel}_ChatTriggerLog.txt', 'a+', encoding='utf-8-sig')
-                                    f.write(f'{self.TimeStamp(cfg.LogTimeZone)} SENT: {chatheader}{cfg.username}: {cresponse}\r\n')
-                                    f.close()
-           
-            #Mod Triggers - uses the lcase themsg and splits words via spaces
-            if cfg.EnableModTriggers:
+      
+        #Mod Triggers - uses the lcase themsg and splits words via spaces
+        if cfg.EnableModTriggers:
+            #Skip parsing and triggers if the user is a mod/host or in safelist, also if user is a sub
+            if isamod == '1':
+                pass
+            elif str.lower(chatuser) in cfg.SafelistUsers:
+                pass
+            elif cfg.DontTriggerSubs and isasub == '1':
+                pass
+            else:
                 if currentchannel in self.dbModChannels:
                     for ChanAndGlobal in cfg.ModTriggers:
                         if currentchannel == ChanAndGlobal or ChanAndGlobal == 'GLOBAL':
