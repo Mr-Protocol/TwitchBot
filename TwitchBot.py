@@ -87,7 +87,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
         if cfg.EnableBotCommands:
             try:
-                if cmd == "!commands" or "!help":
+                if cmd in {"!commands", "!help"}:
                     print(f'!addmod, !addtrig, !bot, !chanfilteron, !chanfilteroff, !chantrig, !commands, !help, !showchatters, !repeatercount, !repeateroff, !repeateron, !uchatters, !ucount\r\n')
 
                 elif '!uchatters' in cmd:
