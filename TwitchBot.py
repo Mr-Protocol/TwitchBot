@@ -209,14 +209,22 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 exit()
 
     def ClearLogs(self):
-        clearalllogs = input('Do you want to clear all the logs (Y/N)? (Default: N)')
-        if str.lower(clearalllogs) == 'y':
-            try:
-                shutil.rmtree('Logs')
-                time.sleep(1.5)
-                os.makedirs('Logs')
-            except:
-                os.makedirs('Logs')
+        print('Do you want to clear all the logs (Y/N)? (Default: N)')
+        try:
+            for i in range(0,5):
+                os.system('cls' if os.name == 'nt' else 'clear')
+                print('Do you want to clear all the logs (Y/N)? (Default: N) (Timeout: ' + str((5 - i)) + ')')
+                time.sleep(1)
+            print('No input - Using Default - Not Clearing Logs')
+        except KeyboardInterrupt:
+            clearalllogs = input()
+            if str.lower(clearalllogs) == 'y':
+                try:
+                    shutil.rmtree('Logs')
+                    time.sleep(1.5)
+                    os.makedirs('Logs')
+                except:
+                    os.makedirs('Logs')
         os.system('cls' if os.name == 'nt' else 'clear')
     
     def CheckLogDir(self, logpath):
