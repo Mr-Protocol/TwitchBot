@@ -218,6 +218,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 time.sleep(1)
             print('No input - Using Default - Not Clearing Logs')
         except KeyboardInterrupt:
+            print()
             clearalllogs = input('Do you want to clear all the logs (Y/N)? (Default: N)')
             if str.lower(clearalllogs) == 'y':
                 try:
