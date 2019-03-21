@@ -255,7 +255,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             if x['key'] == 'mod':
                 isamod = x['value']
             if x['key'] == 'badges':
-                if 'vip' in x['value']:
+                if 'vip' in str(x['value']):
                     isavip = True
                 else:
                     isavip = False
