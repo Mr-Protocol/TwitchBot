@@ -236,6 +236,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         c.join(cfg.channels)
 
     def on_pubmsg(self, c, e):
+        #print(e)
         self.ChatTextParsing(e)
         
     def ChatTextParsing(self, edata):
@@ -253,12 +254,21 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 isasub = x['value']
             if x['key'] == 'mod':
                 isamod = x['value']
+            if x['key'] == 'badges':
+                if 'vip' in x['value']:
+                    isavip = True
+                else:
+                    isavip = False
+
         if str.lower(chatuser) in currentchannel:
             chatheader = ' - !HOST!-'
         elif isamod == '1':
             chatheader = ' - !MOD!-'
+        elif isavip:
+            chatheader = ' - !VIP!-'        
         elif isasub == '1':
             chatheader = ' - !SUB!-'
+
         else:
             chatheader = ' - '
 
