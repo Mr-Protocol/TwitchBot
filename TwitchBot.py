@@ -243,6 +243,9 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         e = edata
         themsg = e.arguments[0]
         currentchannel = e.target
+        isamod = False
+        isavip = False
+        isasub = False
         #Used for debugging.
         #print(e)
         
