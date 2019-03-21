@@ -109,6 +109,9 @@ AnnounceModeChanges = 0
 #Chat/Mod trigger safelist
 SafelistUsers = ['mr_protocol']
 
+#Don't Trigger on VIPs
+DontTriggerVIP = 0
+
 #Don't trigger on subscribers of channel
 DontTriggerSubs = 0
 
@@ -236,7 +239,7 @@ ChatLogChannels = []
 #Log ASCII Art
 LogAscii = 1
 #Containing chars
-LogAsciiSet = set('▄▀█▒▐░⚫⚪🔴┈▔▃▏┳┊')
+LogAsciiSet = set('▄▀█▒▐░⚫🔴⚪┈▔▃▏┳┊')
 
 #Send system messages to log file.
 LogSystemMessages = 1

@@ -251,26 +251,26 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             if x['key'] == 'display-name':
                 chatuser = x['value']
             if x['key'] == 'subscriber':
-                isasub = x['value']
+                if x['value'] == '1':
+                    isasub = True
             if x['key'] == 'mod':
-                isamod = x['value']
+                if x['value'] == '1':
+                    isamod = True
             if x['key'] == 'badges':
                 if 'vip' in str(x['value']):
                     isavip = True
                 else:
                     isavip = False
 
+        chatheader = ' - '
         if str.lower(chatuser) in currentchannel:
-            chatheader = ' - !HOST!-'
-        elif isamod == '1':
-            chatheader = ' - !MOD!-'
-        elif isavip:
-            chatheader = ' - !VIP!-'        
-        elif isasub == '1':
-            chatheader = ' - !SUB!-'
-
-        else:
-            chatheader = ' - '
+            chatheader = chatheader + '!HOST!-'
+        if isamod:
+            chatheader = chatheader + '!MOD!-'
+        if isavip:
+            chatheader = chatheader + '!VIP!-'        
+        if isasub:
+            chatheader = chatheader + '!SUB!-'
 
         #Terminal Chat Log - Prepend Host/Mod status to accounts in chat.
         #Filter channels using ChanTermFilters to hide channel(s) chat from terminal
@@ -360,12 +360,14 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
       
         #Mod Triggers - uses the lcase themsg and splits words via spaces
         if cfg.EnableModTriggers:
-            #Skip parsing and triggers if the user is a mod/host or in safelist, also if user is a sub
-            if isamod == '1':
+            #Skip parsing and triggers if the user is a mod/host, VIP, or in safelist, also if user is a sub
+            if isamod:
+                pass
+            elif cfg.DontTriggerVIP and isavip:
                 pass
             elif str.lower(chatuser) in cfg.SafelistUsers:
                 pass
-            elif cfg.DontTriggerSubs and isasub == '1':
+            elif cfg.DontTriggerSubs and isasub:
                 pass
             else:
                 if currentchannel in self.dbModChannels:
