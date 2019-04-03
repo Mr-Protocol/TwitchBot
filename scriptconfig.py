@@ -14,6 +14,10 @@ token = ''
 #Example: channels = '#mr_protocol,#shroud,#drdisrespectlive'
 channels = ''
 
+#API Client ID - Get this by making an app on https://dev.twitch.tv/console/apps
+#apiclientid = 'abcdefghijklmnop12345678'   <--- Example
+apiclientid = ''
+
 #Enable ChanFilters
 ChanFilters = 1
 
@@ -228,8 +232,8 @@ LogTimeZone = 1
 #Log chat username highlights (Global)
 LogHighlights = 1
 
-#Log all chat messages
-LogChatMessages = 1
+#Log all chat messages and join/leave messages
+EnableLogChatMessages = 1
 
 #Chat Log only these channels
 #ChatLogChannels = ['#shroud', '#drdisrespectlive']
@@ -242,7 +246,7 @@ LogAscii = 1
 LogAsciiSet = set('▄▀█▒▐░⚫🔴⚪┈▔▃▏┳┊')
 
 #Send system messages to log file.
-LogSystemMessages = 1
+LogSystemMessages = 0
 
 #Log raw system message or simplified. 1=raw 0=simplified
 RawSystemMsgs = 0
@@ -253,7 +257,7 @@ RawSystemMsgs = 0
 SysMsgLogChannels = ['GLOBAL']
 
 #Log pubnotice messages
-LogPubnotice = 1
+LogPubnotice = 0
 
 #Log clearchat messages
-LogClearchat = 1
+LogClearchat = 0
