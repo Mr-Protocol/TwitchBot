@@ -78,6 +78,19 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         while True:
             time.sleep(60*10)
             self.connection.ping(':tmi.twitch.tv')
+    
+    def apiGetChannelID(self, channel):
+        url = 'https://api.twitch.tv/kraken/users?login=' + channel
+        headers = {'Client-ID': cfg.apiclientid, 'Accept': 'applications/vnd.twitchtv.v5+json'}
+        r = requests.get(url, headers=headers).json()
+        channel_id = r['users'][0]['_id']
+        return channel_id
+
+    def apiGetUserInfo(self, username):
+        url = 'https://api.twitch.tv/kraken/users?login=' + username
+        headers = {'Client-ID': cfg.apiclientid, 'Accept': 'application/vnd.twitchtv.v5+json'}
+        r = requests.get(url, headers=headers).json()
+        return r
 
     def BotCommands(self, cmd):
         cmd = str.lower(cmd)
@@ -88,7 +101,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         if cfg.EnableBotCommands:
             try:
                 if cmd in {"!commands", "!help"}:
-                    print(f'!addmod, !addtrig, !bot, !chanfilteron, !chanfilteroff, !chantrig, !commands, !help, !showchatters, !repeatercount, !repeateroff, !repeateron, !uchatters, !ucount\r\n')
+                    print(f'!addmod, !addtrig, !bot, !chanfilteron, !chanfilteroff, !chanid, !chantrig, !commands, !help, !showchatters, !repeatercount, !repeateroff, !repeateron, !uchatters, !ucount\r\n')
 
                 elif '!uchatters' in cmd:
                     splitcmd = cmd.split(' ')
@@ -154,6 +167,13 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     cfg.ChanFilters = 0
                     print(f'ChanFilters Disabled\r\n')
                 
+                elif '!chanid' in cmd:
+                    splitcmd = cmd.split(' ',1)
+                    if len(splitcmd) == 1:
+                        print(f'Get channel id. !chanid channel')
+                    else:
+                        print(f'{self.apiGetChannelID(splitcmd[1])}')
+                
                 elif cmd == '!repeateron':
                     cfg.EnableKeywordRepeater = 1
                     print(f'Enabled keyword repeater. Count trigger: {cfg.KeywordRepeaterCount}\r\n')
@@ -179,6 +199,9 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                         currentchannel = splitcmd[1]
                         sorted_d = sorted(((value, key) for (key,value) in self.dbChatters[currentchannel].items()), reverse=True)
                         print(f'Chatters in {currentchannel}: {sorted_d}\r\n')
+
+                elif cmd == '!test':
+                    print(f'Testing Playground!')
 
                 else:
                     print(f'No Command...\r\n')
@@ -226,19 +249,15 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             except OSError as error:
                 if error.errno != errno.EEXIST:
                     raise
+    
+    def ChatLogMessage(self, currentchannel, message):
+        if cfg.EnableLogChatMessages:
+            if 'GLOBAL' in cfg.ChatLogChannels or currentchannel in cfg.ChatLogChannels:
+                self.CheckLogDir('Chat')
+                f = open (f'Logs/Chat/{currentchannel}_ChatLog.txt', 'a+', encoding='utf-8-sig')
+                f.write(f'{message}\r\n')
+                f.close()
 
-    def on_welcome(self, c, e):
-        print(f'Joining {cfg.channels}\r\n')
-        # You must request specific capabilities before you can use them
-        c.cap('REQ', ':twitch.tv/membership')
-        c.cap('REQ', ':twitch.tv/tags')
-        c.cap('REQ', ':twitch.tv/commands')
-        c.join(cfg.channels)
-
-    def on_pubmsg(self, c, e):
-        #print(e)
-        self.ChatTextParsing(e)
-        
     def ChatTextParsing(self, edata):
         e = edata
         themsg = e.arguments[0]
@@ -290,12 +309,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             f.close()
         
         #Chat Logging To File
-        if cfg.LogChatMessages:
-            if 'GLOBAL' in cfg.ChatLogChannels or currentchannel in cfg.ChatLogChannels:
-                self.CheckLogDir('Chat')
-                f = open (f'Logs/Chat/{currentchannel}_ChatLog.txt', 'a+', encoding='utf-8-sig')
-                f.write(f'{self.TimeStamp(cfg.LogTimeZone)} {currentchannel}{chatheader}{chatuser}: {themsg}\r\n')
-                f.close()
+        self.ChatLogMessage(currentchannel, self.TimeStamp(cfg.LogTimeZone) + ' ' + currentchannel + chatheader + chatuser + ': ' + themsg)
         
         #ASCII ART - Log potential messages for future mod triggers
         if cfg.LogAscii:
@@ -353,8 +367,10 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                             f = open (f'Logs/ChatTriggers/{currentchannel}_ChatTriggerLog.txt', 'a+', encoding='utf-8-sig')
                             f.write(f'{self.TimeStamp(cfg.LogTimeZone)} TRIGGER EVENT: {currentchannel}{chatheader}{chatuser}: {themsg}\r\n')
                             f.close()
-                            if time.time() - self.chat_epoch >= 90: #A little anti-spam for triggered words
+                            if time.time() - self.chat_epoch >= 30: #A little anti-spam for triggered words
                                 self.chat_epoch = time.time()
+                                if str.lower(cfg.username) == str.lower(chatuser):
+                                    time.sleep(1.5)
                                 self.connection.privmsg(currentchannel, cresponse)
                                 print(f'{self.TimeStamp(cfg.LogTimeZone)} {currentchannel} - {cfg.username}: {cresponse}')
                                 f = open (f'Logs/ChatTriggers/{currentchannel}_ChatTriggerLog.txt', 'a+', encoding='utf-8-sig')
@@ -405,6 +421,18 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                                         f.write(f'{self.TimeStamp(cfg.LogTimeZone)} TRIGGER EVENT: {chatheader}{chatuser}: {themsg}\r\n')
                                         f.write(f'{self.TimeStamp(cfg.LogTimeZone)} SENT: !MOD!-{cfg.username}: {mresponse} {chatuser}\r\n')
                                         f.close()
+
+    def on_welcome(self, c, e):
+        print(f'Joining {cfg.channels}\r\n')
+        # You must request specific capabilities before you can use them
+        c.cap('REQ', ':twitch.tv/membership')
+        c.cap('REQ', ':twitch.tv/tags')
+        c.cap('REQ', ':twitch.tv/commands')
+        c.join(cfg.channels)
+
+    def on_pubmsg(self, c, e):
+        #print(e)
+        self.ChatTextParsing(e)
     
     def on_userstate(self, c, e):
         #print(e)
@@ -570,6 +598,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         currentchannel = e.target
         chatuser = e.source.split('!')[0]
 
+        self.ChatLogMessage(currentchannel, self.TimeStamp(cfg.LogTimeZone) + ' ' + currentchannel + ' - ' + chatuser + ' has joined.')
+
         if cfg.ChanFilters and currentchannel in cfg.ChanTermFilters:
             pass
         else:
@@ -584,6 +614,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         
         currentchannel = e.target
         chatuser = e.source.split('!')[0]
+
+        self.ChatLogMessage(currentchannel, self.TimeStamp(cfg.LogTimeZone) + ' ' + currentchannel + ' - ' + chatuser + ' has left.')
 
         if cfg.ChanFilters and currentchannel in cfg.ChanTermFilters:
             pass
