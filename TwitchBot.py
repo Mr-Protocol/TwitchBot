@@ -79,11 +79,17 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             time.sleep(60*10)
             self.connection.ping(':tmi.twitch.tv')
     
+    def AutoJoinFollowing(self):
+        if cfg.followerautojoin:
+            #parse all followed
+            #self.connection.join(channel)
+            pass
+    
     def apiGetChannelID(self, channel):
-        url = 'https://api.twitch.tv/kraken/users?login=' + channel
-        headers = {'Client-ID': cfg.apiclientid, 'Accept': 'applications/vnd.twitchtv.v5+json'}
+        url = 'https://api.twitch.tv/helix/users?login=' + channel
+        headers = {'Authorization': 'Bearer ' + cfg.token}
         r = requests.get(url, headers=headers).json()
-        channel_id = r['users'][0]['_id']
+        channel_id = r['data'][0]['id']
         return channel_id
 
     def apiGetUserInfo(self, username):
@@ -91,6 +97,26 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         headers = {'Client-ID': cfg.apiclientid, 'Accept': 'application/vnd.twitchtv.v5+json'}
         r = requests.get(url, headers=headers).json()
         return r
+
+    def apiGetFollowersList(self, username):
+        followinglist = []
+        url = 'https://api.twitch.tv/helix/users/follows?from_id=' + self.apiGetChannelID(str.lower(username)) + '&first=100'
+        headers = {'Client-ID': cfg.apiclientid}
+        r = requests.get(url, headers=headers).json()
+        while len(r['data']) > 0:
+            cursorpage = r['pagination']['cursor']
+            for x in range (len(r['data'])):
+                followinglist.append('#' + str.lower(r['data'][x]['to_name']))
+            url += '&after=' + cursorpage
+            r = requests.get(url, headers=headers).json()
+        return followinglist
+
+    def JoinChannel(self, channel):
+        self.connection.join(channel)
+
+    def JoinChannelList(self, channel_list):
+        for x in channel_list:
+            self.JoinChannel(x)
 
     def BotCommands(self, cmd):
         cmd = str.lower(cmd)
@@ -201,7 +227,10 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                         print(f'Chatters in {currentchannel}: {sorted_d}\r\n')
 
                 elif cmd == '!test':
-                    print(f'Testing Playground!')
+                    print('Testing Zone')
+
+
+
 
                 else:
                     print(f'No Command...\r\n')
@@ -296,7 +325,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
         #Terminal Chat Log - Prepend Host/Mod status to accounts in chat.
         #Filter channels using ChanTermFilters to hide channel(s) chat from terminal
-        if cfg.ChanFilters and currentchannel in cfg.ChanTermFilters:
+        if cfg.ChanFilters and currentchannel not in cfg.ChanTermFilters:
             pass
         else:  
             print(f'{self.TimeStamp(cfg.LogTimeZone)} {currentchannel}{chatheader}{chatuser}: {themsg}')
@@ -428,7 +457,16 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         c.cap('REQ', ':twitch.tv/membership')
         c.cap('REQ', ':twitch.tv/tags')
         c.cap('REQ', ':twitch.tv/commands')
-        c.join(cfg.channels)
+
+        #joins channels you are following if enabled
+        if cfg.followerautojoin:
+            print(f'Joining all followed channels.\r\n')
+            self.JoinChannelList(self.apiGetFollowersList(cfg.username))
+
+        #joins specified channels
+        if len(cfg.channels) > 0:
+            print(f'Joining list of channels.\r\n')
+            c.join(cfg.channels)
 
     def on_pubmsg(self, c, e):
         #print(e)
@@ -459,7 +497,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 subgiftrecipient = x['value']
         
         #Filter channels from terminal output
-        if cfg.ChanFilters and currentchannel in cfg.ChanTermFilters:
+        if cfg.ChanFilters and currentchannel not in cfg.ChanTermFilters:
             pass
         else:   
             print(f'{self.TimeStamp(cfg.LogTimeZone)} {currentchannel} - {sysmsg}')
@@ -551,7 +589,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 else:
                     banmsg = f'{self.TimeStamp(cfg.LogTimeZone)} {currentchannel} - {user} is banned.'
 
-            if cfg.ChanFilters and e.target in cfg.ChanTermFilters:
+            if cfg.ChanFilters and e.target not in cfg.ChanTermFilters:
                 pass
             else:
                 print(f'CLEARCHAT-{banmsg}')
@@ -579,7 +617,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         #print(e)
         
         if cfg.AnnounceModeChanges:
-            if cfg.ChanFilters and e.target in cfg.ChanTermFilters:
+            if cfg.ChanFilters and e.target not in cfg.ChanTermFilters:
                 pass
             else:
                 currentchannel = e.target
@@ -598,9 +636,10 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         currentchannel = e.target
         chatuser = e.source.split('!')[0]
 
-        self.ChatLogMessage(currentchannel, self.TimeStamp(cfg.LogTimeZone) + ' ' + currentchannel + ' - ' + chatuser + ' has joined.')
+        if cfg.ChatLogJoinPart:
+            self.ChatLogMessage(currentchannel, self.TimeStamp(cfg.LogTimeZone) + ' ' + currentchannel + ' - ' + chatuser + ' has joined.')
 
-        if cfg.ChanFilters and currentchannel in cfg.ChanTermFilters:
+        if cfg.ChanFilters and currentchannel not in cfg.ChanTermFilters:
             pass
         else:
             if cfg.AnnounceUserJoins and chatuser in (uname for uname in cfg.AnnounceUserJoinList):
@@ -614,10 +653,10 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         
         currentchannel = e.target
         chatuser = e.source.split('!')[0]
+        if cfg.ChatLogJoinPart:
+            self.ChatLogMessage(currentchannel, self.TimeStamp(cfg.LogTimeZone) + ' ' + currentchannel + ' - ' + chatuser + ' has left.')
 
-        self.ChatLogMessage(currentchannel, self.TimeStamp(cfg.LogTimeZone) + ' ' + currentchannel + ' - ' + chatuser + ' has left.')
-
-        if cfg.ChanFilters and currentchannel in cfg.ChanTermFilters:
+        if cfg.ChanFilters and currentchannel not in cfg.ChanTermFilters:
             pass
         else:
             if cfg.AnnounceUserParts and chatuser in (uname for uname in cfg.AnnounceUserPartList):
@@ -637,7 +676,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         #type: hosttarget, source: tmi.twitch.tv, target: #CHANNEL, arguments: ['channelbeinghosted -'], tags: []
         #print(e)
 
-        if cfg.ChanFilters and e.target in cfg.ChanTermFilters:
+        if cfg.ChanFilters and e.target not in cfg.ChanTermFilters:
             pass
         else:
             currentchannel = e.target
@@ -667,7 +706,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         currentchannel = e.target
         noticemsg = e.arguments[0]
 
-        if cfg.ChanFilters and e.target in cfg.ChanTermFilters:
+        if cfg.ChanFilters and e.target not in cfg.ChanTermFilters:
             pass
         else:           
             print(f'PUBNOTICE-{self.TimeStamp(cfg.LogTimeZone)} {currentchannel} - {noticemsg}')
