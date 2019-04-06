@@ -1,33 +1,31 @@
 # A TwitchBot that uses Python and IRC.
 
-## Currently does not support/use Twitch API.
-
 ## Edit the scriptconfig.py as needed.
 
 ## Features:
 
-### Join multiple channels
+#### Join multiple channels by followed channels or defined.
 
-### Filter channels from terminal window
+#### Channel filter to show only the channels activity you want.
 
-### Announce new subs, resubs, gifted subs, raids.
+#### Announce new subs, resubs, gifted subs, raids.
 
-### Chat text triggers
+#### Chat text triggers, copy/pasta mode, giveaway/repeater mode.
 
-### Mod text triggers
+#### Mod text triggers.
 
 * User safelist for chat/mod triggers
 
-### Giveaway/Repeater mode.
+#### Giveaway/Repeater mode.
 
 * Automatically repeats message in chat if it was used X times in a row.
 
-### Chat log channels
+#### Chat log channels.
 
-### Log system messages/notices
+#### Log system messages/notices.
 
 * RAW or simplified
 
-### Log ASCII art option
+#### Log ASCII art option.
 
 

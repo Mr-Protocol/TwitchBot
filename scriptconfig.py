@@ -9,19 +9,22 @@ username = ''
 #Example: token = 'abc123456defghijklmnop'
 token = ''
 
+#API Client ID - Get this by making an app on https://dev.twitch.tv/console/apps
+#apiclientid = 'abcdefghijklmnop12345678'   <--- Example
+apiclientid = ''
+
+#Auto Join channels that are followed + extra user rooms (!!!- REQUIRES API CLIENT ID - !!!)
+followerautojoin = 1
+
 #Streamer name/channels here
 #Example: channels = '#mr_protocol'
 #Example: channels = '#mr_protocol,#shroud,#drdisrespectlive'
 channels = ''
 
-#API Client ID - Get this by making an app on https://dev.twitch.tv/console/apps
-#apiclientid = 'abcdefghijklmnop12345678'   <--- Example
-apiclientid = ''
-
-#Enable ChanFilters
+#Enable ChanFilters. Shows only filtered channels to terminal output.
 ChanFilters = 1
 
-#Enable ChanFilters. Prevents showing filtered channels to terminal output.
+#Enable ChanFilters. Only show filtered channels to terminal output.
 #ChanTermFilters = ['#mr_protocol', '#shroud']
 ChanTermFilters = []
 
@@ -30,7 +33,7 @@ ChanTermFilters = []
 #---------------------------------------------------------------------------
 
 #Announce new subs in chat.
-AnnounceNewSubs = 1
+AnnounceNewSubs = 0
 
 #Announce new subs channels and messages.
 #AnnounceNewSubsChanMsg = {'#mr_protocol':[('New Sub Hype!', 1)]} 1 = tag user, 0 = don't tag user
@@ -58,7 +61,7 @@ AnnounceReSubsChanMsg = {
 }
 
 #Announce gifted subs
-AnnounceGiftSubs = 1
+AnnounceGiftSubs = 0
 
 #Announce gift subs channels and messages.
 #AnnounceGiftSubsChanMsg = {'#mr_protocol':[('New Sub Hype!',1)]} 1 = tag gifted user, 0 = don't tag
@@ -75,7 +78,7 @@ AnnounceGiftSubsChanMsg = {
 GiftThanksMsg = 'Thanks for the gifted sub!'
 
 #Announce Raids
-AnnounceRaids = 1
+AnnounceRaids = 0
 
 #Announce raid message puts this text around (beginning and end) the system message of who raided and how many
 RaidMsg = 'twitchRaid twitchRaid twitchRaid twitchRaid twitchRaid twitchRaid twitchRaid twitchRaid twitchRaid twitchRaid twitchRaid twitchRaid twitchRaid twitchRaid'
@@ -111,6 +114,7 @@ AnnounceModeChanges = 0
 #Chat Triggers and Mod Triggers are automatically logged.
 
 #Chat/Mod trigger safelist
+#SafelistUsers = ['mr_protocol','anotheruser','user3']
 SafelistUsers = ['mr_protocol']
 
 #Don't Trigger on VIPs
@@ -239,6 +243,9 @@ EnableLogChatMessages = 1
 #ChatLogChannels = ['#shroud', '#drdisrespectlive']
 #ChatLogChannels = ['GLOBAL'] #Logs all joined channels
 ChatLogChannels = []
+
+#Log join/part(leave) information in chat logs
+ChatLogJoinPart = 0
 
 #Log ASCII Art
 LogAscii = 1
