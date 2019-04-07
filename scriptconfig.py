@@ -14,7 +14,7 @@ token = ''
 apiclientid = ''
 
 #Auto Join channels that are followed + extra user rooms (!!!- REQUIRES API CLIENT ID - !!!)
-followerautojoin = 1
+followerautojoin = 0
 
 #Streamer name/channels here
 #Example: channels = '#mr_protocol'
@@ -219,10 +219,10 @@ KeywordRepeaterCount = 7
 
 #Enable Bot Commands
 #Turns on terminal commands !enable or !commands or !help
-EnableBotCommands = 1
+EnableBotCommands = 0
 
 #Enable tracking of chatters in channel
-EnableChatTracking = 1
+EnableChatTracking = 0
 
 #---------------------------------------------------------------------------
 #----------------------------------- Logs ----------------------------------
@@ -237,7 +237,7 @@ LogTimeZone = 1
 LogHighlights = 1
 
 #Log all chat messages and join/leave messages
-EnableLogChatMessages = 1
+EnableLogChatMessages = 0
 
 #Chat Log only these channels
 #ChatLogChannels = ['#shroud', '#drdisrespectlive']
