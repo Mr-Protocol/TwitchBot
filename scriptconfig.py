@@ -100,7 +100,7 @@ AnnounceUserJoinList = ['GLOBAL']
 AnnounceUserParts = 0
 
 #Announce User Part/Leave List
-#Add users to be alerted of joining channel.
+#Add users to be alerted of leaving channel.
 #Use 'GLOBAL' to show all
 AnnounceUserPartList = ['GLOBAL']
 
