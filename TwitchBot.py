@@ -79,12 +79,6 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             time.sleep(60*10)
             self.connection.ping(':tmi.twitch.tv')
     
-    def AutoJoinFollowing(self):
-        if cfg.followerautojoin:
-            #parse all followed
-            #self.connection.join(channel)
-            pass
-    
     def apiGetChannelID(self, channel):
         url = 'https://api.twitch.tv/helix/users?login=' + channel
         headers = {'Authorization': 'Bearer ' + cfg.token}
@@ -452,7 +446,6 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                                         f.close()
 
     def on_welcome(self, c, e):
-        print(f'Joining {cfg.channels}\r\n')
         # You must request specific capabilities before you can use them
         c.cap('REQ', ':twitch.tv/membership')
         c.cap('REQ', ':twitch.tv/tags')
