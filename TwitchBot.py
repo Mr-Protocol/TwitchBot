@@ -20,7 +20,7 @@ import os
 from os import system
 import errno
 import threading
-import scriptconfig as cfg
+import myscriptconfig as cfg
 
 #--------------------------------------------------------------------------
 #---------------------------------- MAGIC ---------------------------------
@@ -121,7 +121,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         if cfg.EnableBotCommands:
             try:
                 if cmd in {"!commands", "!help"}:
-                    print(f'!addmod, !addtrig, !bot, !chanfilteron, !chanfilteroff, !chanid, !chantrig, !commands, !help, !showchatters, !repeatercount, !repeateroff, !repeateron, !uchatters, !ucount\r\n')
+                    print(f'!addmod, !addtrig, !bot, !chanfilteron, !chanfilteroff, !chanid, !chantrig, !commands, !help, !modlist, !showchatters, !repeatercount, !repeateroff, !repeateron, !uchatters, !ucount\r\n')
 
                 elif '!uchatters' in cmd:
                     splitcmd = cmd.split(' ')
@@ -220,11 +220,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                         sorted_d = sorted(((value, key) for (key,value) in self.dbChatters[currentchannel].items()), reverse=True)
                         print(f'Chatters in {currentchannel}: {sorted_d}\r\n')
 
-                elif cmd == '!test':
-                    print('Testing Zone')
-
-
-
+                elif cmd == '!modlist':
+                    print(f'{self.dbModChannels}')
 
                 else:
                     print(f'No Command...\r\n')
@@ -608,7 +605,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
     def on_mode(self, c, e):
         #Shows +/- mod permissions
         #print(e)
-        
+
         if cfg.AnnounceModeChanges:
             if cfg.ChanFilters and e.target not in cfg.ChanTermFilters:
                 pass
@@ -617,10 +614,13 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 modstatus = e.arguments
                 if modstatus[0] == '+o':
                     print(f'MODE-{self.TimeStamp(cfg.LogTimeZone)} {currentchannel} +o {modstatus[1]} (mod).')
+                    self.ChatLogMessage(currentchannel, self.TimeStamp(cfg.LogTimeZone) + ' ' + currentchannel + ': ' + modstatus[1])
                 elif modstatus[0] == '-o':
                     print(f'MODE-{self.TimeStamp(cfg.LogTimeZone)} {currentchannel} -o {modstatus[1]} (demod).')
+                    self.ChatLogMessage(currentchannel, self.TimeStamp(cfg.LogTimeZone) + ' ' + currentchannel + ': ' + modstatus[1])
                 else:
                     print(f'MODE-{self.TimeStamp(cfg.LogTimeZone)} {currentchannel} {modstatus}')
+                    self.ChatLogMessage(currentchannel, self.TimeStamp(cfg.LogTimeZone) + ' ' + currentchannel + ': ' + modstatus)
 
     def on_join(self, c, e):
         #User joins the channel

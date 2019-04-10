@@ -74,6 +74,9 @@ AnnounceGiftSubsChanMsg = {
     ]
 }
 
+#Turn on/off thanking user that gifts you a sub
+EnableThankYou = 0
+
 #Thank you message if someone gifts you a sub
 GiftThanksMsg = 'Thanks for the gifted sub!'
 
