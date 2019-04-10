@@ -20,7 +20,7 @@ import os
 from os import system
 import errno
 import threading
-import myscriptconfig as cfg
+import scriptconfig as cfg
 
 #--------------------------------------------------------------------------
 #---------------------------------- MAGIC ---------------------------------
@@ -544,12 +544,13 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             c.privmsg(currentchannel, f'{cfg.RaidMsg} {sysmsg} {cfg.RaidMsg}')
             
         #What happens when the cfg.username is gifted a sub
-        if sysmsgid == 'subgift' and str.lower(subgiftrecipient) == str.lower(cfg.username):
-            c.privmsg(currentchannel, f'{cfg.GiftThanksMsg} {chatuser}')
-            f = open (f'Logs/{currentchannel}_GiftedSub.txt', 'a+', encoding='utf-8-sig')
-            f.write(f'{self.TimeStamp(cfg.LogTimeZone)} - {sysmsg}\r\n')
-            f.write(f'{self.TimeStamp(cfg.LogTimeZone)} - {cfg.username}: {cfg.GiftThanksMsg} {chatuser}\r\n')
-            f.close()
+        if cfg.EnableThankYou:
+            if sysmsgid == 'subgift' and str.lower(subgiftrecipient) == str.lower(cfg.username):
+                c.privmsg(currentchannel, f'{cfg.GiftThanksMsg} {chatuser}')
+                f = open (f'Logs/{currentchannel}_GiftedSub.txt', 'a+', encoding='utf-8-sig')
+                f.write(f'{self.TimeStamp(cfg.LogTimeZone)} - {sysmsg}\r\n')
+                f.write(f'{self.TimeStamp(cfg.LogTimeZone)} - {cfg.username}: {cfg.GiftThanksMsg} {chatuser}\r\n')
+                f.close()
         
     def on_clearchat(self, c, e):
         #Shows when a user is banned
