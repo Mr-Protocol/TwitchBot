@@ -51,7 +51,6 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         os.system('cls' if os.name == 'nt' else 'clear')
         self.CheckChannels()
         system(f'title TwitchBot @ {self.TimeStamp(cfg.LogTimeZone)}  - {cfg.username} in channel(s): {cfg.channels}')
-        self.ClearLogs()
         print(f'{self.TimeStamp(cfg.LogTimeZone)}\r\nConnecting to {server} on port {port} as {username}...\r\n')
         irc.bot.SingleServerIRCBot.__init__(self, [(server, port, 'oauth:'+token)], username, username)
         self.sub_epoch = 0
@@ -251,17 +250,6 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 print(chan)
                 exit()
 
-    def ClearLogs(self):
-        clearalllogs = input('Do you want to clear all the logs (Y/N)? (Default: N)')
-        if str.lower(clearalllogs) == 'y':
-            try:
-                shutil.rmtree('Logs')
-                time.sleep(1.5)
-                os.makedirs('Logs')
-            except:
-                os.makedirs('Logs')
-        os.system('cls' if os.name == 'nt' else 'clear')
-    
     def CheckLogDir(self, logpath):
         if not os.path.exists(f'Logs/{logpath}/'):
             try:
