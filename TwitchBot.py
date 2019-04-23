@@ -530,12 +530,6 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     
         if sysmsgid == 'raid' and cfg.AnnounceRaids and currentchannel in cfg.AnnounceRaidChannels:
             c.privmsg(currentchannel, f'{cfg.RaidMsg} {sysmsg} {cfg.RaidMsg}')
-            if cfg.LogUsernotice:
-                self.CheckLogDir('usernotice')
-                f = open (f'Logs/usernotice/{currentchannel}_usernotice.txt', 'a+', encoding='utf-8-sig')
-                f.write(f'{self.TimeStamp(cfg.LogTimeZone)} {currentchannel} - {e.arguments[0]}\r\n')
-                f.close()
-
             
         #What happens when the cfg.username is gifted a sub
         if cfg.EnableThankYou:
