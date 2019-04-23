@@ -271,3 +271,6 @@ LogPubnotice = 0
 
 #Log clearchat messages
 LogClearchat = 0
+
+#Log usernotice messages
+LogUsernotice = 0
