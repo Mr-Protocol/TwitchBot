@@ -55,7 +55,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             auto_join_follow_thread = threading.Thread(target=self.AJChannels_Sync)
             auto_join_follow_thread.daemon = True
             auto_join_follow_thread.start()
-        system(f'title TwitchBot @ {self.TimeStamp(cfg.LogTimeZone)}  - {cfg.username} in channel(s): {cfg.channels}')
+        system(f'title TwitchBot @ {self.TimeStamp(cfg.LogTimeZone)}  - {cfg.username} in {len(cfg.channels)} channel(s)')
         print(f'{self.TimeStamp(cfg.LogTimeZone)}\r\nConnecting to {server} on port {port} as {username}...\r\n')
         irc.bot.SingleServerIRCBot.__init__(self, [(server, port, 'oauth:'+token)], username, username)
         self.sub_epoch = 0
@@ -68,8 +68,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         if cfg.EnableKeywordRepeater:
             self.RepeaterEpoch = 0
             self.dbRepeaterKeyword = {}
-            splitchans = cfg.channels.split(',')
-            for x in splitchans:
+            for x in cfg.channels:
                 self.dbRepeaterKeyword.update({x: ('', 0)})
         if cfg.EnableChatTracking:
             self.dbChatters = {}
@@ -257,12 +256,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
     #Check for valid channels starting with #, and doesn't end with a comma
     def CheckChannels(self):
-        if cfg.channels.endswith(','):
-            print()
-            print('Do not end channel list with a comma.\r\n')
-            exit()
-        ckchannels = cfg.channels.split(',')
-        for chan in ckchannels:
+        for chan in cfg.channels:
             if chan.startswith('#'):
                 pass
             else:

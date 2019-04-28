@@ -17,9 +17,9 @@ apiclientid = ''
 followerautojoin = 0
 
 #Streamer name/channels here
-#Example: channels = '#mr_protocol'
-#Example: channels = '#mr_protocol,#shroud,#drdisrespectlive'
-channels = ''
+#Example: channels = ['#mr_protocol']
+#Example: channels = ['#mr_protocol', '#shroud', '#drdisrespectlive']
+channels = []
 
 #Enable ChanFilters. Shows only filtered channels to terminal output.
 ChanFilters = 1
