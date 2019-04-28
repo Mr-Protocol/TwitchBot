@@ -130,6 +130,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         for x in channel_list:
             print(f'Attempting to join: {x}')
             self.JoinChannel(x)
+        print(f'\r\n')
 
     def BotCommands(self, cmd):
         cmd = str.lower(cmd)
@@ -458,7 +459,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
         #joins specified channels
         if len(cfg.channels) > 0:
-            print(f'Joining list of channels.\r\n')
+            print(f'\r\nJoining list of channels.')
             self.JoinChannelList(cfg.channels)
 
     def on_pubmsg(self, c, e):
