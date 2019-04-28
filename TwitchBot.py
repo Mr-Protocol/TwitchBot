@@ -55,7 +55,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             auto_join_follow_thread = threading.Thread(target=self.AJChannels_Sync)
             auto_join_follow_thread.daemon = True
             auto_join_follow_thread.start()
-        system(f'title TwitchBot @ {self.TimeStamp(cfg.LogTimeZone)}  - {cfg.username} in {len(cfg.channels)} channel(s)')
+        system(f'title TwitchBot @ {self.TimeStamp(cfg.LogTimeZone)}  - {cfg.username}')
         print(f'{self.TimeStamp(cfg.LogTimeZone)}\r\nConnecting to {server} on port {port} as {username}...\r\n')
         irc.bot.SingleServerIRCBot.__init__(self, [(server, port, 'oauth:'+token)], username, username)
         self.sub_epoch = 0
@@ -90,7 +90,6 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             for x in following:
                 if x not in self.AJChannels:
                     print(f'Found new channel: {x}')
-                    print(f'Attempting to join: {x}')
                     self.JoinChannel(x)
                     self.AJChannels.append(x)
     
@@ -123,6 +122,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         return followinglist
 
     def JoinChannel(self, channel):
+        print(f'Attempting to join: {channel}')
         self.connection.join(channel)
 
     def JoinChannelList(self, channel_list):

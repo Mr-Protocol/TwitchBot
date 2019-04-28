@@ -55,7 +55,7 @@ AnnounceReSubsChanMsg = {
     '#mr_protocol':[
         ('Re-Sub Hype!', 1)
     ],
-    '#thisisjustaplaceholder':[
+    '#thisisjustaplaceholderchannel':[
         ('Welcome Back with the resub!', 1)
     ]
 }
@@ -69,7 +69,7 @@ AnnounceGiftSubsChanMsg = {
     '#mr_protocol':[
         ('Gifted Sub Hype!', 1)
     ],
-    '#thisisjustaplaceholder':[
+    '#thisisjustaplaceholderchannel':[
         ('!newsub', 0)
     ]
 }
@@ -164,15 +164,15 @@ CopyPastaTriggers = {
     '#mr_protocol':[
         ('prime')
     ],
-    '#mystrikal':[
+    '#channelnamehere':[
         ('thisisjustaplaceholder')
     ],
-    '#fawneyes':[
+    '#channelnamehere2':[
         ('thisisjustaplaceholder')
     ],
-    '#lululuvely':[
-        ('amazon prime'),
-        ('twitch prime')
+    '#channelnamehere3':[
+        ('thisisjustaplaceholder'),
+        ('thisisjustaplaceholder2')
     ]
 }
 
