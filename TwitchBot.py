@@ -92,6 +92,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             for x in following:
                 if x not in self.AJChannels:
                     print(f'Found new channel: {x}\r\n')
+                    print(f'Attempting to join: {x}\r\n')
                     self.JoinChannel(x)
                     print(f'Joined: {x}\r\n')
     
@@ -128,6 +129,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
     def JoinChannelList(self, channel_list):
         for x in channel_list:
+            print(f'Attempting to join: {x}\r\n')
             self.JoinChannel(x)
 
     def BotCommands(self, cmd):
@@ -692,7 +694,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         print(f'{self.TimeStamp(cfg.LogTimeZone)} {hostmsg}')
     
     def on_privnotice(self, c, e):
-        #Not sure if this is real or not
+        #type: privnotice, source: tmi.twitch.tv, target: l, arguments: ['This channel has been suspended.'], tags: [{'key': 'msg-id', 'value': 'msg_channel_suspended'}]
         print(e)
     
     def on_pubnotice(self, c, e):
