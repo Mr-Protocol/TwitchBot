@@ -93,7 +93,6 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     print(f'Attempting to join: {x}')
                     self.JoinChannel(x)
                     self.AJChannels.append(x)
-                    print(f'Joined: {x}')
     
     def apiGetChannelID(self, channel):
         url = 'https://api.twitch.tv/helix/users?login=' + channel
