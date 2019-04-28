@@ -93,6 +93,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     print(f'Found new channel: {x}')
                     print(f'Attempting to join: {x}')
                     self.JoinChannel(x)
+                    self.AJChannels.append(x)
                     print(f'Joined: {x}')
     
     def apiGetChannelID(self, channel):
