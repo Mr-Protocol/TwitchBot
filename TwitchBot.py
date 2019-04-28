@@ -49,7 +49,6 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         self.token = token
         server = 'irc.chat.twitch.tv'
         port = 6667
-        os.system('cls' if os.name == 'nt' else 'clear')
         self.CheckChannels()
         if cfg.followerautojoin:
             self.AJChannels = []
@@ -91,10 +90,10 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             following = self.apiGetFollowersList(cfg.username)
             for x in following:
                 if x not in self.AJChannels:
-                    print(f'Found new channel: {x}\r\n')
-                    print(f'Attempting to join: {x}\r\n')
+                    print(f'Found new channel: {x}')
+                    print(f'Attempting to join: {x}')
                     self.JoinChannel(x)
-                    print(f'Joined: {x}\r\n')
+                    print(f'Joined: {x}')
     
     def apiGetChannelID(self, channel):
         url = 'https://api.twitch.tv/helix/users?login=' + channel
@@ -129,7 +128,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
     def JoinChannelList(self, channel_list):
         for x in channel_list:
-            print(f'Attempting to join: {x}\r\n')
+            print(f'Attempting to join: {x}')
             self.JoinChannel(x)
 
     def BotCommands(self, cmd):
@@ -738,6 +737,8 @@ def tbot():
     bot.start()
 
 if __name__ == "__main__":
+    os.system('cls' if os.name == 'nt' else 'clear')
+    time.sleep(2)
     tbot()
 
 
