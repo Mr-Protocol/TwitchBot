@@ -465,7 +465,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         #joins specified channels
         if len(cfg.channels) > 0:
             print(f'Joining list of channels.\r\n')
-            self.JoinChannelList(cfg.channels)
+            self.JoinChannel(cfg.channels)
 
     def on_pubmsg(self, c, e):
         #print(e)
