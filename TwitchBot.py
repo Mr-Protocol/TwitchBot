@@ -20,7 +20,7 @@ import os
 from os import system
 import errno
 import threading
-import scriptconfig as cfg
+import myscriptconfig as cfg
 import importlib
 
 #--------------------------------------------------------------------------
@@ -139,7 +139,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
     def JoinChannelList(self, channel_list):
         for x in channel_list:
             self.JoinChannel(x)
-        print(f'\r\n')
+        print('')
 
     def BotCommands(self, cmd):
         cmd = str.lower(cmd)
@@ -150,7 +150,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         if cfg.EnableBotCommands:
             try:
                 if cmd in {"!commands", "!help"}:
-                    print(f'!addmod, !addtrig, !bot, !chanfilteron, !chanfilteroff, !chanid, !chantrig, !commands, !help, !modlist, !showchatters, !repeatercount, !repeateroff, !repeateron, !uchatters, !ucount\r\n')
+                    print(f'!addmod, !addtrig, !bot, !chanfilteron, !chanfilteroff, !chanid, !chantrig, !commands, !help, !modlist, !reloadconfig, !repeatercount, !repeateroff, !repeateron, ,!showchatters, !uchatters, !ucount\r\n')
 
                 elif '!uchatters' in cmd:
                     splitcmd = cmd.split(' ')
@@ -251,6 +251,10 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
                 elif cmd == '!modlist':
                     print(f'{self.dbModChannels}')
+                
+                elif cmd == '!reloadconfig':
+                    importlib.reload(cfg)
+                    self.CheckConfig()
 
                 else:
                     print(f'No Command...\r\n')
@@ -326,6 +330,9 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     isavip = True
                 else:
                     isavip = False
+
+        if str.lower(chatuser) == str.lower(cfg.username) and isamod:
+            self.dbModChannels.append(currentchannel)
 
         chatheader = ' - '
         if str.lower(chatuser) in currentchannel:
@@ -478,7 +485,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
         #joins specified channels
         if len(cfg.channels) > 0:
-            print(f'\r\nJoining list of channels.')
+            print(f'Joining list of channels.')
             self.JoinChannelList(cfg.channels)
 
     def on_pubmsg(self, c, e):
@@ -493,7 +500,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             if x['key'] == 'mod':
                 if x['value'] == '1':
                     self.dbModChannels.append(currentchannel)
-                if str.lower(cfg.username) in currentchannel:
+                if str.lower(cfg.username) in currentchannel: #Add your own channel to mod list
                     self.dbModChannels.append(currentchannel)
 
     def on_usernotice(self, c, e):
