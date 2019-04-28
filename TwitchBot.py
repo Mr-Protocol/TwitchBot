@@ -43,6 +43,7 @@ class InputWatcher(threading.Thread):
 
 class TwitchBot(irc.bot.SingleServerIRCBot):
     def __init__(self, username, token, channels, input_handler):
+        self.starttime = time.time()
         input_handler.register_callback(self.BotCommands)
         # Create IRC bot connection
         self.token = token
@@ -50,6 +51,11 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         port = 6667
         os.system('cls' if os.name == 'nt' else 'clear')
         self.CheckChannels()
+        if cfg.followerautojoin:
+            self.AJChannels = []
+            auto_join_follow_thread = threading.Thread(target=self.AJChannels_Sync)
+            auto_join_follow_thread.daemon = True
+            auto_join_follow_thread.start()
         system(f'title TwitchBot @ {self.TimeStamp(cfg.LogTimeZone)}  - {cfg.username} in channel(s): {cfg.channels}')
         print(f'{self.TimeStamp(cfg.LogTimeZone)}\r\nConnecting to {server} on port {port} as {username}...\r\n')
         irc.bot.SingleServerIRCBot.__init__(self, [(server, port, 'oauth:'+token)], username, username)
@@ -75,8 +81,19 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
     def KeepMeAlive(self):
         while True:
-            time.sleep(60*10)
+            time.sleep(60*10) # 10 min
             self.connection.ping(':tmi.twitch.tv')
+
+    def AJChannels_Sync(self):
+        while True:
+            time.sleep(60*60*2) #2 hours
+            print(f'Checking followers for updates to auto join...\r\n')
+            following = self.apiGetFollowersList(cfg.username)
+            for x in following:
+                if x not in self.AJChannels:
+                    print(f'Found new channel: {x}\r\n')
+                    self.JoinChannel(x)
+                    print(f'Joined: {x}\r\n')
     
     def apiGetChannelID(self, channel):
         url = 'https://api.twitch.tv/helix/users?login=' + channel
@@ -102,6 +119,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 followinglist.append('#' + str.lower(r['data'][x]['to_name']))
             url += '&after=' + cursorpage
             r = requests.get(url, headers=headers).json()
+        if cfg.followerautojoin and (time.time() - self.starttime < 5):
+            self.AJChannels = followinglist.copy()
         return followinglist
 
     def JoinChannel(self, channel):
@@ -444,7 +463,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         #joins specified channels
         if len(cfg.channels) > 0:
             print(f'Joining list of channels.\r\n')
-            c.join(cfg.channels)
+            self.JoinChannelList(cfg.channels)
 
     def on_pubmsg(self, c, e):
         #print(e)
