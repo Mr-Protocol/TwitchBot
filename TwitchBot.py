@@ -21,6 +21,7 @@ from os import system
 import errno
 import threading
 import scriptconfig as cfg
+import importlib
 
 #--------------------------------------------------------------------------
 #---------------------------------- MAGIC ---------------------------------
@@ -49,7 +50,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         self.token = token
         server = 'irc.chat.twitch.tv'
         port = 6667
-        self.CheckChannels()
+        self.CheckConfig()
         if cfg.followerautojoin:
             self.AJChannels = []
             auto_join_follow_thread = threading.Thread(target=self.AJChannels_Sync)
@@ -76,6 +77,9 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         keep_alive_thread = threading.Thread(target=self.KeepMeAlive)
         keep_alive_thread.daemon = True
         keep_alive_thread.start()
+        ReloadConfig_thread = threading.Thread(target=self.ReloadConfigFile)
+        ReloadConfig_thread.daemon = True
+        ReloadConfig_thread.start()
 
     def KeepMeAlive(self):
         while True:
@@ -92,6 +96,13 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     print(f'Found new channel: {x}')
                     self.JoinChannel(x)
                     self.AJChannels.append(x)
+
+    def ReloadConfigFile(self):
+        while True:
+            time.sleep(60*5) # 5 min
+            importlib.reload(cfg)
+            self.CheckConfig
+
     
     def apiGetChannelID(self, channel):
         url = 'https://api.twitch.tv/helix/users?login=' + channel
@@ -127,7 +138,6 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
     def JoinChannelList(self, channel_list):
         for x in channel_list:
-            print(f'Attempting to join: {x}')
             self.JoinChannel(x)
         print(f'\r\n')
 
@@ -255,7 +265,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         return f'{tstamp}'
 
     #Check for valid channels starting with #, and doesn't end with a comma
-    def CheckChannels(self):
+    def CheckConfig(self):
         for chan in cfg.channels:
             if chan.startswith('#'):
                 pass
@@ -263,6 +273,16 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 print()
                 print('Channels misconfigured, make sure there are # prepending the channel name. \r\n')
                 print(chan)
+                exit()
+        if cfg.username == '':
+            print(f'Error: No username defined')
+            exit()
+        if cfg.token == '':
+            print(f'Error: No OAUTH token defined')
+            exit()
+        if cfg.followerautojoin:
+            if cfg.apiclientid == '':
+                print (f'Error: followerautojoin enabled without apiclientid')
                 exit()
 
     def CheckLogDir(self, logpath):
