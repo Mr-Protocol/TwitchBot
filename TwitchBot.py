@@ -331,7 +331,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     isavip = False
 
         if str.lower(chatuser) == str.lower(cfg.username) and isamod:
-            if str.lower(chatuser) in self.dbModChannels:
+            if currentchannel in self.dbModChannels:
                 pass
             else:
                 self.dbModChannels.append(currentchannel)
