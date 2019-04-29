@@ -103,7 +103,6 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             importlib.reload(cfg)
             self.CheckConfig
 
-    
     def apiGetChannelID(self, channel):
         url = 'https://api.twitch.tv/helix/users?login=' + channel
         headers = {'Authorization': 'Bearer ' + cfg.token}
@@ -150,7 +149,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         if cfg.EnableBotCommands:
             try:
                 if cmd in {"!commands", "!help"}:
-                    print(f'!addmod, !addtrig, !bot, !chanfilteron, !chanfilteroff, !chanid, !chantrig, !commands, !help, !modlist, !reloadconfig, !repeatercount, !repeateroff, !repeateron, ,!showchatters, !uchatters, !ucount\r\n')
+                    print(f'!addmod, !addtrig, !bot, !chanfilteron, !chanfilteroff, !chanid, !chantrig, !commands, !help, !modlist, !reloadconfig, !repeatercount, !repeateroff, !repeateron, !showchatters, !uchatters, !ucount\r\n')
 
                 elif '!uchatters' in cmd:
                     splitcmd = cmd.split(' ')
@@ -332,7 +331,10 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     isavip = False
 
         if str.lower(chatuser) == str.lower(cfg.username) and isamod:
-            self.dbModChannels.append(currentchannel)
+            if str.lower(chatuser) in self.dbModChannels:
+                pass
+            else:
+                self.dbModChannels.append(currentchannel)
 
         chatheader = ' - '
         if str.lower(chatuser) in currentchannel:
