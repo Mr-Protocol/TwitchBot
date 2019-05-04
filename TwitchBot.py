@@ -20,7 +20,7 @@ import os
 from os import system
 import errno
 import threading
-import myscriptconfig as cfg
+import scriptconfig as cfg
 import importlib
 
 # --------------------------------------------------------------------------
