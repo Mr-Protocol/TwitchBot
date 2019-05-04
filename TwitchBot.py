@@ -20,13 +20,12 @@ import os
 from os import system
 import errno
 import threading
-import scriptconfig as cfg
+import myscriptconfig as cfg
 import importlib
 
 # --------------------------------------------------------------------------
 # ---------------------------------- MAGIC ---------------------------------
 # --------------------------------------------------------------------------
-
 
 class InputWatcher(threading.Thread):
     def __init__(self):
@@ -42,7 +41,6 @@ class InputWatcher(threading.Thread):
             input_command = input()
             if self.callback != None:
                 self.callback(input_command)
-
 
 class TwitchBot(irc.bot.SingleServerIRCBot):
     def __init__(self, username, token, channels, input_handler):
@@ -113,8 +111,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         url = "https://api.twitch.tv/helix/users?login=" + channel
         headers = {"Authorization": "Bearer " + cfg.token}
         r = requests.get(url, headers=headers).json()
-        channel_id = r["data"][0]["id"]
-        return channel_id
+        channelid = r["data"][0]["id"]
+        return channelid
 
     def apiGetUserInfo(self, username):
         url = "https://api.twitch.tv/kraken/users?login=" + username
@@ -144,6 +142,20 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             self.AJChannels = followinglist.copy()
         return followinglist
 
+    def apiJoinExtraChannels(self, channel_id):
+        url = "https://api.twitch.tv/kraken/chat/" + channel_id + "/rooms"
+        headers = {
+            "Client-ID": cfg.apiclientid,
+            "Authorization": "OAuth " + cfg.token,
+            "Accept": "application/vnd.twitchtv.v5+json"
+        }
+        r = requests.get(url, headers=headers).json()
+        if r["_total"] == 0:
+            pass
+        else:
+            for x in range(r["_total"]):
+                self.JoinChannel("#chatrooms:" + channel_id + ":" + r["rooms"][x]["_id"])
+
     def JoinChannel(self, channel):
         print(f"Attempting to join: {channel}")
         self.connection.join(channel)
@@ -151,6 +163,13 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
     def JoinChannelList(self, channel_list):
         for x in channel_list:
             self.JoinChannel(x)
+            # JOINs are rate-limited to 50 JOINs per 15 seconds. Additional JOINs sent after this will cause an unsuccessful login.
+            time.sleep(.31)
+            # Join extra channels
+            try:
+                self.apiJoinExtraChannels(self.apiGetChannelID((x[1:])))
+            except:
+                print("Error")
         print("")
 
     def BotCommands(self, cmd):
@@ -159,7 +178,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             cfg.EnableBotCommands = 1
             print(f"Commands Enabled")
 
-        if cfg.EnableBotCommands:
+        if cfg.EnableBotCommands: #Terminal commands
             try:
                 if cmd in {"!commands", "!help"}:
                     print(
@@ -995,13 +1014,11 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             f"WHISPER-{self.TimeStamp(cfg.LogTimeZone)} Direct Message - {chatuser}: {whisper}"
         )
 
-
 def tbot():
     input_watcher = InputWatcher()
     input_watcher.start()
     bot = TwitchBot(cfg.username, cfg.token, cfg.channels, input_watcher)
     bot.start()
-
 
 if __name__ == "__main__":
     os.system("cls" if os.name == "nt" else "clear")
