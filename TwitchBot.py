@@ -22,10 +22,12 @@ import errno
 import threading
 import scriptconfig as cfg
 import importlib
+import ssl
 
 # --------------------------------------------------------------------------
 # ---------------------------------- MAGIC ---------------------------------
 # --------------------------------------------------------------------------
+
 
 class InputWatcher(threading.Thread):
     def __init__(self):
@@ -42,6 +44,7 @@ class InputWatcher(threading.Thread):
             if self.callback != None:
                 self.callback(input_command)
 
+
 class TwitchBot(irc.bot.SingleServerIRCBot):
     def __init__(self, username, token, channels, input_handler):
         self.starttime = time.time()
@@ -49,19 +52,20 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         # Create IRC bot connection
         self.token = token
         server = "irc.chat.twitch.tv"
-        port = 6667
+        port = 6697
         self.CheckConfig()
         if cfg.followerautojoin:
             self.AJChannels = []
             auto_join_follow_thread = threading.Thread(target=self.AJChannels_Sync)
             auto_join_follow_thread.daemon = True
             auto_join_follow_thread.start()
-        system(f"title TwitchBot @ {self.TimeStamp(cfg.LogTimeZone)}  - {cfg.username}")
+        system(f"title TwitchBot @ {self.TimeStamp(cfg.LogTimeZone)} - {cfg.username}")
         print(
             f"{self.TimeStamp(cfg.LogTimeZone)}\r\nConnecting to {server} on port {port} as {username}...\r\n"
         )
+        factory = irc.connection.Factory(wrapper=ssl.wrap_socket)
         irc.bot.SingleServerIRCBot.__init__(
-            self, [(server, port, "oauth:" + token)], username, username
+            self, [(server, port, "oauth:" + token)], username, username,connect_factory = factory
         )
         self.sub_epoch = 0
         if cfg.EnableChatTriggers:
@@ -88,18 +92,21 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
     def KeepMeAlive(self):
         while True:
             time.sleep(60 * 10)  # 10 min
-            self.connection.ping(":tmi.twitch.tv")
+            self.connection.ping("tmi.twitch.tv")
 
     def AJChannels_Sync(self):
-        while True:
-            time.sleep(60 * 60 * 2)  # 2 hours
-            print(f"Checking followers for updates to auto join...\r\n")
-            following = self.apiGetFollowersList(cfg.username)
-            for x in following:
-                if x not in self.AJChannels:
-                    print(f"Found new channel: {x}")
-                    self.JoinChannel(x)
-                    self.AJChannels.append(x)
+        if cfg.apiclientid:
+            while True:
+                time.sleep(60 * 60 * 2)  # 2 hours
+                print(f"Checking followers for updates to auto join...\r\n")
+                following = self.apiGetFollowersList(cfg.username)
+                for x in following:
+                    if x not in self.AJChannels:
+                        print(f"Found new channel: {x}")
+                        self.JoinChannel(x)
+                        self.AJChannels.append(x)
+        else:
+            print(f"No apiclientid in config.")
 
     def ReloadConfigFile(self):
         while True:
@@ -108,68 +115,84 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             self.CheckConfig
 
     def apiGetChannelID(self, channel):
-        url = "https://api.twitch.tv/helix/users?login=" + channel
-        headers = {"Authorization": "Bearer " + cfg.token}
-        r = requests.get(url, headers=headers).json()
-        channelid = r["data"][0]["id"]
-        return channelid
+        if cfg.apiclientid:
+            url = "https://api.twitch.tv/helix/users?login=" + channel
+            headers = {"Authorization": "Bearer " + cfg.token}
+            r = requests.get(url, headers=headers).json()
+            channelid = r["data"][0]["id"]
+            return channelid
+        else:
+            print(f"Get Channel ID - No apiclientid in config.")
 
     def apiGetUserInfo(self, username):
-        url = "https://api.twitch.tv/kraken/users?login=" + username
-        headers = {
-            "Client-ID": cfg.apiclientid,
-            "Accept": "application/vnd.twitchtv.v5+json",
-        }
-        r = requests.get(url, headers=headers).json()
-        return r
+        if cfg.apiclientid:
+            url = "https://api.twitch.tv/kraken/users?login=" + username
+            headers = {
+                "Client-ID": cfg.apiclientid,
+                "Accept": "application/vnd.twitchtv.v5+json",
+            }
+            r = requests.get(url, headers=headers).json()
+            return r
+        else:
+            print(f"Get User Info - No apiclientid in config.")
 
     def apiGetFollowersList(self, username):
-        followinglist = []
-        url = (
-            "https://api.twitch.tv/helix/users/follows?from_id="
-            + self.apiGetChannelID(str.lower(username))
-            + "&first=100"
-        )
-        headers = {"Client-ID": cfg.apiclientid}
-        r = requests.get(url, headers=headers).json()
-        while len(r["data"]) > 0:
-            cursorpage = r["pagination"]["cursor"]
-            for x in range(len(r["data"])):
-                followinglist.append("#" + str.lower(r["data"][x]["to_name"]))
-            url += "&after=" + cursorpage
+        if cfg.apiclientid:
+            followinglist = []
+            url = (
+                "https://api.twitch.tv/helix/users/follows?from_id="
+                + self.apiGetChannelID(str.lower(username))
+                + "&first=100"
+            )
+            headers = {"Client-ID": cfg.apiclientid}
             r = requests.get(url, headers=headers).json()
-        if cfg.followerautojoin and (time.time() - self.starttime < 5):
-            self.AJChannels = followinglist.copy()
-        return followinglist
+            while len(r["data"]) > 0:
+                cursorpage = r["pagination"]["cursor"]
+                for x in range(len(r["data"])):
+                    followinglist.append("#" + str.lower(r["data"][x]["to_name"]))
+                url += "&after=" + cursorpage
+                r = requests.get(url, headers=headers).json()
+            if cfg.followerautojoin and (time.time() - self.starttime < 5):
+                self.AJChannels = followinglist.copy()
+            return followinglist
+        else:
+            print(f"Get Followers List - No apiclientid in config.")
 
     def apiJoinExtraChannels(self, channel_id):
-        url = "https://api.twitch.tv/kraken/chat/" + channel_id + "/rooms"
-        headers = {
-            "Client-ID": cfg.apiclientid,
-            "Authorization": "OAuth " + cfg.token,
-            "Accept": "application/vnd.twitchtv.v5+json"
-        }
-        r = requests.get(url, headers=headers).json()
-        if r["_total"] == 0:
-            pass
+        if cfg.apiclientid:
+            try:
+                url = "https://api.twitch.tv/kraken/chat/" + channel_id + "/rooms"
+                headers = {
+                    "Client-ID": cfg.apiclientid,
+                    "Authorization": "OAuth " + cfg.token,
+                    "Accept": "application/vnd.twitchtv.v5+json",
+                }
+                r = requests.get(url, headers=headers).json()
+                if r["_total"] == 0:
+                    pass
+                else:
+                    for x in range(r["_total"]):
+                        self.JoinChannel(
+                            "#chatrooms:" + channel_id + ":" + r["rooms"][x]["_id"]
+                        )
+            except:
+                print("Join Extra Channels - Error - Join Extra Channels")
         else:
-            for x in range(r["_total"]):
-                self.JoinChannel("#chatrooms:" + channel_id + ":" + r["rooms"][x]["_id"])
+            print(f"No apiclientid in config.")
 
     def JoinChannel(self, channel):
         print(f"Attempting to join: {channel}")
         self.connection.join(channel)
+        if "#chatrooms:" in channel:
+            pass
+        else:
+            self.apiJoinExtraChannels(self.apiGetChannelID(channel[1:]))
 
     def JoinChannelList(self, channel_list):
         for x in channel_list:
             self.JoinChannel(x)
             # JOINs are rate-limited to 50 JOINs per 15 seconds. Additional JOINs sent after this will cause an unsuccessful login.
-            time.sleep(.31)
-            # Join extra channels
-            try:
-                self.apiJoinExtraChannels(self.apiGetChannelID((x[1:])))
-            except:
-                print("Error")
+            time.sleep(0.31)
         print("")
 
     def BotCommands(self, cmd):
@@ -178,7 +201,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             cfg.EnableBotCommands = 1
             print(f"Commands Enabled")
 
-        if cfg.EnableBotCommands: #Terminal commands
+        if cfg.EnableBotCommands:  # Terminal commands
             try:
                 if cmd in {"!commands", "!help"}:
                     print(
@@ -367,8 +390,9 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         if cfg.EnableLogChatMessages:
             if "GLOBAL" in cfg.ChatLogChannels or currentchannel in cfg.ChatLogChannels:
                 self.CheckLogDir("Chat")
+                logchan = re.sub(":", "_", currentchannel)
                 f = open(
-                    f"Logs/Chat/{currentchannel}_ChatLog.txt",
+                    f"Logs/Chat/{logchan}_ChatLog.txt",
                     "a+",
                     encoding="utf-8-sig",
                 )
@@ -379,6 +403,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         e = edata
         themsg = e.arguments[0]
         currentchannel = e.target
+        logchan = re.sub(":", "_", currentchannel)
         isamod = False
         isavip = False
         isasub = False
@@ -430,7 +455,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         if cfg.LogHighlights and str.lower(cfg.username) in str.lower(themsg):
             self.CheckLogDir("Chat")
             f = open(
-                f"Logs/Chat/{currentchannel}_HighlightsLog.txt",
+                f"Logs/Chat/{logchan}_HighlightsLog.txt",
                 "a+",
                 encoding="utf-8-sig",
             )
@@ -456,7 +481,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             if any(x in cfg.LogAsciiSet for x in themsg):
                 self.CheckLogDir("Chat")
                 f = open(
-                    f"Logs/Chat/{currentchannel}_ASCII.txt", "a+", encoding="utf-8-sig"
+                    f"Logs/Chat/{logchan}_ASCII.txt", "a+", encoding="utf-8-sig"
                 )
                 f.write(
                     f"{self.TimeStamp(cfg.LogTimeZone)} {currentchannel}{chatheader}{chatuser}: {themsg}\r\n"
@@ -511,9 +536,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             for ChanAndGlobal in cfg.ChatTriggers:
                 if currentchannel == ChanAndGlobal or ChanAndGlobal == "GLOBAL":
                     for x in range(len(cfg.ChatTriggers[ChanAndGlobal])):
-                        if str.lower(
-                            cfg.ChatTriggers[ChanAndGlobal][x][0]
-                        ) in str.lower(themsg):
+                        if str.lower(cfg.ChatTriggers[ChanAndGlobal][x][0]) in str.lower(themsg):
                             cresponse = cfg.ChatTriggers[ChanAndGlobal][x][1]
                             if cfg.ChatTriggers[ChanAndGlobal][x][2]:
                                 cresponse = f"{cresponse} {chatuser}"
@@ -522,7 +545,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                             # Log it
                             self.CheckLogDir("ChatTriggers")
                             f = open(
-                                f"Logs/ChatTriggers/{currentchannel}_ChatTriggerLog.txt",
+                                f"Logs/ChatTriggers/{logchan}_ChatTriggerLog.txt",
                                 "a+",
                                 encoding="utf-8-sig",
                             )
@@ -530,9 +553,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                                 f"{self.TimeStamp(cfg.LogTimeZone)} TRIGGER EVENT: {currentchannel}{chatheader}{chatuser}: {themsg}\r\n"
                             )
                             f.close()
-                            if (
-                                time.time() - self.chat_epoch >= 30
-                            ):  # A little anti-spam for triggered words
+                            if (time.time() - self.chat_epoch >= 30):  # A little anti-spam for triggered words
                                 self.chat_epoch = time.time()
                                 if str.lower(cfg.username) == str.lower(chatuser):
                                     time.sleep(1.5)
@@ -541,7 +562,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                                     f"{self.TimeStamp(cfg.LogTimeZone)} {currentchannel} - {cfg.username}: {cresponse}"
                                 )
                                 f = open(
-                                    f"Logs/ChatTriggers/{currentchannel}_ChatTriggerLog.txt",
+                                    f"Logs/ChatTriggers/{logchan}_ChatTriggerLog.txt",
                                     "a+",
                                     encoding="utf-8-sig",
                                 )
@@ -573,9 +594,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                                     self.CheckLogDir("ModTriggers")
                                     # Handle mod text response
                                     if cfg.ModTriggers[ChanAndGlobal][x][2]:
-                                        txtreponse = cfg.ModTriggers[ChanAndGlobal][x][
-                                            2
-                                        ]
+                                        txtreponse = cfg.ModTriggers[ChanAndGlobal][x][2]
                                         if cfg.ModTriggers[ChanAndGlobal][x][3]:
                                             txtreponse = f"{txtreponse} {chatuser}"
                                         self.connection.privmsg(
@@ -597,7 +616,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                                             f"{self.TimeStamp(cfg.LogTimeZone)} {currentchannel} - !MOD!-{cfg.username}: {splitresponse[0]} {chatuser}{modoptions}"
                                         )
                                         f = open(
-                                            f"Logs/ModTriggers/{currentchannel}_ModTriggerLog.txt",
+                                            f"Logs/ModTriggers/{logchan}_ModTriggerLog.txt",
                                             "a+",
                                             encoding="utf-8-sig",
                                         )
@@ -616,7 +635,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                                             f"{self.TimeStamp(cfg.LogTimeZone)} {currentchannel} - !MOD!-{cfg.username}: {mresponse} {chatuser}"
                                         )
                                         f = open(
-                                            f"Logs/ModTriggers/{currentchannel}_ModTriggerLog.txt",
+                                            f"Logs/ModTriggers/{logchan}_ModTriggerLog.txt",
                                             "a+",
                                             encoding="utf-8-sig",
                                         )
@@ -664,6 +683,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
     def on_usernotice(self, c, e):
         # print(e)
         currentchannel = e.target
+        logchan = re.sub(":", "_", currentchannel)
         for x in e.tags:
             if x["key"] == "msg-id":
                 sysmsgid = x["value"]
@@ -690,7 +710,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             ):
                 self.CheckLogDir("System")
                 f = open(
-                    f"Logs/System/{currentchannel}_SystemMsgLog_{sysmsgid}.txt",
+                    f"Logs/System/{logchan}_SystemMsgLog_{sysmsgid}.txt",
                     "a+",
                     encoding="utf-8-sig",
                 )
@@ -706,9 +726,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 if sysmsgid == "sub" and cfg.AnnounceNewSubs:
                     if currentchannel in cfg.AnnounceNewSubsChanMsg:
                         for x in range(len(cfg.AnnounceNewSubsChanMsg[currentchannel])):
-                            tmpNewSubMsg = cfg.AnnounceNewSubsChanMsg[currentchannel][
-                                x
-                            ][0]
+                            tmpNewSubMsg = cfg.AnnounceNewSubsChanMsg[currentchannel][x][0]
                             if cfg.AnnounceNewSubsChanMsg[currentchannel][x][1]:
                                 tmpNewSubMsg = f"{tmpNewSubMsg} {chatuser}"
                             c.privmsg(currentchannel, tmpNewSubMsg)
@@ -722,9 +740,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 ) and cfg.AnnounceResubs:
                     if currentchannel in cfg.AnnounceReSubsChanMsg:
                         for x in range(len(cfg.AnnounceReSubsChanMsg[currentchannel])):
-                            tmpReSubMsg = cfg.AnnounceReSubsChanMsg[currentchannel][x][
-                                0
-                            ]
+                            tmpReSubMsg = cfg.AnnounceReSubsChanMsg[currentchannel][x][0]
                             if cfg.AnnounceReSubsChanMsg[currentchannel][x][1]:
                                 tmpReSubMsg = f"{tmpReSubMsg} {chatuser}"
                             c.privmsg(currentchannel, tmpReSubMsg)
@@ -737,9 +753,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                         for x in range(
                             len(cfg.AnnounceGiftSubsChanMsg[currentchannel])
                         ):
-                            tmpGiftSubMsg = cfg.AnnounceGiftSubsChanMsg[currentchannel][
-                                x
-                            ][0]
+                            tmpGiftSubMsg = cfg.AnnounceGiftSubsChanMsg[currentchannel][x][0]
                             if cfg.AnnounceGiftSubsChanMsg[currentchannel][x][1]:
                                 tmpGiftSubMsg = f"{tmpGiftSubMsg} {chatuser}"
                             c.privmsg(currentchannel, tmpGiftSubMsg)
@@ -756,12 +770,10 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
         # What happens when the cfg.username is gifted a sub
         if cfg.EnableThankYou:
-            if sysmsgid == "subgift" and str.lower(subgiftrecipient) == str.lower(
-                cfg.username
-            ):
+            if sysmsgid == "subgift" and str.lower(subgiftrecipient) == str.lower(cfg.username):
                 c.privmsg(currentchannel, f"{cfg.GiftThanksMsg} {chatuser}")
                 f = open(
-                    f"Logs/{currentchannel}_GiftedSub.txt", "a+", encoding="utf-8-sig"
+                    f"Logs/{logchan}_GiftedSub.txt", "a+", encoding="utf-8-sig"
                 )
                 f.write(f"{self.TimeStamp(cfg.LogTimeZone)} - {sysmsg}\r\n")
                 f.write(
@@ -776,6 +788,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         # print(e)
         try:
             currentchannel = e.target
+            logchan = re.sub(":", "_", currentchannel)
             user = e.arguments[0]
             banduration = None
             banreason = None
@@ -805,7 +818,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             if cfg.LogClearchat:
                 self.CheckLogDir("clearchat")
                 f = open(
-                    f"Logs/clearchat/{currentchannel}_clearchat.txt",
+                    f"Logs/clearchat/{logchan}_clearchat.txt",
                     "a+",
                     encoding="utf-8-sig",
                 )
@@ -980,6 +993,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         # print(e)
 
         currentchannel = e.target
+        logchan = re.sub(":", "_", currentchannel)
         noticemsg = e.arguments[0]
 
         if cfg.ChanFilters and e.target not in cfg.ChanTermFilters:
@@ -992,7 +1006,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         if cfg.LogPubnotice:
             self.CheckLogDir("pubnotice")
             f = open(
-                f"Logs/pubnotice/{currentchannel}_pubnotice.txt",
+                f"Logs/pubnotice/{logchan}_pubnotice.txt",
                 "a+",
                 encoding="utf-8-sig",
             )
@@ -1014,11 +1028,13 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             f"WHISPER-{self.TimeStamp(cfg.LogTimeZone)} Direct Message - {chatuser}: {whisper}"
         )
 
+
 def tbot():
     input_watcher = InputWatcher()
     input_watcher.start()
     bot = TwitchBot(cfg.username, cfg.token, cfg.channels, input_watcher)
     bot.start()
+
 
 if __name__ == "__main__":
     os.system("cls" if os.name == "nt" else "clear")
