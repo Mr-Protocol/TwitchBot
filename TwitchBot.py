@@ -175,7 +175,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     pass
                 else:
                     for x in range(r["_total"]):
-                        time.sleep(0.31)
+                        time.sleep(0.5)
                         self.JoinChannel(
                             "#chatrooms:" + channel_id + ":" + r["rooms"][x]["_id"]
                         )
@@ -194,9 +194,9 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
     def JoinChannelList(self, channel_list):
         for x in channel_list:
+            time.sleep(0.5)
             self.JoinChannel(x)
-            # JOINs are rate-limited to 50 JOINs per 15 seconds. Additional JOINs sent after this will cause an unsuccessful login.
-            time.sleep(0.31)
+            # JOINs are rate-limited to 50 JOINs/commands per 15 seconds. Additional JOINs sent after this will cause an unsuccessful login.
         print("")
 
     def BotCommands(self, cmd):
