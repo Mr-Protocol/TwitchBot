@@ -185,6 +185,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             print(f"No apiclientid in config.")
 
     def JoinChannel(self, channel):
+        time.sleep(0.5)
         print(f"Attempting to join: {channel}")
         self.connection.join(channel)
         if "#chatrooms:" in channel:
