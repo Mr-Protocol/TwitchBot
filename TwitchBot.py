@@ -188,9 +188,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         print(f"Attempting to join: {channel}")
         self.connection.join(channel)
         if "#chatrooms:" in channel:
-            pass
-        else:
             time.sleep(0.5)
+        else:
             self.apiJoinExtraChannels(self.apiGetChannelID(channel[1:]))
 
     def JoinChannelList(self, channel_list):
