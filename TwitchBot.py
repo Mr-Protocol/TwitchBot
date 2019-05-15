@@ -789,47 +789,53 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         # Shows when a user is banned
         # type: clearchat, source: tmi.twitch.tv, target: #CHANNEL, arguments: ['USERBANNED'], tags: [{'key': 'ban-duration', 'value': '10'}, {'key': 'ban-reason', 'value': 'Accented language detected, English only please! [warning] – ohbot'}, {'key': 'room-id', 'value': 'XXXXXXXX'}, {'key': 'target-msg-id', 'value': 'XXXXXXXXXXXXXXXXXXX'}, {'key': 'target-user-id', 'value': 'XXXXX'}, {'key': 'tmi-sent-ts', 'value': 'XXXXXXXXXXXXX'}]
         # type: clearchat, source: tmi.twitch.tv, target: #CHANNEL, arguments: ['USERBANNED'], tags: [{'key': 'ban-reason', 'value': None}, {'key': 'room-id', 'value': 'XXXXXXXXXX'}, {'key': 'target-user-id', 'value': 'XXXXX'}, {'key': 'tmi-sent-ts', 'value': 'XXXXXXXXXXXXX'}]
+        # Mod uses /clear chat command
+        # type: clearchat, source: tmi.twitch.tv, target: #CHANNEL, arguments: [], tags: [{'key': 'room-id', 'value': '########'}, {'key': 'tmi-sent-ts', 'value': '#############'}]
         # print(e)
-        try:
-            currentchannel = e.target
-            logchan = re.sub(":", "_", currentchannel)
-            user = e.arguments[0]
-            banduration = None
-            banreason = None
+        
+        if not e.arguments:
+            print(f"Mod used /clear on {e.target}")
+        else:
+            try:
+                currentchannel = e.target
+                logchan = re.sub(":", "_", currentchannel)
+                user = e.arguments[0]
+                banduration = None
+                banreason = None
 
-            for x in e.tags:
-                if x["key"] == "ban-duration":
-                    banduration = x["value"]
-                if x["key"] == "ban-reason":
-                    banreason = x["value"]
+                for x in e.tags:
+                    if x["key"] == "ban-duration":
+                        banduration = x["value"]
+                    if x["key"] == "ban-reason":
+                        banreason = x["value"]
 
-            if banduration:
-                if banreason:
-                    banmsg = f"{self.TimeStamp(cfg.LogTimeZone)} {currentchannel} - {user} timeout for {banduration} seconds. {banreason}"
+                if banduration:
+                    if banreason:
+                        banmsg = f"{self.TimeStamp(cfg.LogTimeZone)} {currentchannel} - {user} timeout for {banduration} seconds. {banreason}"
+                    else:
+                        banmsg = f"{self.TimeStamp(cfg.LogTimeZone)} {currentchannel} - {user} timeout for {banduration} seconds."
                 else:
-                    banmsg = f"{self.TimeStamp(cfg.LogTimeZone)} {currentchannel} - {user} timeout for {banduration} seconds."
-            else:
-                if banreason:
-                    banmsg = f"{self.TimeStamp(cfg.LogTimeZone)} {currentchannel} - {user} is banned. {banreason}"
+                    if banreason:
+                        banmsg = f"{self.TimeStamp(cfg.LogTimeZone)} {currentchannel} - {user} is banned. {banreason}"
+                    else:
+                        banmsg = f"{self.TimeStamp(cfg.LogTimeZone)} {currentchannel} - {user} is banned."
+
+                if cfg.ChanFilters and e.target not in cfg.ChanTermFilters:
+                    pass
                 else:
-                    banmsg = f"{self.TimeStamp(cfg.LogTimeZone)} {currentchannel} - {user} is banned."
+                    print(f"CLEARCHAT-{banmsg}")
 
-            if cfg.ChanFilters and e.target not in cfg.ChanTermFilters:
-                pass
-            else:
-                print(f"CLEARCHAT-{banmsg}")
-
-            if cfg.LogClearchat:
-                self.CheckLogDir("clearchat")
-                f = open(
-                    f"Logs/clearchat/{logchan}_clearchat.txt",
-                    "a+",
-                    encoding="utf-8-sig",
-                )
-                f.write(f"{banmsg}\r\n")
-                f.close()
-        except:
-            print(f"Something went wrong on_clearchat:\r\nError:\r\n{e}")
+                if cfg.LogClearchat:
+                    self.CheckLogDir("clearchat")
+                    f = open(
+                        f"Logs/clearchat/{logchan}_clearchat.txt",
+                        "a+",
+                        encoding="utf-8-sig",
+                    )
+                    f.write(f"{banmsg}\r\n")
+                    f.close()
+            except:
+                print(f"Something went wrong on_clearchat:\r\nError:\r\n{e}")
 
     def on_globaluserstate(self, c, e):
         # Not sure if this is real or not
