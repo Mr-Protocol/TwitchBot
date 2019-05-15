@@ -178,6 +178,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                         self.JoinChannel(
                             "#chatrooms:" + channel_id + ":" + r["rooms"][x]["_id"]
                         )
+                        time.sleep(0.31)
             except:
                 print("Join Extra Channels - Error - Join Extra Channels")
         else:
