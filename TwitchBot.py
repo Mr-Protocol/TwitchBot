@@ -53,7 +53,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         # Create IRC bot connection
         self.token = token
         self.username = username
-        self.channels = channels
+        self.configchannels = channels
         server = "irc.chat.twitch.tv"
         port = 6697
         self.CheckConfig()
@@ -63,13 +63,9 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             auto_join_follow_thread.daemon = True
             auto_join_follow_thread.start()
         system(f"title TwitchBot @ {self.TimeStamp(cfg.LogTimeZone)} - {username}")
-        print(
-            f"{self.TimeStamp(cfg.LogTimeZone)}\r\nConnecting to {server} on port {port} as {username}...\r\n"
-        )
+        print(f"{self.TimeStamp(cfg.LogTimeZone)}\r\nConnecting to {server} on port {port} as {username}...\r\n")
         factory = irc.connection.Factory(wrapper=ssl.wrap_socket)
-        irc.bot.SingleServerIRCBot.__init__(
-            self, [(server, port, "oauth:" + token)], username, username,connect_factory = factory
-        )
+        irc.bot.SingleServerIRCBot.__init__(self, [(server, port, "oauth:" + token)], username, username,connect_factory = factory)
         self.sub_epoch = 0
         if cfg.EnableChatTriggers:
             self.chat_epoch = 0
@@ -80,8 +76,6 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         if cfg.EnableKeywordRepeater:
             self.RepeaterEpoch = 0
             self.dbRepeaterKeyword = {}
-            for x in channels:
-                self.dbRepeaterKeyword.update({x: ("", 0)})
         if cfg.EnableChatTracking:
             self.dbChatters = {}
             self.ChattersStartTime = self.TimeStamp(0)
@@ -361,7 +355,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
     # Check for valid channels starting with #, and doesn't end with a comma
     def CheckConfig(self):
-        for chan in self.channels:
+        for chan in self.configchannels:
             if chan.startswith("#"):
                 pass
             else:
@@ -494,6 +488,11 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
         # Repeater Mode aka Giveaway Mode
         if cfg.EnableKeywordRepeater:  # Counting keyword
+            if currentchannel in self.dbRepeaterKeyword:
+                pass
+            else:
+                self.dbRepeaterKeyword.update({currentchannel: ("", 0)})            
+            
             if self.dbRepeaterKeyword[currentchannel][0] == themsg:
                 self.dbRepeaterKeyword.update(
                     {
@@ -503,7 +502,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                         )
                     }
                 )
-                if self.dbRepeaterKeyword[currentchannel][1] > cfg.KeywordRepeaterCount:
+                if self.dbRepeaterKeyword[currentchannel][1] >= cfg.KeywordRepeaterCount:
                     if time.time() - self.RepeaterEpoch >= 30:  # A little anti-spam
                         self.connection.privmsg(currentchannel, themsg)
                         self.dbRepeaterKeyword.update({currentchannel: ("", 0)})
@@ -663,9 +662,9 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             self.JoinChannelList(self.apiGetFollowersList(self.username))
 
         # joins specified channels
-        if len(self.channels) > 0:
+        if len(self.configchannels) > 0:
             print(f"Joining list of channels.")
-            self.JoinChannelList(self.channels)
+            self.JoinChannelList(self.configchannels)
 
     def on_pubmsg(self, c, e):
         # print(e)
@@ -840,6 +839,14 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
     def on_globaluserstate(self, c, e):
         # Not sure if this is real or not
         print(e)
+        self.CheckLogDir("globaluserstate")
+        f = open(
+            f"Logs/globaluserstate/dump.txt",
+            "a+",
+            encoding="utf-8-sig",
+        )
+        f.write(f"\r\n {e}")
+        f.close()
 
     def on_roomstate(self, c, e):
         # Shows current chat settings for channel
@@ -1042,7 +1049,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 def tbot(uname, utoken, uchannels, input_watcher = None):
     bot = TwitchBot(uname, utoken, uchannels, input_watcher)
     bot.start()
-
+    
 
 if __name__ == "__main__":
     os.system("cls" if os.name == "nt" else "clear")
