@@ -112,14 +112,20 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             self.CheckConfig
 
     def apiGetChannelID(self, channel):
-        if cfg.apiclientid:
-            url = "https://api.twitch.tv/helix/users?login=" + channel
-            headers = {"Authorization": "Bearer " + self.token}
-            r = requests.get(url, headers=headers).json()
-            channelid = r["data"][0]["id"]
-            return channelid
-        else:
-            print(f"Get Channel ID - No apiclientid in config.")
+        try:
+            if cfg.apiclientid:
+                url = "https://api.twitch.tv/helix/users?login=" + channel
+                headers = {"Authorization": "Bearer " + self.token}
+                r = requests.get(url, headers=headers).json()
+                if not r["data"]:
+                    print(f"Could not get data for {channel}. User is probably banned.")
+                else:
+                    channelid = r["data"][0]["id"]
+                    return channelid
+            else:
+                print(f"Get Channel ID - No apiclientid in config.")
+        except:
+            print(f"Error in apiGetChannelID.")
 
     def apiGetUserInfo(self, username):
         if cfg.apiclientid:
@@ -157,24 +163,27 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
     def apiJoinExtraChannels(self, channel_id):
         if cfg.apiclientid:
-            try:
-                url = "https://api.twitch.tv/kraken/chat/" + channel_id + "/rooms"
-                headers = {
-                    "Client-ID": cfg.apiclientid,
-                    "Authorization": "OAuth " + self.token,
-                    "Accept": "application/vnd.twitchtv.v5+json",
-                }
-                r = requests.get(url, headers=headers).json()
-                if r["_total"] == 0:
-                    pass
-                else:
-                    for x in range(r["_total"]):
-                        time.sleep(0.5)
-                        self.JoinChannel(
-                            "#chatrooms:" + channel_id + ":" + r["rooms"][x]["_id"]
-                        )
-            except:
-                print("Join Extra Channels - Error - Join Extra Channels")
+            if channel_id:
+                try:
+                    url = "https://api.twitch.tv/kraken/chat/" + channel_id + "/rooms"
+                    headers = {
+                        "Client-ID": cfg.apiclientid,
+                        "Authorization": "OAuth " + self.token,
+                        "Accept": "application/vnd.twitchtv.v5+json",
+                    }
+                    r = requests.get(url, headers=headers).json()
+                    if r["_total"] == 0:
+                        pass
+                    else:
+                        for x in range(r["_total"]):
+                            time.sleep(0.5)
+                            self.JoinChannel(
+                                "#chatrooms:" + channel_id + ":" + r["rooms"][x]["_id"]
+                            )
+                except:
+                    print("Join Extra Channels - Error - Join Extra Channels")
+            else:
+                print(f"Skipping apiJoinExtraChannels.")
         else:
             print(f"No apiclientid in config.")
 
