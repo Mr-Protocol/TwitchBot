@@ -362,7 +362,6 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                         for x in self.apiGetFollowersList(splitcmd[1]):
                             f.write(x + '\r\n')
                         f.close()
-
                 else:
                     print(f"No Command...\r\n")
             except:
