@@ -139,15 +139,15 @@ EnableChatTriggers = 0
 ChatTriggers = {
     '#mr_protocol':[
         ('Hype!', 'MORE HYPE!', 0),
-        ('FeelsBadMan', 'FeelsBadMan', 0)
+        ('sometriggerwordhere', 'FeelsBadMan', 0)
     ],
     '#thisisjustaplaceholder':[
         ('Hype!', 'MORE HYPE!', 0),
-        ('FeelsBadMan', 'FeelsBadMan', 0)
+        ('sometriggerwordhere', 'FeelsBadMan', 0)
     ],
     '#thisisjustaplaceholder2':[
         ('Hype!', 'MORE HYPE!', 0),
-        ('FeelsBadMan', 'FeelsBadMan', 0)
+        ('sometreiggerwordhere', 'FeelsBadMan', 0)
     ],
     #GLOBAL will try and do the commands in any channel.
     'GLOBAL':[

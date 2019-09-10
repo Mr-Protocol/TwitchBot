@@ -212,7 +212,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             try:
                 if cmd in {"!commands", "!help"}:
                     print(
-                        f"!addmod, !addtrig, !bot, !chanfilteron, !chanfilteroff, !chanid, !chantrig, !commands, !help, !modlist, !reloadconfig, !repeatercount, !repeateroff, !repeateron, !showchatters, !uchatters, !ucount\r\n"
+                        f"!addmod, !addtrig, !bot, !chanfilteron, !chanfilteroff, !chanid, !chantrig, !commands, !getuserfollows, !help, !modlist, !reloadconfig, !repeatercount, !repeateroff, !repeateron, !showchatters, !uchatters, !ucount\r\n"
                     )
 
                 elif "!uchatters" in cmd:
@@ -349,6 +349,19 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 elif cmd == "!reloadconfig":
                     importlib.reload(cfg)
                     self.CheckConfig()
+
+                elif "!getuserfollows" in cmd:
+                    splitcmd = cmd.split(" ")
+                    if len(splitcmd) == 1:
+                        print (
+                            f"Writes out the follower list to a file."
+                        )
+                        print(f"Usage: !getuserfollows mr_protocol\r\n")
+                    else:
+                        f = open(f"Follows/{splitcmd[1]}.txt", "a+", encoding="utf-8-sig")
+                        for x in self.apiGetFollowersList(splitcmd[1]):
+                            f.write(x + '\r\n')
+                        f.close()
 
                 else:
                     print(f"No Command...\r\n")
