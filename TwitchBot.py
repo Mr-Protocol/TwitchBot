@@ -139,7 +139,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         else:
             print(f"Get User Info - No apiclientid in config.")
 
-    def apiGetFollowersList(self, username):
+    def apiGetFollowersList(self, username, ignorejoinlist = None):
         if cfg.apiclientid:
             followinglist = []
             url = (
@@ -155,8 +155,10 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     followinglist.append("#" + str.lower(r["data"][x]["to_name"]))
                 url += "&after=" + cursorpage
                 r = requests.get(url, headers=headers).json()
-            if cfg.followerautojoin and (time.time() - self.starttime < 5):
-                self.AJChannels = followinglist.copy()
+            if ignorejoinlist == None:
+                if cfg.followerautojoin and (time.time() - self.starttime < 5):
+                    self.AJChannels = followinglist.copy()
+                    print(f"Created Auto Join Channel List.\r\n")
             return followinglist
         else:
             print(f"Get Followers List - No apiclientid in config.")
@@ -360,10 +362,10 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     else:
                         self.CheckLogDir("FollowList")
                         f = open(f"Logs/FollowList/{splitcmd[1]}.txt", "a+", encoding="utf-8-sig")
-                        for x in self.apiGetFollowersList(splitcmd[1]):
+                        for x in self.apiGetFollowersList(splitcmd[1],1):
                             f.write(x + '\r\n')
                         f.close()
-                        print(f"Done creating follow list.\r\n")
+                        print(f"Done creating follow list. Location: Logs/FollowList/{splitcmd[1]}.txt\r\n")
                 else:
                     print(f"No Command...\r\n")
             except:
