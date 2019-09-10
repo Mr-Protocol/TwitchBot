@@ -358,10 +358,12 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                         )
                         print(f"Usage: !getuserfollows mr_protocol\r\n")
                     else:
-                        f = open(f"Follows/{splitcmd[1]}.txt", "a+", encoding="utf-8-sig")
+                        self.CheckLogDir("FollowList")
+                        f = open(f"Logs/FollowList/{splitcmd[1]}.txt", "a+", encoding="utf-8-sig")
                         for x in self.apiGetFollowersList(splitcmd[1]):
                             f.write(x + '\r\n')
                         f.close()
+                        print(f"Done creating follow list.\r\n")
                 else:
                     print(f"No Command...\r\n")
             except:
