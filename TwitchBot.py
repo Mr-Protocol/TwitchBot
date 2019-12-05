@@ -476,7 +476,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
         # Chat Highlights Log - Will log messages that contain username
         if cfg.LogHighlights and str.lower(self.username) in str.lower(themsg):
-            self.CheckLogDir("Chat")
+            self.CheckLogDir("Highlights")
             f = open(
                 f"Logs/Highlights/{logchan}_HighlightsLog.txt",
                 "a+",
@@ -502,7 +502,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         # ASCII ART - Log potential messages for future mod triggers
         if cfg.LogAscii:
             if any(x in cfg.LogAsciiSet for x in themsg):
-                self.CheckLogDir("Chat")
+                self.CheckLogDir("ASCII")
                 f = open(
                     f"Logs/ASCII/{logchan}_ASCII.txt", "a+", encoding="utf-8-sig"
                 )
