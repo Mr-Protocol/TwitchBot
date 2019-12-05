@@ -478,7 +478,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         if cfg.LogHighlights and str.lower(self.username) in str.lower(themsg):
             self.CheckLogDir("Chat")
             f = open(
-                f"Logs/Chat/{logchan}_HighlightsLog.txt",
+                f"Logs/Highlights/{logchan}_HighlightsLog.txt",
                 "a+",
                 encoding="utf-8-sig",
             )
@@ -504,7 +504,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             if any(x in cfg.LogAsciiSet for x in themsg):
                 self.CheckLogDir("Chat")
                 f = open(
-                    f"Logs/Chat/{logchan}_ASCII.txt", "a+", encoding="utf-8-sig"
+                    f"Logs/ASCII/{logchan}_ASCII.txt", "a+", encoding="utf-8-sig"
                 )
                 f.write(
                     f"{self.TimeStamp(cfg.LogTimeZone)} {currentchannel}{chatheader}{chatuser}: {themsg}\r\n"
