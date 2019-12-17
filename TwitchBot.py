@@ -206,7 +206,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             print(f"Attempting to join: {lchannel}")
             self.connection.join(lchannel)
             self.JoinedChannelsList.append(lchannel)
-            time.sleep(0.75)
+            time.sleep(1)
         """ if "#chatrooms:" in channel: # Used to be used for extra channels, no longer needed as of Oct 2019.
             time.sleep(0.5)
         else:
@@ -1074,6 +1074,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         if cfg.AutoJoinHosts:
             LAJHChan = "#" + str.lower(noticemsg[12:][:-1]) # Parse the channel from noticemsg, LCase, prefix with #
             if noticemsg[:11] == "Now hosting" and LAJHChan not in self.JoinedChannelsList:
+                print(f"Found new channel {LAJHChan}.")
+                time.sleep(2)
                 self.joinchannel(LAJHChan)
                 if cfg.LogAutoJoinHosts:
                     self.checklogdir("Auto Join Hosts")
@@ -1095,6 +1097,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     )
                     f.write(f"{LAJHChan}\r\n")
                     f.close
+            else:
+                print(f"Channel {LAJHChan} already joined.")
 
     def on_whisper(self, c, e):
         # Received twitch direct messages
