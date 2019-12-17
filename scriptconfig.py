@@ -89,6 +89,9 @@ AnnounceRaids = 0
 # Announce raid message puts this text around (beginning and end) the system message of who raided and how many
 RaidMsg = 'twitchRaid twitchRaid twitchRaid twitchRaid twitchRaid twitchRaid twitchRaid twitchRaid twitchRaid twitchRaid twitchRaid twitchRaid twitchRaid twitchRaid'
 
+# Announce yourself when joining a hosted channel with AutoJoinHosts enabled.
+AnnounceAutoJoinHosts = 0
+
 # Announce raid message channels
 # AnnounceRaidChannels = ['#mr_protocol']
 AnnounceRaidChannels = []

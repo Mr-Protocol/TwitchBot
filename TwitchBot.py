@@ -80,6 +80,11 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         if cfg.EnableChatTracking:
             self.dbChatters = {}
             self.ChattersStartTime = self.timestamp(0)
+        if cfg.AutoJoinHosts and cfg.LogAutoJoinHostChannels:
+            if os.path.exists("Logs/Auto Join Hosts/AutoJoinHostChannels.txt"):
+                os.remove("Logs/Auto Join Hosts/AutoJoinHostChannels.txt")
+            else:
+                print(f"No previous Logs/Auto Join Hosts/AutoJoinHostChannels.txt to delete.\r\n")
         keep_alive_thread = threading.Thread(target=self.keepmealive)
         keep_alive_thread.daemon = True
         keep_alive_thread.start()
@@ -1072,11 +1077,13 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             f.close()
         
         if cfg.AutoJoinHosts and noticemsg[:11] == "Now hosting":
-            LAJHChan = "#" + str.lower(noticemsg[12:][:-1]) # Parse the channel from noticemsg, LCase, prefix with #
+            LAJHChan = "#" + str.lower(noticemsg[12:][:-1]) # Parse the hosted channel from noticemsg, LCase, prefix with #
             if LAJHChan not in self.JoinedChannelsList:
                 print(f"Found new channel {LAJHChan}.")
                 time.sleep(2)
                 self.joinchannel(LAJHChan)
+                if cfg.AnnounceAutoJoinHosts:
+                    c.privmsg(LAJHChan, f"Hello, {currentchannel[1:]} sent me!")
                 if cfg.LogAutoJoinHosts:
                     self.checklogdir("Auto Join Hosts")
                     f = open(
