@@ -57,8 +57,9 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         server = "irc.chat.twitch.tv"
         port = 6697
         self.checkconfig()
+        self.AJChannels = []
+        self.JoinedChannelsList = []
         if cfg.FollowerAutoJoin:
-            self.AJChannels = []
             auto_join_follow_thread = threading.Thread(target=self.ajchannels_sync)
             auto_join_follow_thread.daemon = True
             auto_join_follow_thread.start()
@@ -98,14 +99,14 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 print(f"Checking followers for updates to auto join...\r\n")
                 following = self.apigetfollowerslist(self.username)
                 for x in following:
-                    if x not in self.AJChannels:
+                    if x not in self.JoinedChannelsList:
                         print(f"Found new channel: {x}")
                         self.joinchannel(x)
 
                 # Check the channels variable in config file for new.
                 if len(cfg.Channels) != 0:
                     for x in cfg.Channels:
-                        if x not in self.AJChannels:
+                        if x not in self.JoinedChannelsList:
                             print(f"Found new channel: {x}")
                             self.joinchannel(x)
 
@@ -201,12 +202,11 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
     def joinchannel(self, channel): # channel name must start with #
         lchannel = str.lower(channel)
-        print(f"Attempting to join: {lchannel}")
-        self.connection.join(lchannel)
-        time.sleep(0.75)
-        # Make sure all channels are in the Auto Join List to detect updates.
-        if channel not in self.AJChannels:
-            self.AJChannels.append(lchannel)
+        if lchannel not in self.JoinedChannelsList:
+            print(f"Attempting to join: {lchannel}")
+            self.connection.join(lchannel)
+            self.JoinedChannelsList.append(lchannel)
+            time.sleep(0.75)
         """ if "#chatrooms:" in channel: # Used to be used for extra channels, no longer needed as of Oct 2019.
             time.sleep(0.5)
         else:
