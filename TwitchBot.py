@@ -1072,7 +1072,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             f.close()
         
         if cfg.AutoJoinHosts:
-            if noticemsg[:11] == "Now hosting":
+            if noticemsg[:11] == "Now hosting" and "#" + noticemsg[12:][:-1] not in self.JoinedChannelsList:
                 self.joinchannel("#" + noticemsg[12:][:-1])
                 if cfg.LogAutoJoinHosts:
                     self.checklogdir("Auto Join Hosts")
@@ -1093,7 +1093,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                         encoding="utf-8-sig",
                     )
                     f.write(
-                        f"#{noticemsg[12:][:-1]}\r\n"
+                        f"#{str.lower({noticemsg[12:][:-1]})}\r\n"
                     )
                     f.close
 
