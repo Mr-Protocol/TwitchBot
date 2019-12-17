@@ -1071,9 +1071,9 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             )
             f.close()
         
-        if cfg.AutoJoinHosts:
+        if cfg.AutoJoinHosts and noticemsg[:11] == "Now hosting":
             LAJHChan = "#" + str.lower(noticemsg[12:][:-1]) # Parse the channel from noticemsg, LCase, prefix with #
-            if noticemsg[:11] == "Now hosting" and LAJHChan not in self.JoinedChannelsList:
+            if LAJHChan not in self.JoinedChannelsList:
                 print(f"Found new channel {LAJHChan}.")
                 time.sleep(2)
                 self.joinchannel(LAJHChan)
