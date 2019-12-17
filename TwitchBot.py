@@ -1072,8 +1072,9 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             f.close()
         
         if cfg.AutoJoinHosts:
-            if noticemsg[:11] == "Now hosting" and "#" + noticemsg[12:][:-1] not in self.JoinedChannelsList:
-                self.joinchannel("#" + noticemsg[12:][:-1])
+            LAJHChan = "#" + str.lower(noticemsg[12:][:-1]) # Parse the channel from noticemsg, LCase, prefix with #
+            if noticemsg[:11] == "Now hosting" and LAJHChan not in self.JoinedChannelsList:
+                self.joinchannel(LAJHChan)
                 if cfg.LogAutoJoinHosts:
                     self.checklogdir("Auto Join Hosts")
                     f = open(
@@ -1082,7 +1083,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                         encoding="utf-8-sig",
                     )
                     f.write(
-                        f"{self.timestamp(cfg.LogTimeZone)} #{noticemsg[12:][:-1]} - Auto Joining Hosted Channel via {currentchannel}"
+                        f"{self.timestamp(cfg.LogTimeZone)} {LAJHChan} - Auto Joining Hosted Channel via {currentchannel}"
                     )
                     f.close
                 if cfg.LogAutoJoinHostChannels:
@@ -1092,9 +1093,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                         "a+",
                         encoding="utf-8-sig",
                     )
-                    f.write(
-                        f"#{str.lower({noticemsg[12:][:-1]})}\r\n"
-                    )
+                    f.write(f"{LAJHChan}\r\n")
                     f.close
 
     def on_whisper(self, c, e):
