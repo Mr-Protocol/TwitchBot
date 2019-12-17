@@ -203,7 +203,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         lchannel = str.lower(channel)
         print(f"Attempting to join: {lchannel}")
         self.connection.join(lchannel)
-        time.sleep(0.5)
+        time.sleep(0.75)
         # Make sure all channels are in the Auto Join List to detect updates.
         if channel not in self.AJChannels:
             self.AJChannels.append(lchannel)
@@ -1084,6 +1084,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     f.write(
                         f"{self.timestamp(cfg.LogTimeZone)} #{noticemsg[12:][:-1]} - Auto Joining Hosted Channel via {currentchannel}"
                     )
+                    f.close
                 if cfg.LogAutoJoinHostChannels:
                     self.checklogdir("Auto Join Hosts")
                     f = open(
@@ -1094,6 +1095,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     f.write(
                         f"#{noticemsg[12:][:-1]}\r\n"
                     )
+                    f.close
 
     def on_whisper(self, c, e):
         # Received twitch direct messages
