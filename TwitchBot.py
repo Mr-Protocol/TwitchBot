@@ -1083,7 +1083,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 time.sleep(2)
                 self.joinchannel(LAJHChan)
                 if cfg.AnnounceAutoJoinHosts:
-                    c.privmsg(LAJHChan, f"Hello, {currentchannel[1:]} sent me!")
+                    c.privmsg(LAJHChan, f"Hello, {currentchannel[1:]} sent me via hosting.")
                 if cfg.LogAutoJoinHosts:
                     self.checklogdir("Auto Join Hosts")
                     f = open(
