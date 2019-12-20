@@ -222,6 +222,9 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             self.joinchannel(x)
             # JOINs are rate-limited to 50 JOINs/commands per 15 seconds. Additional JOINs sent after this will cause an unsuccessful login.
         print("")
+    
+    def sendmsg(self, channel, message):
+        self.connection.privmsg(channel, message)
 
     def botcommands(self, cmd):
         cmd = str.lower(cmd)
@@ -251,7 +254,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     if len(splitcmd) == 1:
                         print(f"Usage: !bot #channel\r\n")
                     else:
-                        self.connection.privmsg(
+                        self.sendmsg(
                             splitcmd[1],
                             f"Beep Bop Boop Beep... I'm not a bot, I'm a real man!",
                         )
@@ -468,11 +471,15 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 else:
                     isavip = False
 
-        if str.lower(chatuser) == str.lower(self.username) and isamod:
+        if str.lower(chatuser) == str.lower(self.username) and isamod: # Add channel to bot's channel mod list
             if currentchannel in self.dbModChannels:
                 pass
             else:
                 self.dbModChannels.append(currentchannel)
+        
+        if str.lower(chatuser) == str.lower(self.username) and not isamod: # Remove channel from bot's channel mod list
+            if currentchannel in self.dbModChannels:
+                self.dbModChannels.remove(currentchannel)
 
         chatheader = " - "
         if str.lower(chatuser) in currentchannel:
@@ -548,7 +555,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 )
                 if self.dbRepeaterKeyword[currentchannel][1] >= cfg.KeywordRepeaterCount:
                     if time.time() - self.RepeaterEpoch >= 30:  # A little anti-spam
-                        self.connection.privmsg(currentchannel, themsg)
+                        self.sendmsg(currentchannel, themsg)
                         self.dbRepeaterKeyword.update({currentchannel: ("", 0)})
                         self.RepeaterEpoch = time.time()
             else:  # New keyword
@@ -563,10 +570,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     ):
                         if time.time() - self.epochCopyPasta >= 90:
                             self.epochCopyPasta = time.time()
-                            self.connection.privmsg(currentchannel, themsg)
-                            print(
-                                f"{self.timestamp(cfg.LogTimeZone)} {currentchannel} {self.username}: {themsg}\r\n"
-                            )
+                            self.sendmsg(currentchannel, themsg)
+                            print(f"{self.timestamp(cfg.LogTimeZone)} {currentchannel} {self.username}: {themsg}\r\n")
 
         # Tracking Chatters Info
         if cfg.EnableChatTracking:
@@ -596,26 +601,21 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                                 "a+",
                                 encoding="utf-8-sig",
                             )
-                            f.write(
-                                f"{self.timestamp(cfg.LogTimeZone)} TRIGGER EVENT: {currentchannel}{chatheader}{chatuser}: {themsg}\r\n"
-                            )
+                            f.write(f"{self.timestamp(cfg.LogTimeZone)} TRIGGER EVENT: {currentchannel}{chatheader}{chatuser}: {themsg}\r\n")
                             f.close()
-                            if (time.time() - self.chat_epoch >= 30):  # A little anti-spam for triggered words
-                                self.chat_epoch = time.time()
+                            if currentchannel in self.dbModChannels or (time.time() - self.chat_epoch >= 30):  # A little anti-spam for triggered words
+                                if currentchannel not in self.dbModChannels:
+                                    self.chat_epoch = time.time()
                                 if str.lower(self.username) == str.lower(chatuser):
                                     time.sleep(1.5)
-                                self.connection.privmsg(currentchannel, cresponse)
-                                print(
-                                    f"{self.timestamp(cfg.LogTimeZone)} {currentchannel} - {self.username}: {cresponse}"
-                                )
+                                self.sendmsg(currentchannel, cresponse)
+                                print(f"{self.timestamp(cfg.LogTimeZone)} {currentchannel} - {self.username}: {cresponse}")
                                 f = open(
                                     f"Logs/ChatTriggers/{logchan}_ChatTriggerLog.txt",
                                     "a+",
                                     encoding="utf-8-sig",
                                 )
-                                f.write(
-                                    f"{self.timestamp(cfg.LogTimeZone)} SENT: {chatheader}{self.username}: {cresponse}\r\n"
-                                )
+                                f.write(f"{self.timestamp(cfg.LogTimeZone)} SENT: {chatheader}{self.username}: {cresponse}\r\n")
                                 f.close()
 
         # Mod Triggers - uses the lcase themsg and splits words via spaces
@@ -634,9 +634,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     for ChanAndGlobal in cfg.ModTriggers:
                         if currentchannel == ChanAndGlobal or ChanAndGlobal == "GLOBAL":
                             for x in range(len(cfg.ModTriggers[ChanAndGlobal])):
-                                if str.lower(
-                                    cfg.ModTriggers[ChanAndGlobal][x][0]
-                                ) in str.lower(themsg):
+                                if str.lower(cfg.ModTriggers[ChanAndGlobal][x][0]) in str.lower(themsg):
                                     mresponse = cfg.ModTriggers[ChanAndGlobal][x][1]
                                     self.checklogdir("ModTriggers")
                                     # Handle mod text response
@@ -644,54 +642,33 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                                         txtreponse = cfg.ModTriggers[ChanAndGlobal][x][2]
                                         if cfg.ModTriggers[ChanAndGlobal][x][3]:
                                             txtreponse = f"{txtreponse} {chatuser}"
-                                        self.connection.privmsg(
-                                            currentchannel, f"{txtreponse}"
-                                        )
-                                        print(
-                                            f"{self.timestamp(cfg.LogTimeZone)} {currentchannel} - !MOD!-{self.username}: {txtreponse}"
-                                        )
+                                        self.sendmsg(currentchannel, f"{txtreponse}")
+                                        print(f"{self.timestamp(cfg.LogTimeZone)} {currentchannel} - !MOD!-{self.username}: {txtreponse}")
                                     try:
                                         splitresponse = mresponse.split(" ")
                                         modoptions = ""
                                         for x in splitresponse[1:]:
                                             modoptions = f"{modoptions} {x}"
-                                        self.connection.privmsg(
-                                            currentchannel,
-                                            f"{splitresponse[0]} {chatuser}{modoptions}",
-                                        )
-                                        print(
-                                            f"{self.timestamp(cfg.LogTimeZone)} {currentchannel} - !MOD!-{self.username}: {splitresponse[0]} {chatuser}{modoptions}"
-                                        )
+                                        self.sendmsg(currentchannel, f"{splitresponse[0]} {chatuser}{modoptions}",)
+                                        print(f"{self.timestamp(cfg.LogTimeZone)} {currentchannel} - !MOD!-{self.username}: {splitresponse[0]} {chatuser}{modoptions}")
                                         f = open(
                                             f"Logs/ModTriggers/{logchan}_ModTriggerLog.txt",
                                             "a+",
                                             encoding="utf-8-sig",
                                         )
-                                        f.write(
-                                            f"{self.timestamp(cfg.LogTimeZone)} TRIGGER EVENT: {chatheader}{chatuser}: {themsg}\r\n"
-                                        )
-                                        f.write(
-                                            f"{self.timestamp(cfg.LogTimeZone)} SENT: !MOD!-{self.username}: {splitresponse[0]} {chatuser}{modoptions}\r\n"
-                                        )
+                                        f.write(f"{self.timestamp(cfg.LogTimeZone)} TRIGGER EVENT: {chatheader}{chatuser}: {themsg}\r\n")
+                                        f.write(f"{self.timestamp(cfg.LogTimeZone)} SENT: !MOD!-{self.username}: {splitresponse[0]} {chatuser}{modoptions}\r\n")
                                         f.close()
                                     except:
-                                        self.connection.privmsg(
-                                            currentchannel, f"{mresponse} {chatuser}"
-                                        )
-                                        print(
-                                            f"{self.timestamp(cfg.LogTimeZone)} {currentchannel} - !MOD!-{self.username}: {mresponse} {chatuser}"
-                                        )
+                                        self.sendmsg(currentchannel, f"{mresponse} {chatuser}")
+                                        print(f"{self.timestamp(cfg.LogTimeZone)} {currentchannel} - !MOD!-{self.username}: {mresponse} {chatuser}")
                                         f = open(
                                             f"Logs/ModTriggers/{logchan}_ModTriggerLog.txt",
                                             "a+",
                                             encoding="utf-8-sig",
                                         )
-                                        f.write(
-                                            f"{self.timestamp(cfg.LogTimeZone)} TRIGGER EVENT: {chatheader}{chatuser}: {themsg}\r\n"
-                                        )
-                                        f.write(
-                                            f"{self.timestamp(cfg.LogTimeZone)} SENT: !MOD!-{self.username}: {mresponse} {chatuser}\r\n"
-                                        )
+                                        f.write(f"{self.timestamp(cfg.LogTimeZone)} TRIGGER EVENT: {chatheader}{chatuser}: {themsg}\r\n")
+                                        f.write(f"{self.timestamp(cfg.LogTimeZone)} SENT: !MOD!-{self.username}: {mresponse} {chatuser}\r\n")
                                         f.close()
 
     def on_welcome(self, c, e):
