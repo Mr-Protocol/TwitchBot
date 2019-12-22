@@ -96,7 +96,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         while True:
             try:
                 time.sleep(60)  # 1 min
-                print(f"--- PING ---\r\n")
+                print(f"--- PING (Keep Alive) ---")
                 self.connection.ping("tmi.twitch.tv")
             except Exception as e:
                 print(f"Error: {e}")
@@ -108,6 +108,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 )
                 f.write(f"{e}\r\n")
                 f.close
+                time.sleep(60 * 10)
                 os.execl(sys.executable, sys.executable, * sys.argv) # Restarts the program.
 
     def ajchannels_sync(self):
