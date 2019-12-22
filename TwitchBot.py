@@ -1120,5 +1120,5 @@ if __name__ == "__main__":
     time.sleep(1)
     input_watcher = InputWatcher()
     input_watcher.start()
-    botthread1 = threading.Thread(target=tbot,args=[cfg.Username, cfg.Token, cfg.Channels, input_watcher])
+    botthread1 = threading.Thread(target=tbot,args=[str.lower(cfg.Username), cfg.Token, cfg.Channels, input_watcher])
     botthread1.start()
