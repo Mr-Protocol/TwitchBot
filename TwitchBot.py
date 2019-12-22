@@ -19,8 +19,8 @@ import re
 import os
 from os import system
 import errno
-import threading
-import scriptconfig as cfg
+import threading, _thread
+import myscriptconfig as cfg
 import importlib
 import ssl
 
@@ -94,8 +94,21 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
     def keepmealive(self):
         while True:
-            time.sleep(60 * 10)  # 10 min
-            self.connection.ping("tmi.twitch.tv")
+            try:
+                time.sleep(60)  # 1 min
+                print(f"--- PING ---\r\n")
+                self.connection.ping("tmi.twitch.tv")
+            except Exception as e:
+                print(f"Error: {e}")
+                self.checklogdir("Error")
+                f = open(
+                    f"Logs/Error/Error.txt",
+                    "a+",
+                    encoding="utf-8-sig",
+                )
+                f.write(f"{e}\r\n")
+                f.close
+                os.execl(sys.executable, sys.executable, * sys.argv) # Restarts the program.
 
     def ajchannels_sync(self):
         if cfg.APIClientID:
@@ -1068,9 +1081,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                         "a+",
                         encoding="utf-8-sig",
                     )
-                    f.write(
-                        f"{self.timestamp(cfg.LogTimeZone)} {LAJHChan} - Auto Joining Hosted Channel via {currentchannel}"
-                    )
+                    f.write(f"{self.timestamp(cfg.LogTimeZone)} {LAJHChan} - Auto Joining Hosted Channel via {currentchannel}")
                     f.close
                 if cfg.LogAutoJoinHostChannels:
                     self.checklogdir("Auto Join Hosts")
@@ -1110,5 +1121,3 @@ if __name__ == "__main__":
     input_watcher.start()
     botthread1 = threading.Thread(target=tbot,args=[cfg.Username, cfg.Token, cfg.Channels, input_watcher])
     botthread1.start()
-
-
