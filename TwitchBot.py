@@ -136,7 +136,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
     def reloadconfigfile(self):
         while True:
-            time.sleep(60 * 10)  # 5 min
+            time.sleep(60 * 10)  # 10 min
             importlib.reload(cfg)
             self.checkconfig
 
