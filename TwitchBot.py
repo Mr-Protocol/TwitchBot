@@ -136,7 +136,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
     def reloadconfigfile(self):
         while True:
-            time.sleep(60 * 5)  # 5 min
+            time.sleep(60 * 10)  # 5 min
             importlib.reload(cfg)
             self.checkconfig
 
@@ -250,7 +250,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             try:
                 if cmd in {"!commands", "!help"}:
                     print(
-                        f"!addmod, !addtrig, !bot, !chanfilteron, !chanfilteroff, !chanid, !chantrig, !commands, !getuserfollows, !help, !modlist, !reloadconfig, !repeatercount, !repeateroff, !repeateron, !showchatters, !uchatters, !ucount\r\n"
+                        f"!addmod, !addtrig, !banlist, !bot, !chanfilteron, !chanfilteroff, !chanid, !chantrig, !commands, !getuserfollows, !help, !modlist, !reloadconfig, !repeatercount, !repeateroff, !repeateron, !showchatters, !uchatters, !ucount\r\n"
                     )
 
                 elif "!uchatters" in cmd:
@@ -258,10 +258,27 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     if len(splitcmd) == 1:
                         print(f"Usage: !uchatters #channel\r\n")
                     else:
-                        print(
-                            f"There are {len(self.dbChatters[splitcmd[1]])} chatters since {self.ChattersStartTime}. in {splitcmd[1]}"
-                        )
+                        print(f"There are {len(self.dbChatters[splitcmd[1]])} chatters since {self.ChattersStartTime}. in {splitcmd[1]}")
                         print(f"Current Time: {self.timestamp(0)}\r\n")
+
+                elif "!banlist" in cmd:
+                    splitcmd = cmd.split(" ")
+                    if len(splitcmd) != 3:
+                        print(f"Usage: Create a banlist.txt in the root path of script. One account per line in lowercase. !banlist banlist.txt #channel\r\n")
+                    else:
+                        try:
+                            print(f"Trying bans.")
+                            f = open(splitcmd[1],"r")
+                            for x in f:
+                                print(f"---- Banning {x} in {splitcmd[2]}.")
+                                buser = str.lower(str.rstrip(x))
+                                bchan = str.lower(str.rstrip(splitcmd[2]))
+
+                                self.sendmsg(bchan, "/ban " + buser + " Suspected spam bot.")
+                                time.sleep(.5) #Do not set any lower. Will flood and disconnect bot
+                            f.close()
+                        except Exception as e:
+                            print(f"Something went wrong.\r\n{e}")
 
                 elif "!bot" in cmd:
                     splitcmd = cmd.split(" ")
