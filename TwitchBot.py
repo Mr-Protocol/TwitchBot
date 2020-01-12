@@ -95,20 +95,15 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
     def keepmealive(self):
         while True:
             try:
-                time.sleep(60)  # 1 min
+                time.sleep(60 * 5)  # 5 min
                 print(f"--- PING (Keep Alive) ---")
                 self.connection.ping("tmi.twitch.tv")
             except Exception as e:
-                print(f"Error: {e}")
                 self.checklogdir("Error")
-                f = open(
-                    f"Logs/Error/Error.txt",
-                    "a+",
-                    encoding="utf-8-sig",
-                )
+                f = open(f"Logs/Error/Error.txt", "a+", encoding="utf-8-sig",)
                 f.write(f"{e}\r\n")
                 f.close
-                time.sleep(60 * 10)
+                time.sleep(60)
                 os.execl(sys.executable, sys.executable, * sys.argv) # Restarts the program.
 
     def ajchannels_sync(self):
@@ -503,9 +498,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     isavip = False
 
         if str.lower(chatuser) == str.lower(self.username) and isamod: # Add channel to bot's channel mod list
-            if currentchannel in self.dbModChannels:
-                pass
-            else:
+            if currentchannel not in self.dbModChannels:
                 self.dbModChannels.append(currentchannel)
         
         if str.lower(chatuser) == str.lower(self.username) and not isamod: # Remove channel from bot's channel mod list
@@ -729,11 +722,11 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         for x in e.tags:
             if x["key"] == "mod":
                 if x["value"] == "1":
-                    self.dbModChannels.append(currentchannel)
-                if (
-                    str.lower(self.username) in currentchannel
-                ):  # Add your own channel to mod list
-                    self.dbModChannels.append(currentchannel)
+                    if currentchannel not in self.dbModChannels:
+                        self.dbModChannels.append(currentchannel)
+                if (str.lower(self.username) in currentchannel):  # Add your own channel to mod list
+                    if currentchannel not in self.dbModChannels:
+                        self.dbModChannels.append(currentchannel)
 
     def on_usernotice(self, c, e):
         # print(e)
