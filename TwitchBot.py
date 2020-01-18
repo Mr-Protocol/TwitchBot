@@ -831,12 +831,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
     def on_clearchat(self, c, e):
         # Shows when a user is banned
-        # type: clearchat, source: tmi.twitch.tv, target: #CHANNEL, arguments: ['USERBANNED'], tags: [{'key': 'ban-duration', 'value': '10'}, {'key': 'ban-reason', 'value': 'Accented language detected, English only please! [warning] – ohbot'}, {'key': 'room-id', 'value': 'XXXXXXXX'}, {'key': 'target-msg-id', 'value': 'XXXXXXXXXXXXXXXXXXX'}, {'key': 'target-user-id', 'value': 'XXXXX'}, {'key': 'tmi-sent-ts', 'value': 'XXXXXXXXXXXXX'}]
-        # type: clearchat, source: tmi.twitch.tv, target: #CHANNEL, arguments: ['USERBANNED'], tags: [{'key': 'ban-reason', 'value': None}, {'key': 'room-id', 'value': 'XXXXXXXXXX'}, {'key': 'target-user-id', 'value': 'XXXXX'}, {'key': 'tmi-sent-ts', 'value': 'XXXXXXXXXXXXX'}]
-        # Mod uses /clear chat command
-        # type: clearchat, source: tmi.twitch.tv, target: #CHANNEL, arguments: [], tags: [{'key': 'room-id', 'value': '########'}, {'key': 'tmi-sent-ts', 'value': '#############'}]
         # print(e)
-        
         if not e.arguments:
             print(f"Mod used /clear on {e.target}")
         else:
@@ -1024,7 +1019,6 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         # Shows hosting info
         # type: hosttarget, source: tmi.twitch.tv, target: #CHANNEL, arguments: ['channelbeinghosted -'], tags: []
         # print(e)
-
         if cfg.ChanFilters and e.target not in cfg.ChanTermFilters:
             pass
         else:
@@ -1048,10 +1042,6 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
     def on_pubnotice(self, c, e):
         # Shows hosting message
         # Shows other channel options: slow mode, emote mode, etc.
-        # type: pubnotice, source: tmi.twitch.tv, target: #CHANNEL, arguments: ['Now hosting User.'], tags: [{'key': 'msg-id', 'value': 'host_on'}]
-        # type: pubnotice, source: tmi.twitch.tv, target: #CHANNEL, arguments: ['Exited host mode.'], tags: [{'key': 'msg-id', 'value': 'host_off'}]
-        # type: pubnotice, source: tmi.twitch.tv, target: #CHANNEL, arguments: ['This room is now in subscribers-only mode.'], tags: [{'key': 'msg-id', 'value': 'subs_on'}]
-        # type: pubnotice, source: tmi.twitch.tv, target: #CHANNEL, arguments: ['USER has been timed out for 2 seconds.'], tags: [{'key': 'msg-id', 'value': 'timeout_success'}]
         # print(e)
 
         currentchannel = e.target
