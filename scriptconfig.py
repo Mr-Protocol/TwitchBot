@@ -17,7 +17,6 @@ APIClientID = ''
 FollowerAutoJoin = 0
 
 # Auto Join channels that are hosted - Worm like auto join. Enable pubnotice logging to log hosts.
-# This will probably cause the script to be DoS'd by Twitch with all the data it sends back.
 AutoJoinHosts = 0
 
 # Streamer name/channels here

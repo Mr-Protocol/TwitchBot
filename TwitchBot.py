@@ -738,7 +738,9 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             if x["key"] == "display-name":
                 chatuser = x["value"]
             if x["key"] == "system-msg":
-                sysmsg = re.sub("\r|\n", "", x["value"])  # Removes \r and \n because Twitch is stupid and puts a \n mid string.
+                sysmsg = re.sub(
+                    "\r|\n", "", x["value"]
+                )  # Removes \r and \n because Twitch is stupid and puts a \n mid string.
             if x["key"] == "msg-param-recipient-display-name":
                 subgiftrecipient = x["value"]
 
