@@ -48,6 +48,7 @@ class InputWatcher(threading.Thread):
 class TwitchBot(irc.bot.SingleServerIRCBot):
     def __init__(self, username, token, channels, input_handler):
         self.starttime = time.time()
+        self.chatheartbeattime = time.time()
         if input_handler:
             input_handler.register_callback(self.botcommands)
         # Create IRC bot connection
@@ -88,6 +89,9 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         keep_alive_thread = threading.Thread(target=self.keepmealive)
         keep_alive_thread.daemon = True
         keep_alive_thread.start()
+        chatheartbeat_thread = threading.Thread(target=self.chatheartbeat)
+        chatheartbeat_thread.daemon = True
+        chatheartbeat_thread.start()
         ReloadConfig_thread = threading.Thread(target=self.reloadconfigfile)
         ReloadConfig_thread.daemon = True
         ReloadConfig_thread.start()
@@ -101,10 +105,28 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             except Exception as e:
                 self.checklogdir("Error")
                 f = open(f"Logs/Error/Error.txt", "a+", encoding="utf-8-sig",)
+                f.write(f"{time.time()} - KEEPALIVE ERROR - \r\n")
                 f.write(f"{e}\r\n")
                 f.close()
                 time.sleep(60)
                 os.execl(sys.executable, sys.executable, * sys.argv) # Restarts the program.
+
+    # If it doesn't receive a chat message in 1 hour, restart program.
+    # Randomly chat will just stop being shown/logged. Not sure why.
+    def chatheartbeat(self):
+        while True:
+            try:
+                time.sleep(60 * 60) # 1 hour
+                print(f"Checking heartbeat...")
+                if (time.time() - self.chatheartbeattime) >= 3600:
+                    os.execl(sys.executable, sys.executable, * sys.argv)
+            except Exception as e:
+                self.checklogdir("Error")
+                f = open(f"Logs/Error/Error.txt", "a+", encoding="utf-8-sig",)
+                f.write(f"{time.time()} - CHATHEARTBEAT ERROR - \r\n")
+                f.write(f"{e}\r\n")
+                f.close()
+                print()
 
     def ajchannels_sync(self):
         if cfg.APIClientID:
@@ -471,6 +493,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 f.close()
 
     def chattextparsing(self, edata):
+        self.chatheartbeattime = time.time() # Update time for chat heartbeat
         e = edata
         themsg = e.arguments[0]
         currentchannel = e.target
@@ -831,6 +854,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
     def on_clearchat(self, c, e):
         # Shows when a user is banned
+        # Mod uses /clear chat command
         # print(e)
         if not e.arguments:
             print(f"Mod used /clear on {e.target}")
