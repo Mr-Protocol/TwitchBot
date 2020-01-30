@@ -119,6 +119,10 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 time.sleep(60 * 60) # 1 hour
                 print(f"Checking heartbeat...")
                 if (time.time() - self.chatheartbeattime) >= 3600:
+                    self.checklogdir("Error")
+                    f = open(f"Logs/Error/Error.txt", "a+", encoding="utf-8-sig",)
+                    f.write(f"{time.time()} - Chat Heartbeat Fail...\r\n")
+                    f.close()
                     os.execl(sys.executable, sys.executable, * sys.argv)
             except Exception as e:
                 self.checklogdir("Error")
