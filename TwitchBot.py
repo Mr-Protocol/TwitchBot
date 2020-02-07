@@ -95,6 +95,10 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         ReloadConfig_thread = threading.Thread(target=self.reloadconfigfile)
         ReloadConfig_thread.daemon = True
         ReloadConfig_thread.start()
+        self.checklogdir("StartLog")
+        f = open(f"Logs/StartLog/StartLog.txt", "a+", encoding="utf-8-sig",)
+        f.write(f"{self.timestamp()} - Started - \r\n")
+        f.close()
 
     def keepmealive(self):
         while True:
