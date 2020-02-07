@@ -64,8 +64,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             auto_join_follow_thread = threading.Thread(target=self.ajchannels_sync)
             auto_join_follow_thread.daemon = True
             auto_join_follow_thread.start()
-        system(f"title TwitchBot @ {self.timestamp(cfg.LogTimeZone)} - {username}")
-        print(f"{self.timestamp(cfg.LogTimeZone)}\r\nConnecting to {server} on port {port} as {username}...\r\n")
+        system(f"title TwitchBot @ {self.timestamp()} - {username}")
+        print(f"{self.timestamp()}\r\nConnecting to {server} on port {port} as {username}...\r\n")
         factory = irc.connection.Factory(wrapper=ssl.wrap_socket)
         irc.bot.SingleServerIRCBot.__init__(self, [(server, port, "oauth:" + token)], username, username,connect_factory = factory)
         self.sub_epoch = 0
@@ -105,7 +105,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             except Exception as e:
                 self.checklogdir("Error")
                 f = open(f"Logs/Error/Error.txt", "a+", encoding="utf-8-sig",)
-                f.write(f"{time.time()} - KEEPALIVE ERROR - \r\n")
+                f.write(f"{self.timestamp()} - KEEPALIVE ERROR - \r\n")
                 f.write(f"{e}\r\n")
                 f.close()
                 time.sleep(60)
@@ -121,13 +121,13 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 if (time.time() - self.chatheartbeattime) >= 3600:
                     self.checklogdir("Error")
                     f = open(f"Logs/Error/Error.txt", "a+", encoding="utf-8-sig",)
-                    f.write(f"{time.time()} - Chat Heartbeat Fail...\r\n")
+                    f.write(f"{self.timestamp()} - Chat Heartbeat Fail...\r\n")
                     f.close()
                     os.execl(sys.executable, sys.executable, * sys.argv)
             except Exception as e:
                 self.checklogdir("Error")
                 f = open(f"Logs/Error/Error.txt", "a+", encoding="utf-8-sig",)
-                f.write(f"{time.time()} - CHATHEARTBEAT ERROR - \r\n")
+                f.write(f"{self.timestamp()} - CHATHEARTBEAT ERROR - \r\n")
                 f.write(f"{e}\r\n")
                 f.close()
                 print()
@@ -445,7 +445,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             except:
                 print(f"Something went wrong...\r\n")
 
-    def timestamp(self, tzone):
+    def timestamp(self, tzone = cfg.LogTimeZone):
         if tzone:
             tstamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         else:
@@ -548,7 +548,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             pass
         else:
             print(
-                f"{self.timestamp(cfg.LogTimeZone)} {currentchannel}{chatheader}{chatuser}: {themsg}"
+                f"{self.timestamp()} {currentchannel}{chatheader}{chatuser}: {themsg}"
             )
 
         # Chat Highlights Log - Will log messages that contain username
@@ -560,14 +560,14 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 encoding="utf-8-sig",
             )
             f.write(
-                f"{self.timestamp(cfg.LogTimeZone)} {currentchannel}{chatheader}{chatuser}: {themsg}\r\n"
+                f"{self.timestamp()} {currentchannel}{chatheader}{chatuser}: {themsg}\r\n"
             )
             f.close()
 
         # Chat Logging To File
         self.chatlogmessage(
             currentchannel,
-            self.timestamp(cfg.LogTimeZone)
+            self.timestamp()
             + " "
             + currentchannel
             + chatheader
@@ -584,7 +584,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     f"Logs/ASCII/{logchan}_ASCII.txt", "a+", encoding="utf-8-sig"
                 )
                 f.write(
-                    f"{self.timestamp(cfg.LogTimeZone)} {currentchannel}{chatheader}{chatuser}: {themsg}\r\n"
+                    f"{self.timestamp()} {currentchannel}{chatheader}{chatuser}: {themsg}\r\n"
                 )
                 f.close()
 
@@ -622,7 +622,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                         if time.time() - self.epochCopyPasta >= 90:
                             self.epochCopyPasta = time.time()
                             self.sendmsg(currentchannel, themsg)
-                            print(f"{self.timestamp(cfg.LogTimeZone)} {currentchannel} {self.username}: {themsg}\r\n")
+                            print(f"{self.timestamp()} {currentchannel} {self.username}: {themsg}\r\n")
 
         # Tracking Chatters Info
         if cfg.EnableChatTracking:
@@ -652,7 +652,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                                 "a+",
                                 encoding="utf-8-sig",
                             )
-                            f.write(f"{self.timestamp(cfg.LogTimeZone)} TRIGGER EVENT: {currentchannel}{chatheader}{chatuser}: {themsg}\r\n")
+                            f.write(f"{self.timestamp()} TRIGGER EVENT: {currentchannel}{chatheader}{chatuser}: {themsg}\r\n")
                             f.close()
                             if currentchannel in self.dbModChannels or (time.time() - self.chat_epoch >= 30):  # A little anti-spam for triggered words
                                 if currentchannel not in self.dbModChannels:
@@ -660,13 +660,13 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                                 if str.lower(self.username) == str.lower(chatuser):
                                     time.sleep(1.5)
                                 self.sendmsg(currentchannel, cresponse)
-                                print(f"{self.timestamp(cfg.LogTimeZone)} {currentchannel} - {self.username}: {cresponse}")
+                                print(f"{self.timestamp()} {currentchannel} - {self.username}: {cresponse}")
                                 f = open(
                                     f"Logs/ChatTriggers/{logchan}_ChatTriggerLog.txt",
                                     "a+",
                                     encoding="utf-8-sig",
                                 )
-                                f.write(f"{self.timestamp(cfg.LogTimeZone)} SENT: {chatheader}{self.username}: {cresponse}\r\n")
+                                f.write(f"{self.timestamp()} SENT: {chatheader}{self.username}: {cresponse}\r\n")
                                 f.close()
 
         # Mod Triggers - uses the lcase themsg and splits words via spaces
@@ -694,32 +694,32 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                                         if cfg.ModTriggers[ChanAndGlobal][x][3]:
                                             txtreponse = f"{txtreponse} {chatuser}"
                                         self.sendmsg(currentchannel, f"{txtreponse}")
-                                        print(f"{self.timestamp(cfg.LogTimeZone)} {currentchannel} - !MOD!-{self.username}: {txtreponse}")
+                                        print(f"{self.timestamp()} {currentchannel} - !MOD!-{self.username}: {txtreponse}")
                                     try:
                                         splitresponse = mresponse.split(" ")
                                         modoptions = ""
                                         for x in splitresponse[1:]:
                                             modoptions = f"{modoptions} {x}"
                                         self.sendmsg(currentchannel, f"{splitresponse[0]} {chatuser}{modoptions}",)
-                                        print(f"{self.timestamp(cfg.LogTimeZone)} {currentchannel} - !MOD!-{self.username}: {splitresponse[0]} {chatuser}{modoptions}")
+                                        print(f"{self.timestamp()} {currentchannel} - !MOD!-{self.username}: {splitresponse[0]} {chatuser}{modoptions}")
                                         f = open(
                                             f"Logs/ModTriggers/{logchan}_ModTriggerLog.txt",
                                             "a+",
                                             encoding="utf-8-sig",
                                         )
-                                        f.write(f"{self.timestamp(cfg.LogTimeZone)} TRIGGER EVENT: {chatheader}{chatuser}: {themsg}\r\n")
-                                        f.write(f"{self.timestamp(cfg.LogTimeZone)} SENT: !MOD!-{self.username}: {splitresponse[0]} {chatuser}{modoptions}\r\n")
+                                        f.write(f"{self.timestamp()} TRIGGER EVENT: {chatheader}{chatuser}: {themsg}\r\n")
+                                        f.write(f"{self.timestamp()} SENT: !MOD!-{self.username}: {splitresponse[0]} {chatuser}{modoptions}\r\n")
                                         f.close()
                                     except:
                                         self.sendmsg(currentchannel, f"{mresponse} {chatuser}")
-                                        print(f"{self.timestamp(cfg.LogTimeZone)} {currentchannel} - !MOD!-{self.username}: {mresponse} {chatuser}")
+                                        print(f"{self.timestamp()} {currentchannel} - !MOD!-{self.username}: {mresponse} {chatuser}")
                                         f = open(
                                             f"Logs/ModTriggers/{logchan}_ModTriggerLog.txt",
                                             "a+",
                                             encoding="utf-8-sig",
                                         )
-                                        f.write(f"{self.timestamp(cfg.LogTimeZone)} TRIGGER EVENT: {chatheader}{chatuser}: {themsg}\r\n")
-                                        f.write(f"{self.timestamp(cfg.LogTimeZone)} SENT: !MOD!-{self.username}: {mresponse} {chatuser}\r\n")
+                                        f.write(f"{self.timestamp()} TRIGGER EVENT: {chatheader}{chatuser}: {themsg}\r\n")
+                                        f.write(f"{self.timestamp()} SENT: !MOD!-{self.username}: {mresponse} {chatuser}\r\n")
                                         f.close()
 
     def on_welcome(self, c, e):
@@ -775,7 +775,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         if cfg.ChanFilters and currentchannel not in cfg.ChanTermFilters:
             pass
         else:
-            print(f"{self.timestamp(cfg.LogTimeZone)} {currentchannel} - {sysmsg}")
+            print(f"{self.timestamp()} {currentchannel} - {sysmsg}")
 
         # Log system mesages
         if cfg.LogSystemMessages:
@@ -790,9 +790,9 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     encoding="utf-8-sig",
                 )
                 if cfg.RawSystemMsgs:  # Log RAW
-                    f.write(f"{self.timestamp(cfg.LogTimeZone)} {str(e)}\r\n")
+                    f.write(f"{self.timestamp()} {str(e)}\r\n")
                 else:  # Log Simplified
-                    f.write(f"{self.timestamp(cfg.LogTimeZone)} {sysmsg}\r\n")
+                    f.write(f"{self.timestamp()} {sysmsg}\r\n")
                 f.close()
 
         # ------------------------- Sub actions -------------------------
@@ -850,9 +850,9 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 f = open(
                     f"Logs/{logchan}_GiftedSub.txt", "a+", encoding="utf-8-sig"
                 )
-                f.write(f"{self.timestamp(cfg.LogTimeZone)} - {sysmsg}\r\n")
+                f.write(f"{self.timestamp()} - {sysmsg}\r\n")
                 f.write(
-                    f"{self.timestamp(cfg.LogTimeZone)} - {self.username}: {cfg.GiftThanksMsg} {chatuser}\r\n"
+                    f"{self.timestamp()} - {self.username}: {cfg.GiftThanksMsg} {chatuser}\r\n"
                 )
                 f.close()
 
@@ -878,14 +878,14 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
                 if banduration:
                     if banreason:
-                        banmsg = f"{self.timestamp(cfg.LogTimeZone)} {currentchannel} - {user} timeout for {banduration} seconds. {banreason}"
+                        banmsg = f"{self.timestamp()} {currentchannel} - {user} timeout for {banduration} seconds. {banreason}"
                     else:
-                        banmsg = f"{self.timestamp(cfg.LogTimeZone)} {currentchannel} - {user} timeout for {banduration} seconds."
+                        banmsg = f"{self.timestamp()} {currentchannel} - {user} timeout for {banduration} seconds."
                 else:
                     if banreason:
-                        banmsg = f"{self.timestamp(cfg.LogTimeZone)} {currentchannel} - {user} is banned. {banreason}"
+                        banmsg = f"{self.timestamp()} {currentchannel} - {user} is banned. {banreason}"
                     else:
-                        banmsg = f"{self.timestamp(cfg.LogTimeZone)} {currentchannel} - {user} is banned."
+                        banmsg = f"{self.timestamp()} {currentchannel} - {user} is banned."
 
                 if cfg.ChanFilters and e.target not in cfg.ChanTermFilters:
                     pass
@@ -934,11 +934,11 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 modstatus = e.arguments
                 if modstatus[0] == "+o":
                     print(
-                        f"MODE-{self.timestamp(cfg.LogTimeZone)} {currentchannel} +o {modstatus[1]} (mod)."
+                        f"MODE-{self.timestamp()} {currentchannel} +o {modstatus[1]} (mod)."
                     )
                     self.chatlogmessage(
                         currentchannel,
-                        self.timestamp(cfg.LogTimeZone)
+                        self.timestamp()
                         + " "
                         + currentchannel
                         + ": "
@@ -946,11 +946,11 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     )
                 elif modstatus[0] == "-o":
                     print(
-                        f"MODE-{self.timestamp(cfg.LogTimeZone)} {currentchannel} -o {modstatus[1]} (demod)."
+                        f"MODE-{self.timestamp()} {currentchannel} -o {modstatus[1]} (demod)."
                     )
                     self.chatlogmessage(
                         currentchannel,
-                        self.timestamp(cfg.LogTimeZone)
+                        self.timestamp()
                         + " "
                         + currentchannel
                         + ": "
@@ -958,11 +958,11 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     )
                 else:
                     print(
-                        f"MODE-{self.timestamp(cfg.LogTimeZone)} {currentchannel} {modstatus}"
+                        f"MODE-{self.timestamp()} {currentchannel} {modstatus}"
                     )
                     self.chatlogmessage(
                         currentchannel,
-                        self.timestamp(cfg.LogTimeZone)
+                        self.timestamp()
                         + " "
                         + currentchannel
                         + ": "
@@ -979,7 +979,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         if cfg.ChatLogJoinPart:
             self.chatlogmessage(
                 currentchannel,
-                self.timestamp(cfg.LogTimeZone)
+                self.timestamp()
                 + " "
                 + currentchannel
                 + " - "
@@ -994,13 +994,13 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 uname for uname in cfg.AnnounceUserJoinList
             ):
                 print(
-                    f"JOIN-{self.timestamp(cfg.LogTimeZone)} {currentchannel} - {chatuser} has joined."
+                    f"JOIN-{self.timestamp()} {currentchannel} - {chatuser} has joined."
                 )
             elif cfg.AnnounceUserJoins and "GLOBAL" in (
                 uname for uname in cfg.AnnounceUserJoinList
             ):
                 print(
-                    f"JOIN-{self.timestamp(cfg.LogTimeZone)} {currentchannel} - {chatuser} has joined."
+                    f"JOIN-{self.timestamp()} {currentchannel} - {chatuser} has joined."
                 )
 
     def on_part(self, c, e):
@@ -1012,7 +1012,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         if cfg.ChatLogJoinPart:
             self.chatlogmessage(
                 currentchannel,
-                self.timestamp(cfg.LogTimeZone)
+                self.timestamp()
                 + " "
                 + currentchannel
                 + " - "
@@ -1027,13 +1027,13 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 uname for uname in cfg.AnnounceUserPartList
             ):
                 print(
-                    f"PART-{self.timestamp(cfg.LogTimeZone)} {currentchannel} - {chatuser} has left."
+                    f"PART-{self.timestamp()} {currentchannel} - {chatuser} has left."
                 )
             elif cfg.AnnounceUserParts and "GLOBAL" in (
                 uname for uname in cfg.AnnounceUserPartList
             ):
                 print(
-                    f"PART-{self.timestamp(cfg.LogTimeZone)} {currentchannel} - {chatuser} has left."
+                    f"PART-{self.timestamp()} {currentchannel} - {chatuser} has left."
                 )
 
     def on_action(self, c, e):
@@ -1053,7 +1053,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             currentchannel = e.target
             targetchannel = e.arguments[0].split(" ")[0]
             print(
-                f"HOSTTARGET-{self.timestamp(cfg.LogTimeZone)} {currentchannel} is hosting {targetchannel}."
+                f"HOSTTARGET-{self.timestamp()} {currentchannel} is hosting {targetchannel}."
             )
 
     def on_privmsg(self, c, e):
@@ -1061,7 +1061,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         print(e)
 
         hostmsg = e.arguments
-        print(f"{self.timestamp(cfg.LogTimeZone)} {hostmsg}")
+        print(f"{self.timestamp()} {hostmsg}")
 
     def on_privnotice(self, c, e):
         # type: privnotice, source: tmi.twitch.tv, target: l, arguments: ['This channel has been suspended.'], tags: [{'key': 'msg-id', 'value': 'msg_channel_suspended'}]
@@ -1080,7 +1080,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             pass
         else:
             print(
-                f"PUBNOTICE-{self.timestamp(cfg.LogTimeZone)} {currentchannel} - {noticemsg}"
+                f"PUBNOTICE-{self.timestamp()} {currentchannel} - {noticemsg}"
             )
 
         if cfg.LogPubnotice:
@@ -1091,7 +1091,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 encoding="utf-8-sig",
             )
             f.write(
-                f"{self.timestamp(cfg.LogTimeZone)} {currentchannel} - {noticemsg}\r\n"
+                f"{self.timestamp()} {currentchannel} - {noticemsg}\r\n"
             )
             f.close()
         
@@ -1110,7 +1110,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                         "a+",
                         encoding="utf-8-sig",
                     )
-                    f.write(f"{self.timestamp(cfg.LogTimeZone)} {LAJHChan} - Auto Joining Hosted Channel via {currentchannel}")
+                    f.write(f"{self.timestamp()} {LAJHChan} - Auto Joining Hosted Channel via {currentchannel}")
                     f.close
                 if cfg.LogAutoJoinHostChannels:
                     self.checklogdir("Auto Join Hosts")
@@ -1134,7 +1134,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             if x["key"] == "display-name":
                 chatuser = x["value"]
         print(
-            f"WHISPER-{self.timestamp(cfg.LogTimeZone)} Direct Message - {chatuser}: {whisper}"
+            f"WHISPER-{self.timestamp()} Direct Message - {chatuser}: {whisper}"
         )
 
 
