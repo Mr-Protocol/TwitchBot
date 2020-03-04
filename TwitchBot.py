@@ -99,6 +99,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         f = open(f"Logs/StartLog/StartLog.txt", "a+", encoding="utf-8-sig",)
         f.write(f"{self.timestamp()} - Started - \r\n")
         f.close()
+        print(f"- STARTED - {self.timestamp()}\r\n")
 
     def keepmealive(self):
         while True:
@@ -123,12 +124,14 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 time.sleep(60 * 60) # 1 hour
                 print(f"Checking heartbeat...")
                 if (time.time() - self.chatheartbeattime) >= 3600:
+                    print(f"{self.timestamp()} - Chat Heartbeat Fail...")
                     self.checklogdir("Error")
                     f = open(f"Logs/Error/Error.txt", "a+", encoding="utf-8-sig",)
                     f.write(f"{self.timestamp()} - Chat Heartbeat Fail...\r\n")
                     f.close()
                     os.execl(sys.executable, sys.executable, * sys.argv)
             except Exception as e:
+                print(f"{self.timestamp()} - Chat Heartbeat Fail...")
                 self.checklogdir("Error")
                 f = open(f"Logs/Error/Error.txt", "a+", encoding="utf-8-sig",)
                 f.write(f"{self.timestamp()} - CHATHEARTBEAT ERROR - \r\n")
@@ -456,6 +459,26 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             tstamp = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S") + "-UTC"
         return f"{tstamp}"
 
+    # Checks config file for basic Chat and Mod trigger errors.
+    def checktriggers(self,triggerlist):
+        try:
+            if triggerlist == cfg.ChatTriggers:
+                c = 3
+                listname = "Chat Triggers"
+            if triggerlist == cfg.ModTriggers:
+                c = 4
+                listname = "Mod Triggers"
+            for x in triggerlist:
+                for y in range(len(triggerlist[x])):
+                    if len(triggerlist[x][y]) == c:
+                        pass
+                    else:
+                        print(f'Error in config file - {listname}.\r\n {x} - {triggerlist[x][y]}')
+                        exit()
+        except:
+            print(f'Something is broken in config file - {listname}.\r\n')
+            exit()
+
     # Check for valid channels starting with #, and doesn't end with a comma
     def checkconfig(self):
         for chan in self.configchannels:
@@ -478,6 +501,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             if cfg.APIClientID == "":
                 print(f"Error: FollowerAutoJoin enabled without APIClientID")
                 exit()
+        self.checktriggers(cfg.ChatTriggers)
+        self.checktriggers(cfg.ModTriggers)
 
     def checklogdir(self, logpath):
         if not os.path.exists(f"Logs/{logpath}/"):
@@ -897,6 +922,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     print(f"CLEARCHAT-{banmsg}")
 
                 if cfg.LogClearchat:
+                    self.chatlogmessage(currentchannel,banmsg)
                     self.checklogdir("clearchat")
                     f = open(
                         f"Logs/clearchat/{logchan}_clearchat.txt",
