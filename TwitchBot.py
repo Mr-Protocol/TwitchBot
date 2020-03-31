@@ -20,7 +20,7 @@ import os
 from os import system
 import errno
 import threading, _thread
-import scriptconfig as cfg
+import myscriptconfig as cfg
 import importlib
 import ssl
 
@@ -103,7 +103,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         print(f"- STARTED - {self.timestamp()}\r\n")
         self.newapiheader = {
                     "Authorization": "Bearer " + self.token,
-                    "Client-ID:": self.ClientID
+                    "Client-ID": self.ClientID
                     }
 
     def keepmealive(self):
@@ -177,7 +177,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         try:
             if len(str(self.ClientID)) > 2:
                 url = "https://api.twitch.tv/helix/users?login=" + channel
-                r = requests.get(url, headers=str(self.newapiheader)).json()
+                r = requests.get(url, headers=self.newapiheader).json()
                 if not r["data"]:
                     print(f"Could not get data for {channel}. User is probably banned.")
                 else:
@@ -203,7 +203,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
     def apinewgetuserinfo(self, username):
         if len(self.ClientID) > 2:
             url = "https://api.twitch.tv/helix/users?login=" + username
-            r = requests.get(url, headers=str(self.newapiheader)).json()
+            r = requests.get(url, headers=self.newapiheader).json()
             return r
         else:
             print(f"Get User Info - apinewgetuser failed.")
@@ -213,7 +213,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             followinglist = []
             url = (
                 "https://api.twitch.tv/helix/users/follows?from_id="
-                + self.apigetchannelid(str.lower(username))
+                + str(self.apigetchannelid(str.lower(username)))
                 + "&first=100"
             )
             r = requests.get(url, headers=self.newapiheader).json()
