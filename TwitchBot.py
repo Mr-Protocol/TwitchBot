@@ -53,6 +53,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             input_handler.register_callback(self.botcommands)
         # Create IRC bot connection
         self.token = token
+        self.ClientID = cfg.APIClientID
         self.username = username
         self.configchannels = channels
         server = "irc.chat.twitch.tv"
@@ -100,6 +101,10 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         f.write(f"{self.timestamp()} - Started - \r\n")
         f.close()
         print(f"- STARTED - {self.timestamp()}\r\n")
+        self.newapiheader = {
+                    "Authorization": "Bearer " + self.token,
+                    "Client-ID:": self.ClientID
+                    }
 
     def keepmealive(self):
         while True:
@@ -170,10 +175,9 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
     def apigetchannelid(self, channel):
         try:
-            if cfg.APIClientID:
+            if len(self.ClientID) > 2:
                 url = "https://api.twitch.tv/helix/users?login=" + channel
-                headers = {"Authorization": "Bearer " + self.token}
-                r = requests.get(url, headers=headers).json()
+                r = requests.get(url, headers=self.newapiheader).json()
                 if not r["data"]:
                     print(f"Could not get data for {channel}. User is probably banned.")
                 else:
@@ -185,33 +189,40 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             print(f"Error in apigetchannelid.")
 
     def apigetuserinfo(self, username):
-        if cfg.APIClientID:
+        if len(self.ClientID) > 2:
             url = "https://api.twitch.tv/kraken/users?login=" + username
             headers = {
-                "Client-ID": cfg.APIClientID,
+                "Client-ID": self.ClientID,
                 "Accept": "application/vnd.twitchtv.v5+json",
             }
             r = requests.get(url, headers=headers).json()
             return r
         else:
             print(f"Get User Info - No apiclientid in config.")
+    
+    def apinewgetuserinfo(self, username):
+        if len(self.ClientID) > 2:
+            url = "https://api.twitch.tv/helix/users?login=" + username
+            r = requests.get(url, headers=self.newapiheader).json()
+            return r
+        else:
+            print(f"Get User Info - apinewgetuser failed.")
 
     def apigetfollowerslist(self, username, ignorejoinlist = None):
-        if cfg.APIClientID:
+        if len(self.ClientID) > 2:
             followinglist = []
             url = (
                 "https://api.twitch.tv/helix/users/follows?from_id="
                 + self.apigetchannelid(str.lower(username))
                 + "&first=100"
             )
-            headers = {"Client-ID": cfg.APIClientID}
-            r = requests.get(url, headers=headers).json()
+            r = requests.get(url, headers=self.newapiheader).json()
             while len(r["data"]) > 0:
                 cursorpage = r["pagination"]["cursor"]
                 for x in range(len(r["data"])):
                     followinglist.append("#" + str.lower(r["data"][x]["to_name"]))
                 url += "&after=" + cursorpage
-                r = requests.get(url, headers=headers).json()
+                r = requests.get(url, headers=self.newapiheader).json()
             if ignorejoinlist == None:
                 if cfg.FollowerAutoJoin and (time.time() - self.starttime < 5):
                     self.AJChannels = followinglist.copy()
@@ -278,7 +289,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             try:
                 if cmd in {"!commands", "!help"}:
                     print(
-                        f"!addmod, !addtrig, !banlist, !bot, !chanfilteron, !chanfilteroff, !chanid, !chantrig, !commands, !getuserfollows, !help, !modlist, !reloadconfig, !repeatercount, !repeateroff, !repeateron, !showchatters, !uchatters, !ucount\r\n"
+                        f"!addmod, !addtrig, !banlist, !bot, !chanfilteron, !chanfilteroff, !chanid, !chantrig, !commands, !getuserfollows, !getuserinfo, !help, !modlist, !reloadconfig, !repeatercount, !repeateroff, !repeateron, !showchatters, !uchatters, !ucount\r\n"
                     )
 
                 elif "!uchatters" in cmd:
@@ -447,6 +458,18 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                             f.write(x + '\r\n')
                         f.close()
                         print(f"Done creating follow list. Location: Logs/FollowList/{splitcmd[1]}.txt\r\n")
+
+                elif "!getuserinfo" in cmd:
+                    splitcmd = cmd.split(" ")
+                    if len(splitcmd) == 1:
+                        print (
+                            f"Gets both old and new user info via API."
+                        )
+                        print(f"Usage: !getuserinfo mr_protocol\r\n")
+                    else:
+                        old = self.apigetuserinfo(splitcmd[1])
+                        new = self.apinewgetuserinfo(splitcmd[1])
+                        print(f"Old API Info:\r\n{old}\r\nNew API Info:\r\n{new}")
                 else:
                     print(f"No Command...\r\n")
             except:
