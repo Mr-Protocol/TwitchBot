@@ -213,7 +213,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             followinglist = []
             url = (
                 "https://api.twitch.tv/helix/users/follows?from_id="
-                + str(self.apigetchannelid(str.lower(username)))
+                + self.apigetchannelid(str.lower(username))
                 + "&first=100"
             )
             r = requests.get(url, headers=self.newapiheader).json()
