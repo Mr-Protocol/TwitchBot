@@ -177,7 +177,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         try:
             if len(str(self.ClientID)) > 2:
                 url = "https://api.twitch.tv/helix/users?login=" + channel
-                r = requests.get(url, headers=self.newapiheader).json()
+                r = requests.get(url, headers=str(self.newapiheader)).json()
                 if not r["data"]:
                     print(f"Could not get data for {channel}. User is probably banned.")
                 else:
@@ -203,7 +203,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
     def apinewgetuserinfo(self, username):
         if len(self.ClientID) > 2:
             url = "https://api.twitch.tv/helix/users?login=" + username
-            r = requests.get(url, headers=self.newapiheader).json()
+            r = requests.get(url, headers=str(self.newapiheader)).json()
             return r
         else:
             print(f"Get User Info - apinewgetuser failed.")
