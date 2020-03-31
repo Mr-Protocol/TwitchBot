@@ -175,7 +175,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
     def apigetchannelid(self, channel):
         try:
-            if len(self.ClientID) > 2:
+            if len(str(self.ClientID)) > 2:
                 url = "https://api.twitch.tv/helix/users?login=" + channel
                 r = requests.get(url, headers=self.newapiheader).json()
                 if not r["data"]:
@@ -189,7 +189,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             print(f"Error in apigetchannelid.")
 
     def apigetuserinfo(self, username):
-        if len(self.ClientID) > 2:
+        if len(str(self.ClientID)) > 2:
             url = "https://api.twitch.tv/kraken/users?login=" + username
             headers = {
                 "Client-ID": self.ClientID,
@@ -209,7 +209,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             print(f"Get User Info - apinewgetuser failed.")
 
     def apigetfollowerslist(self, username, ignorejoinlist = None):
-        if len(self.ClientID) > 2:
+        if len(str(self.ClientID)) > 2:
             followinglist = []
             url = (
                 "https://api.twitch.tv/helix/users/follows?from_id="
