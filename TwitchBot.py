@@ -625,7 +625,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             + chatheader
             + chatuser
             + ": "
-            + themsg,
+            + themsg
         )
 
         # ASCII ART - Log potential messages for future mod triggers
@@ -894,11 +894,13 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             and currentchannel in cfg.AnnounceRaidChannels
         ):
             c.privmsg(currentchannel, f"{cfg.RaidMsg} {sysmsg} {cfg.RaidMsg}")
+            self.chatlogmessage(currentchannel, self.timestamp() + " - " + self.username + ": " + cfg.RaidMsg + " " + sysmsg + " " + cfg.RaidMsg)
 
         # What happens when the self.username is gifted a sub
         if cfg.EnableThankYou:
             if sysmsgid == "subgift" and str.lower(subgiftrecipient) == str.lower(self.username):
                 c.privmsg(currentchannel, f"{cfg.GiftThanksMsg} {chatuser}")
+                self.chatlogmessage(currentchannel, self.timestamp() + " - " + self.username + ": " + cfg.GiftThanksMsg + " " + chatuser)
                 f = open(
                     f"Logs/{logchan}_GiftedSub.txt", "a+", encoding="utf-8-sig"
                 )
@@ -943,6 +945,16 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     pass
                 else:
                     print(f"CLEARCHAT-{banmsg}")
+                
+                if user == self.username:
+                    self.checklogdir("BOTBANNED")
+                    f = open(
+                        f"Logs/BOTBANNED/{logchan}_clearchat.txt",
+                        "a+",
+                        encoding="utf-8-sig",
+                    )
+                    f.write(f"{banmsg}\r\n")
+                    f.close()
 
                 if cfg.LogClearchat:
                     self.chatlogmessage(currentchannel,banmsg)
