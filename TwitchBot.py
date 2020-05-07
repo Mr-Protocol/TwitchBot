@@ -278,6 +278,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
     
     def sendmsg(self, channel, message):
         self.connection.privmsg(channel, message)
+        self.chatlogmessage(channel, f"{self.timestamp()} - {self.username}: {message}")
 
     def botcommands(self, cmd):
         cmd = str.lower(cmd)
@@ -856,7 +857,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                             tmpNewSubMsg = cfg.AnnounceNewSubsChanMsg[currentchannel][x][0]
                             if cfg.AnnounceNewSubsChanMsg[currentchannel][x][1]:
                                 tmpNewSubMsg = f"{tmpNewSubMsg} {chatuser}"
-                            c.privmsg(currentchannel, tmpNewSubMsg)
+                            self.sendmsg(currentchannel, tmpNewSubMsg)
                             self.sub_epoch = time.time()
                             if currentchannel not in self.dbModChannels:
                                 time.sleep(1.5)
@@ -870,7 +871,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                             tmpReSubMsg = cfg.AnnounceReSubsChanMsg[currentchannel][x][0]
                             if cfg.AnnounceReSubsChanMsg[currentchannel][x][1]:
                                 tmpReSubMsg = f"{tmpReSubMsg} {chatuser}"
-                            c.privmsg(currentchannel, tmpReSubMsg)
+                            self.sendmsg(currentchannel, tmpReSubMsg)
                             self.sub_epoch = time.time()
                             if currentchannel not in self.dbModChannels:
                                 time.sleep(1.5)
@@ -883,7 +884,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                             tmpGiftSubMsg = cfg.AnnounceGiftSubsChanMsg[currentchannel][x][0]
                             if cfg.AnnounceGiftSubsChanMsg[currentchannel][x][1]:
                                 tmpGiftSubMsg = f"{tmpGiftSubMsg} {chatuser}"
-                            c.privmsg(currentchannel, tmpGiftSubMsg)
+                            self.sendmsg(currentchannel, tmpGiftSubMsg)
                             self.sub_epoch = time.time()
                             if currentchannel not in self.dbModChannels:
                                 time.sleep(1.5)
@@ -893,14 +894,13 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             and cfg.AnnounceRaids
             and currentchannel in cfg.AnnounceRaidChannels
         ):
-            c.privmsg(currentchannel, f"{cfg.RaidMsg} {sysmsg} {cfg.RaidMsg}")
-            self.chatlogmessage(currentchannel, self.timestamp() + " - " + self.username + ": " + cfg.RaidMsg + " " + sysmsg + " " + cfg.RaidMsg)
+            self.sendmsg(currentchannel, f"{cfg.RaidMsg} {sysmsg} {cfg.RaidMsg}")
+
 
         # What happens when the self.username is gifted a sub
         if cfg.EnableThankYou:
             if sysmsgid == "subgift" and str.lower(subgiftrecipient) == str.lower(self.username):
-                c.privmsg(currentchannel, f"{cfg.GiftThanksMsg} {chatuser}")
-                self.chatlogmessage(currentchannel, self.timestamp() + " - " + self.username + ": " + cfg.GiftThanksMsg + " " + chatuser)
+                self.sendmsg(currentchannel, f"{cfg.GiftThanksMsg} {chatuser}")
                 f = open(
                     f"Logs/{logchan}_GiftedSub.txt", "a+", encoding="utf-8-sig"
                 )
@@ -1167,7 +1167,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 time.sleep(2)
                 self.joinchannel(LAJHChan)
                 if cfg.AnnounceAutoJoinHosts:
-                    c.privmsg(LAJHChan, f"Hello, {currentchannel[1:]} sent me via hosting.")
+                    self.sendmsg(LAJHChan, f"Hello, {currentchannel[1:]} sent me via hosting.")
                 if cfg.LogAutoJoinHosts:
                     self.checklogdir("Auto Join Hosts")
                     f = open(
