@@ -23,6 +23,8 @@ import threading, _thread
 import scriptconfig as cfg
 import importlib
 import ssl
+import json
+import TwitchOAuth as TOA
 
 # --------------------------------------------------------------------------
 # ---------------------------------- MAGIC ---------------------------------
@@ -46,14 +48,23 @@ class InputWatcher(threading.Thread):
 
 
 class TwitchBot(irc.bot.SingleServerIRCBot):
-    def __init__(self, username, token, channels, input_handler):
+    def __init__(self, username, channels, input_handler):
         self.starttime = time.time()
         self.chatheartbeattime = time.time()
         if input_handler:
             input_handler.register_callback(self.botcommands)
         # Create IRC bot connection
-        self.token = token
-        self.ClientID = cfg.APIClientID
+        try:
+            with open('JSON/token.json','r') as tokenf:
+                tokendata = json.load(tokenf)
+                tokenf.close()
+            with open('JSON/clientdata.json','r') as clientf:
+                clientdata = json.load(clientf)
+                clientf.close()
+        except Exception as e:
+            print(e)
+        self.token = tokendata['access_token']
+        self.ClientID = clientdata['client_id']
         self.username = username
         self.configchannels = channels
         server = "irc.chat.twitch.tv"
@@ -68,7 +79,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         system(f"title TwitchBot @ {self.timestamp()} - {username}")
         print(f"{self.timestamp()}\r\nConnecting to {server} on port {port} as {username}...\r\n")
         factory = irc.connection.Factory(wrapper=ssl.wrap_socket)
-        irc.bot.SingleServerIRCBot.__init__(self, [(server, port, "oauth:" + token)], username, username,connect_factory = factory)
+        irc.bot.SingleServerIRCBot.__init__(self, [(server, port, "oauth:" + self.token)], username, username,connect_factory = factory)
         self.sub_epoch = 0
         if cfg.EnableChatTriggers:
             self.chat_epoch = 0
@@ -127,6 +138,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         while True:
             try:
                 time.sleep(60 * 60) # 1 hour
+                print(f"Running Token Refresh.")
+                self.token = TOA.refreshtoken()
                 print(f"Checking heartbeat...")
                 if (time.time() - self.chatheartbeattime) >= 3600:
                     print(f"{self.timestamp()} - Chat Heartbeat Fail...")
@@ -145,27 +158,24 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 print()
 
     def ajchannels_sync(self):
-        if cfg.APIClientID:
-            while True:
-                time.sleep(60 * 60 * 2)  # 2 hours
-                print(f"Checking followers for updates to auto join...\r\n")
-                following = self.apigetfollowerslist(self.username)
-                for x in following:
+        while True:
+            time.sleep(60 * 60 * 2)  # 2 hours
+            print(f"Checking followers for updates to auto join...\r\n")
+            following = self.apigetfollowerslist(self.username)
+            for x in following:
+                if x not in self.JoinedChannelsList:
+                    print(f"Found new channel: {x}")
+                    self.joinchannel(x)
+
+            # Check the channels variable in config file for new.
+            if len(cfg.Channels) != 0:
+                for x in cfg.Channels:
                     if x not in self.JoinedChannelsList:
                         print(f"Found new channel: {x}")
                         self.joinchannel(x)
 
-                # Check the channels variable in config file for new.
-                if len(cfg.Channels) != 0:
-                    for x in cfg.Channels:
-                        if x not in self.JoinedChannelsList:
-                            print(f"Found new channel: {x}")
-                            self.joinchannel(x)
-
-                else:
-                    print(f"Config channels list is empty.\r\n")
-        else:
-            print(f"No apiclientid in config.")
+            else:
+                print(f"Config channels list is empty.\r\n")
 
     def reloadconfigfile(self):
         while True:
@@ -182,11 +192,13 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     print(f"Could not get data for {channel}. User is probably banned.")
                 else:
                     channelid = r["data"][0]["id"]
+                    print(f"Got channel ID {channelid}")
                     return channelid
             else:
                 print(f"Get Channel ID - No apiclientid in config.")
-        except:
+        except Exception as e:
             print(f"Error in apigetchannelid.")
+            print(f"{e}")
 
     def apigetuserinfo(self, username):
         if len(str(self.ClientID)) > 2:
@@ -204,6 +216,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         if len(self.ClientID) > 2:
             url = "https://api.twitch.tv/helix/users?login=" + username
             r = requests.get(url, headers=self.newapiheader).json()
+            print(f"Got user info {r}")
             return r
         else:
             print(f"Get User Info - apinewgetuser failed.")
@@ -521,10 +534,6 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         if self.token == "":
             print(f"Error: No OAUTH token defined")
             exit()
-        if cfg.FollowerAutoJoin:
-            if cfg.APIClientID == "":
-                print(f"Error: FollowerAutoJoin enabled without APIClientID")
-                exit()
         self.checktriggers(cfg.ChatTriggers)
         self.checktriggers(cfg.ModTriggers)
 
@@ -1203,15 +1212,22 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         )
 
 
-def tbot(uname, utoken, uchannels, input_watcher = None):
-    bot = TwitchBot(uname, utoken, uchannels, input_watcher)
+def tbot(uname, uchannels, input_watcher = None):
+    bot = TwitchBot(uname, uchannels, input_watcher)
     bot.start()
     
 
 if __name__ == "__main__":
     os.system("cls" if os.name == "nt" else "clear")
-    time.sleep(1)
+    if os.path.exists('JSON/token.json') == False:
+        TOA.gettoken()
+    print(f'Checking JSON/clientdata.json file...')
+    TOA.checkjsonclientdata()
+    TOA.checktoken()
+    with open('JSON/clientdata.json','r') as getlogin:
+            clientlogin = json.load(getlogin)
+            getlogin.close()
     input_watcher = InputWatcher()
     input_watcher.start()
-    botthread1 = threading.Thread(target=tbot,args=[str.lower(cfg.Username), cfg.Token, cfg.Channels, input_watcher])
+    botthread1 = threading.Thread(target=tbot,args=[str.lower(clientlogin['login']), cfg.Channels, input_watcher])
     botthread1.start()

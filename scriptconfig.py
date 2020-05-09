@@ -1,17 +1,8 @@
 #---------------------------------------------------------------------------
 #---------------------------------- CONFIG ---------------------------------
 #---------------------------------------------------------------------------
-# Example: Username = 'mr_protocol'
-Username = ''
 
-# Enter OAUTH token here without the oauth: in the front. It will be added later in the script.
-# To get an OAUTH token: https://twitchapps.com/tmi/ and link to your account.
-# Example: Token = 'abc123456defghijklmnop'
-Token = ''
-
-# API Client ID - Get this by making an app on https://dev.twitch.tv/console/apps
-# APIClientID = 'abcdefghijklmnop12345678'   <--- Example
-APIClientID = ''
+# Open JSON/clientdata.json in a text editor and add your Twitch App values for client_id and client_secret.
 
 # Auto Join channels that are followed + extra user rooms (!!!- REQUIRES API CLIENT ID - !!!)
 FollowerAutoJoin = 0

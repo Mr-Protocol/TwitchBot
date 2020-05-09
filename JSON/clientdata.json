@@ -1,0 +1,9 @@
+{
+    "login": "",
+    "user_id": "",
+    "client_id": "",
+    "client_secret": "",
+    "redirect_uri": "http://localhost",
+    "scope": "channel:moderate chat:edit chat:read whispers:read whispers:edit",
+    "unixexpire": 0
+}
