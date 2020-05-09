@@ -17,14 +17,8 @@ def checkjsonclientdata():
     if clientdata['client_secret'] == "":
         print(f'Use a text editor and input client_secret in clientdata.json.')
         exit()
-    if clientdata['redirect_uri'] != "http://localhost":
-        print(f'Use a text editor and configure redirect_uri to http://localhost in clientdata.json.')
-        exit()
-    if clientdata['unixexpire'] < int(time.time()):
-        print("Refreshing token...")
-        refreshtoken()
 
-# Check token, update clientdata with unixepxire time
+# Check token, update clientdata with unixepxire time, update token, return token
 def checktoken():
     try:
         with open('JSON/token.json','r') as tokenf:
@@ -54,6 +48,11 @@ def checktoken():
                 f.close()
         except Exception as e:
             print(e)
+    if clientdata['unixexpire'] < int(time.time()):
+        print("Refreshing token...")
+        return refreshtoken()
+    else:
+        return tokendata['access_token']
 
 
 # Link app and Twitch account, gets initial token and permissions
@@ -81,7 +80,7 @@ def gettoken():
         json.dump(r, f, ensure_ascii=False, indent=4)
         f.close()
 
-# Refresh token on expire or error
+# Refresh token
 def refreshtoken():
     try:
         with open('JSON/token.json','r') as t:

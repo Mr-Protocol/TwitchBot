@@ -48,22 +48,19 @@ class InputWatcher(threading.Thread):
 
 
 class TwitchBot(irc.bot.SingleServerIRCBot):
-    def __init__(self, username, channels, input_handler):
+    def __init__(self, username, token, channels, input_handler):
         self.starttime = time.time()
         self.chatheartbeattime = time.time()
         if input_handler:
             input_handler.register_callback(self.botcommands)
         # Create IRC bot connection
         try:
-            with open('JSON/token.json','r') as tokenf:
-                tokendata = json.load(tokenf)
-                tokenf.close()
             with open('JSON/clientdata.json','r') as clientf:
                 clientdata = json.load(clientf)
                 clientf.close()
         except Exception as e:
             print(e)
-        self.token = tokendata['access_token']
+        self.token = token
         self.ClientID = clientdata['client_id']
         self.username = username
         self.configchannels = channels
@@ -139,7 +136,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             try:
                 time.sleep(60 * 60) # 1 hour
                 print(f"Running Token Refresh.")
-                self.token = TOA.refreshtoken()
+                self.token = TOA.checktoken()
                 print(f"Checking heartbeat...")
                 if (time.time() - self.chatheartbeattime) >= 3600:
                     print(f"{self.timestamp()} - Chat Heartbeat Fail...")
@@ -192,7 +189,6 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     print(f"Could not get data for {channel}. User is probably banned.")
                 else:
                     channelid = r["data"][0]["id"]
-                    print(f"Got channel ID {channelid}")
                     return channelid
             else:
                 print(f"Get Channel ID - No apiclientid in config.")
@@ -216,7 +212,6 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         if len(self.ClientID) > 2:
             url = "https://api.twitch.tv/helix/users?login=" + username
             r = requests.get(url, headers=self.newapiheader).json()
-            print(f"Got user info {r}")
             return r
         else:
             print(f"Get User Info - apinewgetuser failed.")
@@ -1212,22 +1207,21 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         )
 
 
-def tbot(uname, uchannels, input_watcher = None):
-    bot = TwitchBot(uname, uchannels, input_watcher)
+def tbot(uname, utoken, uchannels, input_watcher = None):
+    bot = TwitchBot(uname, utoken, uchannels, input_watcher)
     bot.start()
     
 
 if __name__ == "__main__":
     os.system("cls" if os.name == "nt" else "clear")
+    TOA.checkjsonclientdata()
     if os.path.exists('JSON/token.json') == False:
         TOA.gettoken()
-    print(f'Checking JSON/clientdata.json file...')
-    TOA.checkjsonclientdata()
-    TOA.checktoken()
+    token = TOA.checktoken()
     with open('JSON/clientdata.json','r') as getlogin:
             clientlogin = json.load(getlogin)
             getlogin.close()
     input_watcher = InputWatcher()
     input_watcher.start()
-    botthread1 = threading.Thread(target=tbot,args=[str.lower(clientlogin['login']), cfg.Channels, input_watcher])
+    botthread1 = threading.Thread(target=tbot,args=[str.lower(clientlogin['login']), token, cfg.Channels, input_watcher])
     botthread1.start()
