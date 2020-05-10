@@ -31,6 +31,10 @@ def checktoken():
         print(e)
         print(f'no token.json file.')
 
+    if clientdata['unixexpire'] < int(time.time()):
+        print("Frefreshing token...")
+        refreshtoken()
+
     url = "https://id.twitch.tv/oauth2/validate"
     headers={"Authorization": "OAuth " + tokendata['access_token']}
     r = requests.get(url, headers=headers).json()
@@ -48,12 +52,13 @@ def checktoken():
                 f.close()
         except Exception as e:
             print(e)
-    if clientdata['unixexpire'] < int(time.time()):
-        print("Refreshing token...")
-        return refreshtoken()
-    else:
-        return tokendata['access_token']
-
+    try:
+        with open('JSON/token.json','r') as tokenf:
+            tokendata = json.load(tokenf)
+            tokenf.close()
+    except Exception as e:
+        print(e)
+    return tokendata['access_token']
 
 # Link app and Twitch account, gets initial token and permissions
 def gettoken():
