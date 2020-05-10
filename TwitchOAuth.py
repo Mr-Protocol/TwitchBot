@@ -39,9 +39,6 @@ def checktoken():
     headers={"Authorization": "OAuth " + tokendata['access_token']}
     r = requests.get(url, headers=headers).json()
 
-    if 'status' in r:
-        print("Something wrong with token, trying to refresh.")
-        refreshtoken()
     if 'expires_in' in r:
         clientdata['unixexpire'] = int(time.time()) + int(r['expires_in'])
         clientdata['login'] = r['login']
@@ -52,12 +49,17 @@ def checktoken():
                 f.close()
         except Exception as e:
             print(e)
+    else:
+        print("Something wrong with token, trying to refresh.")
+        refreshtoken()
+
     try:
         with open('JSON/token.json','r') as tokenf:
             tokendata = json.load(tokenf)
             tokenf.close()
     except Exception as e:
         print(e)
+
     return tokendata['access_token']
 
 # Link app and Twitch account, gets initial token and permissions

@@ -1,14 +1,24 @@
 # A TwitchBot that uses Python and IRC.
 
-## Edit the scriptconfig.py as needed.
+## Create an app on dev.twitch.tv
+
+## Open JSON/clientdata.json and fill in client_id, client_secret, and redirect_uri from creating your app. The redirect_uri must match EXACTLY!
+
+## Edit the scriptconfig.py as needed to configure options.
 
 ## Features:
 
-#### Join multiple channels by followed channels or defined.
+#### Auto join channels you follow.
+
+#### Auto join hosted channels. - This is experimental; may cause stability issues with Twitch and the bot.
+
+#### Join specific channels
 
 #### Channel filter to show only the channels activity you want.
 
 #### Announce new subs, resubs, gifted subs, raids.
+
+#### Send automatic "Thank you" message if gifted a sub.
 
 #### Chat text triggers, copy/pasta mode, giveaway/repeater mode.
 
@@ -16,16 +26,16 @@
 
 * User safelist for chat/mod triggers
 
+#### Terminal commands when running.
+
+* Use !help
+
 #### Giveaway/Repeater mode.
 
 * Automatically repeats message in chat if it was used X times in a row.
 
-#### Chat log channels.
+#### Logs
 
-#### Log system messages/notices.
-
-* RAW or simplified
-
-#### Log ASCII art option.
+* Log chat, ban/timeouts, and more.
 
 
