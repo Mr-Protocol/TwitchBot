@@ -41,8 +41,8 @@ def checktoken():
     r = requests.get(url, headers=headers).json()
 
     if 'status' in r:
-        print(f'Invalid Token - delete JSON/token.json and re-link with Twitch account.')
-        exit()
+        print("Something wrong with token, trying to refresh.")
+        refreshtoken()
     if 'expires_in' in r:
         clientdata['unixexpire'] = int(time.time()) + int(r['expires_in'])
         clientdata['login'] = r['login']
