@@ -34,7 +34,6 @@ def checktoken():
     if clientdata['unixexpire'] < int(time.time()):
         print("Frefreshing token...")
         refreshtoken()
-        time.sleep(5) # Give it time to get new token written.
 
     url = "https://id.twitch.tv/oauth2/validate"
     headers={"Authorization": "OAuth " + tokendata['access_token']}
