@@ -135,7 +135,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         while True:
             try:
                 time.sleep(60 * 60) # 1 hour
-                print(f"Running Token Refresh.")
+                print(f"Checking token.")
                 self.token = TOA.checktoken()
                 print(f"Checking heartbeat...")
                 if (time.time() - self.chatheartbeattime) >= 3600:
@@ -182,6 +182,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
     def apigetchannelid(self, channel):
         try:
+            print(f"Checking token.")
+            self.token = TOA.checktoken()
             if len(str(self.ClientID)) > 2:
                 url = "https://api.twitch.tv/helix/users?login=" + channel
                 r = requests.get(url, headers=self.newapiheader).json()
@@ -197,6 +199,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             print(f"{e}")
 
     def apigetuserinfo(self, username):
+        print(f"Checking token.")
+        self.token = TOA.checktoken()
         if len(str(self.ClientID)) > 2:
             url = "https://api.twitch.tv/kraken/users?login=" + username
             headers = {
@@ -209,6 +213,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             print(f"Get User Info - No apiclientid in config.")
     
     def apinewgetuserinfo(self, username):
+        print(f"Checking token.")
+        self.token = TOA.checktoken()
         if len(self.ClientID) > 2:
             url = "https://api.twitch.tv/helix/users?login=" + username
             r = requests.get(url, headers=self.newapiheader).json()
@@ -217,6 +223,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             print(f"Get User Info - apinewgetuser failed.")
 
     def apigetfollowerslist(self, username, ignorejoinlist = None):
+        print(f"Checking token.")
+        self.token = TOA.checktoken()
         if len(str(self.ClientID)) > 2:
             followinglist = []
             url = (
@@ -229,8 +237,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 cursorpage = r["pagination"]["cursor"]
                 for x in range(len(r["data"])):
                     followinglist.append("#" + str.lower(r["data"][x]["to_name"]))
-                url += "&after=" + cursorpage
-                r = requests.get(url, headers=self.newapiheader).json()
+                nexturl = url + "&after=" + cursorpage
+                r = requests.get(nexturl, headers=self.newapiheader).json()
             if ignorejoinlist == None:
                 if cfg.FollowerAutoJoin and (time.time() - self.starttime < 5):
                     self.AJChannels = followinglist.copy()
