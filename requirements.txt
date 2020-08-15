@@ -1,2 +1,2 @@
-irc==18.0.0
-requests==2.23.0
+irc==19.0.0
+requests==2.24.0
