@@ -276,3 +276,28 @@ LogAutoJoinHosts = 0
 
 # Log Auto Join Channels - Logs the channels joined in a list
 LogAutoJoinHostChannels = 0
+
+#---------------------------------------------------------------------------
+#----------------------------------- Debug ---------------------------------
+#---------------------------------------------------------------------------
+
+# This area is used for debugging the data passed to functions in TwitchBot.py
+# Probably never have to use this area. Do not touch.
+
+debug_chattextparsing = 0
+debug_on_welcome = 0
+debug_on_pubmsg = 0
+debug_on_userstate = 0
+debug_on_usernotice = 0
+debug_on_clearchat = 0
+debug_on_globaluserstate = 0
+debug_on_roomstate = 0
+debug_on_mode = 0
+debug_on_join = 0
+debug_on_part = 0
+debug_on_action = 0
+debug_on_hosttarget = 0
+debug_on_privmsg = 0
+debug_on_privnotice = 0
+debug_on_pubnotice = 0
+debug_on_whisper = 0

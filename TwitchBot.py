@@ -20,11 +20,12 @@ import os
 from os import system
 import errno
 import threading, _thread
-import scriptconfig as cfg
+import inspect
 import importlib
 import ssl
 import json
 import TwitchOAuth as TOA
+import scriptconfig as cfg
 
 # --------------------------------------------------------------------------
 # ---------------------------------- MAGIC ---------------------------------
@@ -561,6 +562,21 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 f.write(f"{message}\r\n")
                 f.close()
 
+    def debuglog(self, edata):
+        self.checklogdir("Debug")
+        
+        # Uses inspect module to get the function that calls this function
+        curframe = inspect.currentframe()
+        calframe = inspect.getouterframes(curframe,2)
+
+        f = open(
+            f"Logs/Debug/{calframe}_Debug.txt",
+            "a+",
+            encoding="utf-8-sig",
+        )
+        f.write(f"{edata}\r\n\r\n")
+        f.close()
+
     def chattextparsing(self, edata):
         self.chatheartbeattime = time.time() # Update time for chat heartbeat
         e = edata
@@ -570,8 +586,10 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         isamod = False
         isavip = False
         isasub = False
+        
         # Used for debugging.
-        # print(e)
+        if cfg.debug_chattextparsing:
+            self.debuglog(edata)
 
         # Chat log with usernames and Moderator status.
         for x in e.tags:
@@ -793,6 +811,10 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         c.cap("REQ", ":twitch.tv/tags")
         c.cap("REQ", ":twitch.tv/commands")
 
+        # Used for debugging.
+        if cfg.debug_on_welcome:
+            self.debuglog(e)
+
         # joins channels you are following if enabled
         if cfg.FollowerAutoJoin:
             print(f"Joining all followed channels.\r\n")
@@ -804,11 +826,17 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             self.joinchannellist(self.configchannels)
 
     def on_pubmsg(self, c, e):
-        # print(e)
+        # Used for debugging.
+        if cfg.debug_on_pubmsg:
+            self.debuglog(e)
+
         self.chattextparsing(e)
 
     def on_userstate(self, c, e):
-        # print(e)
+        # Used for debugging.
+        if cfg.debug_on_userstate:
+            self.debuglog(e)
+
         currentchannel = e.target
         # Detects if self.username is a mod in a joined channel and adds it to a list
         for x in e.tags:
@@ -821,7 +849,10 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                         self.dbModChannels.append(currentchannel)
 
     def on_usernotice(self, c, e):
-        # print(e)
+        # Used for debugging.
+        if cfg.debug_on_usernotice:
+            self.debuglog(e)
+
         currentchannel = e.target
         logchan = re.sub(":", "_", currentchannel)
         for x in e.tags:
@@ -925,7 +956,11 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
     def on_clearchat(self, c, e):
         # Shows when a user is banned
         # Mod uses /clear chat command
-        # print(e)
+
+        # Used for debugging.
+        if cfg.debug_on_clearchat:
+            self.debuglog(e)
+
         if not e.arguments:
             print(f"Mod used /clear on {e.target}")
         else:
@@ -983,7 +1018,10 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
     def on_globaluserstate(self, c, e):
         # Not sure if this is real or not
-        print(e)
+        # Used for debugging.
+        if cfg.debug_on_globaluserstate:
+            self.debuglog(e)
+
         self.checklogdir("globaluserstate")
         f = open(
             f"Logs/globaluserstate/dump.txt",
@@ -996,12 +1034,18 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
     def on_roomstate(self, c, e):
         # Shows current chat settings for channel
         # type: roomstate, source: tmi.twitch.tv, target: #CHANNEL, arguments: [], tags: [{'key': 'broadcaster-lang', 'value': None}, {'key': 'emote-only', 'value': '0'}, {'key': 'followers-only', 'value': '2'}, {'key': 'r9k', 'value': '0'}, {'key': 'rituals', 'value': '0'}, {'key': 'room-id', 'value': 'XXXXXXXX'}, {'key': 'slow', 'value': '0'}, {'key': 'subs-only', 'value': '0'}]
-        # print(e)
+        
+        # Used for debugging.
+        if cfg.debug_on_roomstate:
+            self.debuglog(e)
         pass
 
     def on_mode(self, c, e):
         # Shows +/- mod permissions
-        # print(e)
+        
+        # Used for debugging.
+        if cfg.debug_on_mode:
+            self.debuglog(e)
 
         if cfg.AnnounceModeChanges:
             if cfg.ChanFilters and e.target not in cfg.ChanTermFilters:
@@ -1048,7 +1092,10 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
     def on_join(self, c, e):
         # User joins the channel
-        # print(e)
+        
+        # Used for debugging.
+        if cfg.debug_on_join:
+            self.debuglog(e)
 
         currentchannel = e.target
         chatuser = e.source.split("!")[0]
@@ -1082,7 +1129,10 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
     def on_part(self, c, e):
         # User parts or leaves channel
-        # print(e)
+        
+        # Used for debugging.
+        if cfg.debug_on_part:
+            self.debuglog(e)
 
         currentchannel = e.target
         chatuser = e.source.split("!")[0]
@@ -1116,14 +1166,21 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
     def on_action(self, c, e):
         # When a user types /me in the chat and sends a message.
         # type: action, source: mr_protocol!mr_protocol@mr_protocol.tmi.twitch.tv, target: #mr_protocol, arguments: ['testing 12345'], tags: [{'key': 'badges', 'value': 'broadcaster/1,premium/1'}, {'key': 'color', 'value': '#00FF7F'}, {'key': 'display-name', 'value': 'Mr_Protocol'}, {'key': 'emotes', 'value': None}, {'key': 'flags', 'value': None}, {'key': 'id', 'value': 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'}, {'key': 'mod', 'value': '0'}, {'key': 'room-id', 'value': 'XXXXXXX'}, {'key': 'subscriber', 'value': '0'}, {'key': 'tmi-sent-ts', 'value': 'XXXXXXXXXXX'}, {'key': 'turbo', 'value': '0'}, {'key': 'user-id', 'value': 'XXXXXXXX'}, {'key': 'user-type', 'value': None}]
-        # Used for debugging
-        # print(e)
+        
+        # Used for debugging.
+        if cfg.debug_on_action:
+            self.debuglog(e)
+
         self.chattextparsing(e)
 
     def on_hosttarget(self, c, e):
         # Shows hosting info
         # type: hosttarget, source: tmi.twitch.tv, target: #CHANNEL, arguments: ['channelbeinghosted -'], tags: []
-        # print(e)
+
+        # Used for debugging.
+        if cfg.debug_on_hosttarget:
+            self.debuglog(e)
+
         if cfg.ChanFilters and e.target not in cfg.ChanTermFilters:
             pass
         else:
@@ -1135,19 +1192,28 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
     def on_privmsg(self, c, e):
         # type: privmsg, source: jtv!jtv@jtv.tmi.twitch.tv, target: mr_protocol, arguments: ['CutePuppy1337 is now hosting you.'], tags: []
-        print(e)
+        
+        # Used for debugging.
+        if cfg.debug_on_privmsg:
+            self.debuglog(e)
 
         hostmsg = e.arguments
         print(f"{self.timestamp()} {hostmsg}")
 
     def on_privnotice(self, c, e):
         # type: privnotice, source: tmi.twitch.tv, target: l, arguments: ['This channel has been suspended.'], tags: [{'key': 'msg-id', 'value': 'msg_channel_suspended'}]
-        print(e)
+
+        # Used for debugging.
+        if cfg.debug_on_privnotice:
+            self.debuglog(e)
 
     def on_pubnotice(self, c, e):
         # Shows hosting message
         # Shows other channel options: slow mode, emote mode, etc.
-        # print(e)
+
+        # Used for debugging.
+        if cfg.debug_on_pubnotice:
+            self.debuglog(e)
 
         currentchannel = e.target
         logchan = re.sub(":", "_", currentchannel)
@@ -1204,7 +1270,10 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
     def on_whisper(self, c, e):
         # Received twitch direct messages
         # type: whisper, source: USER!USER@USER.tmi.twitch.tv, target: mr_protocol, arguments: ['THEMESSAGE'], tags: [{'key': 'badges', 'value': None}, {'key': 'color', 'value': None}, {'key': 'display-name', 'value': 'USERNAME'}, {'key': 'emotes', 'value': None}, {'key': 'message-id', 'value': 'XX'}, {'key': 'thread-id', 'value': 'XXXXXX_XXXXXXXX'}, {'key': 'turbo', 'value': '0'}, {'key': 'user-id', 'value': 'XXXXXXXX'}, {'key': 'user-type', 'value': None}]
-        # print(e)
+
+        # Used for debugging.
+        if cfg.debug_on_whisper:
+            self.debuglog(e)
 
         whisper = e.arguments[0]
         for x in e.tags:
