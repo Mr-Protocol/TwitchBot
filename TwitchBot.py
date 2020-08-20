@@ -570,7 +570,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         calframe = inspect.getouterframes(curframe,2)
 
         f = open(
-            f"Logs/Debug/{calframe}_Debug.txt",
+            f"Logs/Debug/{calframe[1][3]}_Debug.txt",
             "a+",
             encoding="utf-8-sig",
         )
