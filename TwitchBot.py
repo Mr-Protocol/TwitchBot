@@ -8,16 +8,17 @@
 # Python3.x
 # pip install irc
 # pip install requests
+
+from datetime import timezone
+from os import system
 import sys
 import irc.bot
 import requests
 import time
 import datetime
-from datetime import timezone
 import shutil
 import re
 import os
-from os import system
 import errno
 import threading, _thread
 import inspect
@@ -773,17 +774,17 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                                     self.checklogdir("ModTriggers")
                                     # Handle mod text response
                                     if cfg.ModTriggers[ChanAndGlobal][x][2]:
-                                        txtreponse = cfg.ModTriggers[ChanAndGlobal][x][2]
+                                        modresponse = cfg.ModTriggers[ChanAndGlobal][x][2]
                                         if cfg.ModTriggers[ChanAndGlobal][x][3]:
-                                            txtreponse = f"{txtreponse} {chatuser}"
-                                        self.sendmsg(currentchannel, f"{txtreponse}")
-                                        print(f"{self.timestamp()} {currentchannel} - !MOD!-{self.username}: {txtreponse}")
+                                            modresponse = f"{modresponse} {chatuser}"
+                                        self.sendmsg(currentchannel, f"{modresponse}")
+                                        print(f"{self.timestamp()} {currentchannel} - !MOD!-{self.username}: {modresponse}")
                                     try:
                                         splitresponse = mresponse.split(" ")
                                         modoptions = ""
                                         for x in splitresponse[1:]:
                                             modoptions = f"{modoptions} {x}"
-                                        self.sendmsg(currentchannel, f"{splitresponse[0]} {chatuser}{modoptions}",)
+                                        self.sendmsg(currentchannel, f"{splitresponse[0]} {chatuser}{modoptions}")
                                         print(f"{self.timestamp()} {currentchannel} - !MOD!-{self.username}: {splitresponse[0]} {chatuser}{modoptions}")
                                         f = open(
                                             f"Logs/ModTriggers/{logchan}_ModTriggerLog.txt",
