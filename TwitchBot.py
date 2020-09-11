@@ -193,14 +193,17 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             time.sleep(60 * 5) # Every 5 min
             self.checklogdir("Active Channels")
             # Delete current file
-            os.remove("Logs/Active Channels/ActiveChannels.txt")
+            try:
+                os.remove("Logs/Active Channels/ActiveChannels.txt")
+            except:
+                pass
             f = open(
                 f"Logs/Active Channels/ActiveChannels.txt",
                 "a+",
                 encoding="utf-8-sig",
             )
             for x in self.JoinedChannelsList:
-                f.write(x)
+                f.write(x + '\n')
             f.close()
 
     def reloadconfigfile(self):
