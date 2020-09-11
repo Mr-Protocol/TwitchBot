@@ -106,6 +106,9 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         ReloadConfig_thread = threading.Thread(target=self.reloadconfigfile)
         ReloadConfig_thread.daemon = True
         ReloadConfig_thread.start()
+        activechannellist_thread = threading.Thread(target=self.activechannellist)
+        activechannellist_thread.daemon = True
+        activechannellist_thread.start()
         self.checklogdir("StartLog")
         f = open(f"Logs/StartLog/StartLog.txt", "a+", encoding="utf-8-sig",)
         f.write(f"{self.timestamp()} - Started - \r\n")
@@ -156,6 +159,14 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 f.close()
                 print()
 
+    def checklogdir(self, logpath):
+        if not os.path.exists(f"Logs/{logpath}/"):
+            try:
+                os.makedirs(f"Logs/{logpath}/")
+            except OSError as error:
+                if error.errno != errno.EEXIST:
+                    raise
+
     def ajchannels_sync(self):
         while True:
             time.sleep(60 * 60 * 2)  # 2 hours
@@ -175,6 +186,22 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
             else:
                 print(f"Config channels list is empty.\r\n")
+
+    # This will delete and re-create the active joined channels
+    def activechannellist(self):
+        while True:
+            time.sleep(60 * 5) # Every 5 min
+            self.checklogdir("Active Channels")
+            # Delete current file
+            os.remove("Logs/Active Channels/ActiveChannels.txt")
+            f = open(
+                f"Logs/Active Channels/ActiveChannels.txt",
+                "a+",
+                encoding="utf-8-sig",
+            )
+            for x in self.JoinedChannelsList:
+                f.write(x)
+            f.close()
 
     def reloadconfigfile(self):
         while True:
@@ -541,14 +568,6 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             exit()
         self.checktriggers(cfg.ChatTriggers)
         self.checktriggers(cfg.ModTriggers)
-
-    def checklogdir(self, logpath):
-        if not os.path.exists(f"Logs/{logpath}/"):
-            try:
-                os.makedirs(f"Logs/{logpath}/")
-            except OSError as error:
-                if error.errno != errno.EEXIST:
-                    raise
 
     def chatlogmessage(self, currentchannel, message):
         if cfg.EnableLogChatMessages:
