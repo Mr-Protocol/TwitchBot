@@ -276,7 +276,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             if ignorejoinlist == None:
                 if cfg.FollowerAutoJoin and (time.time() - self.starttime < 5):
                     self.AJChannels = followinglist.copy()
-                    print(f"Created Auto Join Channel List. Count: {followinglist}\r\n")
+                    print(f"Created Auto Join Channel List. Count: {len(followinglist)}\r\n")
             return followinglist
         else:
             print(f"Get Followers List - No apiclientid in config.")
