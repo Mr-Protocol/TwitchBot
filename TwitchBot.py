@@ -256,7 +256,6 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             print(f"Get User Info - apinewgetuser failed.")
 
     def apigetfollowerslist(self, username, ignorejoinlist = None):
-        print(f"Checking token.")
         self.token = TOA.checktoken()
         if len(str(self.ClientID)) > 2:
             followinglist = []
@@ -267,18 +266,17 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             )
             r = requests.get(url, headers=self.newapiheader).json()
             while len(followinglist) < r["total"]:
+                print("Page of followers checked.")
                 for x in range(len(r["data"])):
                     followinglist.append("#" + str.lower(r["data"][x]["to_name"]))
                 if "cursor" in r["pagination"]:
                     cursorpage = r["pagination"]["cursor"]
                     nexturl = url + "&after=" + cursorpage
                     r = requests.get(nexturl, headers=self.newapiheader).json()
-                else:
-                    break
             if ignorejoinlist == None:
                 if cfg.FollowerAutoJoin and (time.time() - self.starttime < 5):
                     self.AJChannels = followinglist.copy()
-                    print(f"Created Auto Join Channel List.\r\n")
+                    print(f"Created Auto Join Channel List. Count: {followinglist}\r\n")
             return followinglist
         else:
             print(f"Get Followers List - No apiclientid in config.")
