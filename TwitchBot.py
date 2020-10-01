@@ -190,21 +190,22 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
     # This will delete and re-create the active joined channels
     def activechannellist(self):
         while True:
-            time.sleep(60 * 5) # Every 5 min
-            self.checklogdir("Active Channels")
-            # Delete current file
-            try:
-                os.remove("Logs/Active Channels/ActiveChannels.txt")
-            except:
-                pass
-            f = open(
-                f"Logs/Active Channels/ActiveChannels.txt",
-                "a+",
-                encoding="utf-8-sig",
-            )
-            for x in self.JoinedChannelsList:
-                f.write(x + '\n')
-            f.close()
+            if cfg.AutoJoinHosts:
+                time.sleep(60 * 5) # Every 5 min
+                self.checklogdir("Active Channels")
+                # Delete current file
+                try:
+                    os.remove("Logs/Active Channels/ActiveChannels.txt")
+                except:
+                    pass
+                f = open(
+                    f"Logs/Active Channels/ActiveChannels.txt",
+                    "a+",
+                    encoding="utf-8-sig",
+                )
+                for x in self.JoinedChannelsList:
+                    f.write(x + '\n')
+                f.close()
 
     def reloadconfigfile(self):
         while True:
@@ -265,12 +266,15 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 + "&first=100"
             )
             r = requests.get(url, headers=self.newapiheader).json()
-            while len(r["data"]) > 0:
-                cursorpage = r["pagination"]["cursor"]
+            while len(followinglist) < r["total"]:
                 for x in range(len(r["data"])):
                     followinglist.append("#" + str.lower(r["data"][x]["to_name"]))
-                nexturl = url + "&after=" + cursorpage
-                r = requests.get(nexturl, headers=self.newapiheader).json()
+                if "cursor" in r["pagination"]:
+                    cursorpage = r["pagination"]["cursor"]
+                    nexturl = url + "&after=" + cursorpage
+                    r = requests.get(nexturl, headers=self.newapiheader).json()
+                else:
+                    break
             if ignorejoinlist == None:
                 if cfg.FollowerAutoJoin and (time.time() - self.starttime < 5):
                     self.AJChannels = followinglist.copy()
