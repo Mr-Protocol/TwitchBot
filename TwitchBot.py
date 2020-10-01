@@ -190,8 +190,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
     # This will delete and re-create the active joined channels
     def activechannellist(self):
         while True:
+            time.sleep(60 * 5) # Every 5 min
             if cfg.AutoJoinHosts:
-                time.sleep(60 * 5) # Every 5 min
                 self.checklogdir("Active Channels")
                 # Delete current file
                 try:
