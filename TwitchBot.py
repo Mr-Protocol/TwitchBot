@@ -265,18 +265,19 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 + "&first=100"
             )
             r = requests.get(url, headers=self.newapiheader).json()
-            while len(followinglist) < r["total"]:
+            while len(followinglist) < len(r["total"]):
                 print("Page of followers checked.")
                 for x in range(len(r["data"])):
                     followinglist.append("#" + str.lower(r["data"][x]["to_name"]))
                 if "cursor" in r["pagination"]:
                     cursorpage = r["pagination"]["cursor"]
                     nexturl = url + "&after=" + cursorpage
+                    time.sleep(1)
                     r = requests.get(nexturl, headers=self.newapiheader).json()
             if ignorejoinlist == None:
                 if cfg.FollowerAutoJoin and (time.time() - self.starttime < 5):
                     self.AJChannels = followinglist.copy()
-                    print(f"Created Auto Join Channel List. Count: {len(followinglist)}\r\n")
+                    print(f"Created Auto Join Channel List. Count: {len(self.AJChannels)}\r\n")
             return followinglist
         else:
             print(f"Get Followers List - No apiclientid in config.")
