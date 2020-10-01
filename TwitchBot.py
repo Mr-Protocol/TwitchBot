@@ -265,7 +265,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 + "&first=100"
             )
             r = requests.get(url, headers=self.newapiheader).json()
-            while len(followinglist) < len(r["total"]):
+            while len(followinglist) < r["total"]:
                 print("Page of followers checked.")
                 for x in range(len(r["data"])):
                     followinglist.append("#" + str.lower(r["data"][x]["to_name"]))
