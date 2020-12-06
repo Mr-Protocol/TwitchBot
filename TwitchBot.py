@@ -780,18 +780,20 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
         # Mod Triggers - uses the lcase themsg and splits words via spaces
         # Timeout Non-ASCII Chat
-        if (cfg.EnableModTriggers and cfg.EnableNonASCIITimeout) and (currentchannel in cfg.TimeoutNonASCII):
-            if str(themsg).isascii == False:
-                self.sendmsg(currentchannel, f"/timeout {chatuser} 1 Automated - Non-ASCII")
-                print(f"{self.timestamp()} {currentchannel} - !MOD!-{self.username}: /timeout {chatuser} 1 Automated - Non-ASCII")
-                f = open(
-                    f"Logs/ModTriggers/{logchan}_ModTriggerLog.txt",
-                    "a+",
-                    encoding="utf-8-sig",
-                )
-                f.write(f"{self.timestamp()} TRIGGER EVENT: {chatheader}{chatuser}: {themsg}\r\n")
-                f.write(f"{self.timestamp()} SENT: !MOD!-{self.username}: /timeout {chatuser} 1 Automated - Non-ASCII\r\n")
-                f.close()
+        if cfg.EnableModTriggers:
+            if cfg.EnableNonASCIITimeout:
+                if currentchannel in cfg.TimeoutNonASCII:
+                    if str(themsg).isascii == False:
+                        self.sendmsg(currentchannel, f"/timeout {chatuser} 1 Automated - Non-ASCII")
+                        print(f"{self.timestamp()} {currentchannel} - !MOD!-{self.username}: /timeout {chatuser} 1 Automated - Non-ASCII")
+                        f = open(
+                            f"Logs/ModTriggers/{logchan}_ModTriggerLog.txt",
+                            "a+",
+                            encoding="utf-8-sig",
+                        )
+                        f.write(f"{self.timestamp()} TRIGGER EVENT: {chatheader}{chatuser}: {themsg}\r\n")
+                        f.write(f"{self.timestamp()} SENT: !MOD!-{self.username}: /timeout {chatuser} 1 Automated - Non-ASCII\r\n")
+                        f.close()
 
         # Regular Mod Triggers
         if cfg.EnableModTriggers:
