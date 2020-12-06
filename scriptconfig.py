@@ -188,6 +188,14 @@ CopyPastaTriggers = {
 #Enable Mod Triggers
 EnableModTriggers = 0
 
+# Timeout Non-ASCII chatters - Times out for 1 second
+# Needs EnableModTriggers enabled
+EnableNonASCIITimeout = 0
+
+# Timeout Non-ASCII chatters in these channels
+# TimeoutNonASCII = ['#mr_protocol', '#shroud']
+TimeoutNonASCII = ['#mr_protocol']
+
 # Example
 # ModTriggers = {
 #     '#mr_protocol':[
@@ -209,14 +217,6 @@ ModTriggers = {
         ('█','/timeout 2m ASCII Art Char (Automated)',None,1) # most common ASCII Art Character
     ]
 }
-
-# Timeout Non-ASCII chatters
-# Needs EnableModTriggers enabled
-EnableNonASCIITimeout = 0
-
-# Timeout Non-ASCII chatters in these channels
-# TimeoutNonASCII = ['#mr_protocol', '#shroud']
-TimeoutNonASCII = ['#mr_protocol']
 
 # Keyword Repeater
 # Useful for when you have to type a keyword to enter a giveaway.
