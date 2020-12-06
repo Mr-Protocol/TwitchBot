@@ -783,7 +783,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         if cfg.EnableModTriggers:
             if cfg.EnableNonASCIITimeout:
                 if currentchannel in cfg.TimeoutNonASCII:
-                    if str(themsg).isascii == False:
+                    if str(themsg).isascii() == False:
                         self.sendmsg(currentchannel, f"/timeout {chatuser} 1 Automated - Non-ASCII")
                         print(f"{self.timestamp()} {currentchannel} - !MOD!-{self.username}: /timeout {chatuser} 1 Automated - Non-ASCII")
                         f = open(
