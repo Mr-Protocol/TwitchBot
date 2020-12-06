@@ -32,7 +32,7 @@ def checktoken():
         print(f'no token.json file.')
 
     if clientdata['unixexpire'] < int(time.time()):
-        print("Frefreshing token...")
+        print("Refreshing token...")
         refreshtoken()
 
     url = "https://id.twitch.tv/oauth2/validate"

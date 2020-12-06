@@ -210,6 +210,14 @@ ModTriggers = {
     ]
 }
 
+# Timeout Non-ASCII chatters
+# Needs EnableModTriggers enabled
+EnableNonASCIITimeout = 0
+
+# Timeout Non-ASCII chatters in these channels
+# TimeoutNonASCII = ['#mr_protocol', '#shroud']
+TimeoutNonASCII = ['#mr_protocol']
+
 # Keyword Repeater
 # Useful for when you have to type a keyword to enter a giveaway.
 # Use a Chat Trigger to setup a response if a message says "You Win"

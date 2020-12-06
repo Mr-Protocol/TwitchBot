@@ -244,7 +244,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             return r
         else:
             print(f"Get User Info - No apiclientid in config.")
-    
+
     def apinewgetuserinfo(self, username):
         print(f"Checking token.")
         self.token = TOA.checktoken()
@@ -507,7 +507,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                         self.checklogdir("FollowList")
                         f = open(f"Logs/FollowList/{splitcmd[1]}.txt", "a+", encoding="utf-8-sig")
                         for x in self.apigetfollowerslist(splitcmd[1],1):
-                            f.write(x + '\r\n')
+                            f.write(x + '\n')
                         f.close()
                         print(f"Done creating follow list. Location: Logs/FollowList/{splitcmd[1]}.txt\r\n")
 
@@ -830,6 +830,20 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                                         f.write(f"{self.timestamp()} TRIGGER EVENT: {chatheader}{chatuser}: {themsg}\r\n")
                                         f.write(f"{self.timestamp()} SENT: !MOD!-{self.username}: {mresponse} {chatuser}\r\n")
                                         f.close()
+
+        # Timeout Non-ASCII Chat
+        if (cfg.ModTriggers and cfg.EnableNonASCIITimeout) and (currentchannel in cfg.TimeoutNonASCII):
+            if str(themsg).isascii == False:
+                self.sendmsg(currentchannel, f"/timeout {chatuser} 1 Automated - Non-ASCII")
+                print(f"{self.timestamp()} {currentchannel} - !MOD!-{self.username}: /timeout {chatuser} 1 Automated - Non-ASCII")
+                f = open(
+                    f"Logs/ModTriggers/{logchan}_ModTriggerLog.txt",
+                    "a+",
+                    encoding="utf-8-sig",
+                )
+                f.write(f"{self.timestamp()} TRIGGER EVENT: {chatheader}{chatuser}: {themsg}\r\n")
+                f.write(f"{self.timestamp()} SENT: !MOD!-{self.username}: /timeout {chatuser} 1 Automated - Non-ASCII\r\n")
+                f.close()
 
     def on_welcome(self, c, e):
         # You must request specific capabilities before you can use them
