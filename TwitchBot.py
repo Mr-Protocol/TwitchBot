@@ -780,7 +780,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
         # Mod Triggers - uses the lcase themsg and splits words via spaces
         # Timeout Non-ASCII Chat
-        if (cfg.ModTriggers and cfg.EnableNonASCIITimeout) and (currentchannel in cfg.TimeoutNonASCII):
+        if (cfg.EnableModTriggers and cfg.EnableNonASCIITimeout) and (currentchannel in cfg.TimeoutNonASCII):
             if str(themsg).isascii == False:
                 self.sendmsg(currentchannel, f"/timeout {chatuser} 1 Automated - Non-ASCII")
                 print(f"{self.timestamp()} {currentchannel} - !MOD!-{self.username}: /timeout {chatuser} 1 Automated - Non-ASCII")
