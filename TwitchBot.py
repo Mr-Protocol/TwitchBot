@@ -342,7 +342,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                                             splitlist = x.split(";")
                                             print(f"---- Banning {splitlist[0]} in {self.dbModChannels[mchan]} - Reason {splitlist[1]}.")
                                             self.sendmsg(self.dbModChannels[mchan], "/ban " + str.lower(str.rstrip(splitlist[0])) + " " + str.rstrip(splitlist[1]))
-                                            time.sleep(1) # Do not set any lower. Will flood and disconnect bot
+                                            time.sleep(2) # Do not set any lower. Will flood and disconnect bot
                                 except Exception as e:
                                     print(f"Error with list. \r\n{e}")
                             f.close()
@@ -363,7 +363,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                                 bchan = str.lower(str.rstrip(splitcmd[2]))
 
                                 self.sendmsg(bchan, "/ban " + buser + " Suspected spam bot.")
-                                time.sleep(.5) #Do not set any lower. Will flood and disconnect bot
+                                time.sleep(2) #Do not set any lower. Will flood and disconnect bot
                             f.close()
                         except Exception as e:
                             print(f"Something went wrong.\r\n{e}")
