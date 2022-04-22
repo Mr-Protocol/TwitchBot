@@ -334,18 +334,22 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                         print(f"!banall - Bans list in all channels with moderator.\r\nUsage: Create a .txt file in script path with the list of names and reason separated by ;\r\n!banall banlist.txt\r\n Example banlist.txt:\r\nspambot123;Spambot account\r\n")
                     else:
                         try:
-                            f = open(splitcmd[1],"r")
                             for mchan in range(len(self.dbModChannels)): # Rotates through moderator channels
+                                f = open(splitcmd[1],"r")
+                                print(f"Trying bans for channel: {self.dbModChannels[mchan]}")
                                 try:
                                     for x in f: # Goes down the .txt list and splits Twich account and reason
-                                        if len(x) > 5:
+                                        if ";" in x:
                                             splitlist = x.split(";")
-                                            print(f"---- Banning {splitlist[0]} in {self.dbModChannels[mchan]} - Reason {splitlist[1]}.")
+                                            print(f"---- Banning {splitlist[0]} in {self.dbModChannels[mchan]} - Reason {str.rstrip(splitlist[1])}.")
                                             self.sendmsg(self.dbModChannels[mchan], "/ban " + str.lower(str.rstrip(splitlist[0])) + " " + str.rstrip(splitlist[1]))
-                                            time.sleep(2) # Do not set any lower. Will flood and disconnect bot
+                                            time.sleep(8) # Do not set any lower. Will flood and disconnect bot
+                                        else:
+                                            continue
                                 except Exception as e:
                                     print(f"Error with list. \r\n{e}")
-                            f.close()
+                                f.close()
+                                time.sleep(1)
                         except Exception as e:
                             print(f"Something went wrong - mod chans loop\r\n{e}")
 
@@ -363,7 +367,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                                 bchan = str.lower(str.rstrip(splitcmd[2]))
 
                                 self.sendmsg(bchan, "/ban " + buser + " Suspected spam bot.")
-                                time.sleep(2) #Do not set any lower. Will flood and disconnect bot
+                                time.sleep(8) #Do not set any lower. Will flood and disconnect bot
                             f.close()
                         except Exception as e:
                             print(f"Something went wrong.\r\n{e}")
