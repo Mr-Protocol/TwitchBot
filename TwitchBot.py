@@ -295,12 +295,11 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     pass"""
             self.connection.join(lchannel)
             self.JoinedChannelsList.append(lchannel)
-            time.sleep(1)
 
     def joinchannellist(self, channel_list):
         for x in channel_list:
             self.joinchannel(x)
-            time.sleep(2)
+            time.sleep(.4)
             # JOINs are rate-limited to 50 JOINs/commands per 15 seconds. Additional JOINs sent after this will cause an unsuccessful login.
         print("")
     
