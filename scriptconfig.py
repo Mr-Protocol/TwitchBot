@@ -249,7 +249,7 @@ LogHighlights = 1
 # Log all chat messages and join/leave messages
 EnableLogChatMessages = 0
 
-# Chat Log only these channels
+# Chat Log only these channels. Automatically logs channels with mod
 # ChatLogChannels = ['#shroud', '#drdisrespectlive']
 # ChatLogChannels = ['GLOBAL'] #Logs all joined channels
 ChatLogChannels = []
