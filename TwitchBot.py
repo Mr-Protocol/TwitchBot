@@ -27,7 +27,7 @@ import ssl
 import json
 import TwitchOAuth as TOA
 import scriptconfig as cfg
-import loggingdb as SQLDB
+# import loggingdb as SQLDB
 
 # --------------------------------------------------------------------------
 # ---------------------------------- MAGIC ---------------------------------
