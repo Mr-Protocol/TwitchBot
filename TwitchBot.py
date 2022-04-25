@@ -308,7 +308,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         self.chatlogmessage(channel, f"{self.timestamp()} - {self.username}: {message}")
 
     def botcommands(self, cmd):
-        cmd = str.lower(cmd)
+
         if cmd == "!enable":
             cfg.EnableBotCommands = 1
             print(f"Commands Enabled")
@@ -343,7 +343,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                                             splitlist = x.split(";")
                                             print(f"---- Banning {splitlist[0]} in {self.dbModChannels[mchan]} - Reason {str.rstrip(splitlist[1])}.")
                                             self.sendmsg(self.dbModChannels[mchan], "/ban " + str.lower(str.rstrip(splitlist[0])) + " " + str.rstrip(splitlist[1]))
-                                            time.sleep(8) # Do not set any lower. Will flood and disconnect bot
+                                            time.sleep(10) # Do not set any lower. Will flood and disconnect bot
                                         else:
                                             continue
                                 except Exception as e:
@@ -367,7 +367,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                                 bchan = str.lower(str.rstrip(splitcmd[2]))
 
                                 self.sendmsg(bchan, "/ban " + buser + " Suspected spam bot.")
-                                time.sleep(8) #Do not set any lower. Will flood and disconnect bot
+                                time.sleep(10) #Do not set any lower. Will flood and disconnect bot
                             f.close()
                         except Exception as e:
                             print(f"Something went wrong.\r\n{e}")
