@@ -278,7 +278,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
     def apibanuid(self, uid, channelid, reason):
         self.token = TOA.checktoken()
         if len(uid) > 5:
-            bdata = {"data": {"user_id": + uid, "reason": reason}}
+            bdata = {"data": {"user_id": uid, "reason": reason}}
             url = (
                 "https://api.twitch.tv/helix/moderation/bans?"
                 + "broadcaster_id=" + channelid
