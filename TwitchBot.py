@@ -115,9 +115,14 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         f.write(f"{self.timestamp()} - Started - \r\n")
         f.close()
         print(f"- STARTED - {self.timestamp()}\r\n")
-        self.newapiheader = {
+        self.apiheader = {
                     "Authorization": "Bearer " + self.token,
                     "Client-ID": self.ClientID
+                    }
+        self.apiheaderpost = {
+                    "Authorization": "Bearer " + self.token,
+                    "Client-ID": self.ClientID,
+                    "Content-Type": "application/json"
                     }
 
     def keepmealive(self):
@@ -220,7 +225,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             self.token = TOA.checktoken()
             if len(str(self.ClientID)) > 2:
                 url = "https://api.twitch.tv/helix/users?login=" + channel
-                r = requests.get(url, headers=self.newapiheader).json()
+                r = requests.get(url, headers=self.apiheader).json()
                 if not r["data"]:
                     print(f"Could not get data for {channel}. User is probably banned.")
                     return None
@@ -236,22 +241,12 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
     def apigetuserinfo(self, username):
         print(f"Checking token.")
         self.token = TOA.checktoken()
-        if len(str(self.ClientID)) > 2:
-            url = "https://api.twitch.tv/helix/users?login=" + username
-            r = requests.get(url, headers=self.newapiheader).json()
-            return r
-        else:
-            print(f"Get User Info - No apiclientid in config.")
-
-    def apinewgetuserinfo(self, username):
-        print(f"Checking token.")
-        self.token = TOA.checktoken()
         if len(self.ClientID) > 2:
             url = "https://api.twitch.tv/helix/users?login=" + username
-            r = requests.get(url, headers=self.newapiheader).json()
+            r = requests.get(url, headers=self.apiheader).json()
             return r
         else:
-            print(f"Get User Info - apinewgetuser failed.")
+            print(f"Get User Info - apigetuser failed.")
 
     def apigetfollowerslist(self, username, ignorejoinlist = None):
         self.token = TOA.checktoken()
@@ -262,7 +257,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 + self.apigetchannelid(str.lower(username))
                 + "&first=100"
             )
-            r = requests.get(url, headers=self.newapiheader).json()
+            r = requests.get(url, headers=self.apiheader).json()
             while len(followinglist) < r["total"]:
                 print("Page of followers checked.")
                 for x in range(len(r["data"])):
@@ -271,7 +266,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     cursorpage = r["pagination"]["cursor"]
                     nexturl = url + "&after=" + cursorpage
                     time.sleep(1)
-                    r = requests.get(nexturl, headers=self.newapiheader).json()
+                    r = requests.get(nexturl, headers=self.apiheader).json()
             if ignorejoinlist == None:
                 if cfg.FollowerAutoJoin and (time.time() - self.starttime < 5):
                     self.AJChannels = followinglist.copy()
@@ -279,6 +274,19 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             return followinglist
         else:
             print(f"Get Followers List - No apiclientid in config.")
+
+    def apibanuid(self, uid, channelid, reason):
+        self.token = TOA.checktoken()
+        if len(uid) > 5:
+            bdata = {"data": {"user_id": + str(uid), "reason": str(reason)}}
+            url = (
+                "https://api.twitch.tv/helix/moderation/bans?"
+                + "broadcaster_id=" + str(channelid)
+                + "&moderator_id=" + str(clientlogin['user_id'])
+            )
+            r = requests.post(url, headers=self.apiheaderpost, json=bdata)
+        else:
+            print(f"UID too short")
 
     def joinchannel(self, channel): # channel name must start with #
         lchannel = str.lower(channel)
@@ -356,7 +364,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 elif "!banspambot" in cmd:
                     splitcmd = cmd.split(" ")
                     if len(splitcmd) != 3:
-                        print(f"Usage: Create a spambotlist.txt in the root path of script. One account per line in lowercase. !banspambot spambotlist.txt #channel\r\n")
+                        print(f"Usage: Create a spambotlist.txt in the root path of script. One account per line in lowercase.\n !banspambot spambotlist.txt #channel\r\n")
                     else:
                         try:
                             print(f"Trying bans.")
@@ -367,10 +375,30 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                                 bchan = str.lower(str.rstrip(splitcmd[2]))
 
                                 self.sendmsg(bchan, "/ban " + buser + " Suspected spam bot.")
-                                time.sleep(10) #Do not set any lower. Will flood and disconnect bot
+                                time.sleep(2) #Do not set any lower. Will flood and disconnect bot
                             f.close()
                         except Exception as e:
                             print(f"Something went wrong.\r\n{e}")
+
+                elif "!banknownbots" in cmd:
+                    splitcmd = cmd.split(" ")
+                    if len(splitcmd) != 2:
+                        print(f"Usage: knownbots.txt from CommanderRoot tool. One UID per line.\n !banknownbots channel\r\n")
+                    else:
+                        try:
+                            if "#" in splitcmd[1]:
+                                chanuid = self.apigetchannelid(splitcmd[1][1:])
+                            else:
+                                chanuid = self.apigetchannelid(splitcmd[1])
+
+                            print(f"Banning UIDs")
+                            f = open("knownbots.txt")
+                            for x in f:
+                                print(f"--- Banning {x} in {splitcmd[1]}.")
+                                self.apibanuid(x, chanuid, "Known Spambot via CommanderRoot")
+                                time.sleep(1.5)
+                        except Exception as e:
+                            print(f"Error in banknownbots\n {e}")
 
                 elif "!bot" in cmd:
                     splitcmd = cmd.split(" ")
@@ -480,7 +508,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                         )
                         print(f"Usage: !getuserinfo mr_protocol\r\n")
                     else:
-                        new = self.apinewgetuserinfo(splitcmd[1])
+                        new = self.apigetuserinfo(splitcmd[1])
                         print(f"New API Info:\r\n{new}")
                 else:
                     print(f"No Command...\r\n")
