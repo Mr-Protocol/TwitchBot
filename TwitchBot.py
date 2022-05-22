@@ -278,7 +278,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
     def apibanuid(self, uid, channelid, reason):
         self.token = TOA.checktoken()
         if len(uid) > 5:
-            bdata = {"data": {"user_id": + str(uid), "reason": str(reason)}}
+            bdata = {"data": {"user_id": + uid, "reason": reason}}
             url = (
                 "https://api.twitch.tv/helix/moderation/bans?"
                 + "broadcaster_id=" + channelid
@@ -387,16 +387,15 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     else:
                         try:
                             if "#" in splitcmd[1]:
-                                chanuid = self.apigetchannelid(splitcmd[1][1:])
+                                print("!banknownbots channel")
                             else:
                                 chanuid = self.apigetchannelid(splitcmd[1])
-
-                            print(f"Banning UIDs")
-                            f = open("knownbots.txt")
-                            for x in f:
-                                print(f"--- Banning {x} in {splitcmd[1]}.")
-                                self.apibanuid(x, chanuid, "Known Spambot via CommanderRoot")
-                                time.sleep(1.5)
+                                print(f"Banning UIDs")
+                                f = open("knownbots.txt")
+                                for x in f:
+                                    print(f"--- Banning {x} in {splitcmd[1]}.")
+                                    self.apibanuid(x, chanuid, "Known Spambot via CommanderRoot")
+                                    time.sleep(1.5)
                         except Exception as e:
                             print(f"Error in banknownbots\n {e}")
 
