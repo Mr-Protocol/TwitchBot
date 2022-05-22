@@ -281,8 +281,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             bdata = {"data": {"user_id": + str(uid), "reason": str(reason)}}
             url = (
                 "https://api.twitch.tv/helix/moderation/bans?"
-                + "broadcaster_id=" + str(channelid)
-                + "&moderator_id=" + str(clientlogin['user_id'])
+                + "broadcaster_id=" + channelid
+                + "&moderator_id=" + clientlogin['user_id']
             )
             r = requests.post(url, headers=self.apiheaderpost, json=bdata)
         else:
