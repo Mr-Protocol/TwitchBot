@@ -275,19 +275,21 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         else:
             print(f"Get Followers List - No apiclientid in config.")
 
-    """def apibanuid(self, uid, channelid, reason):
+    def apibanuid(self, uid, channelid, reason):
         self.token = TOA.checktoken()
         if len(uid) > 5:
-            bdata = {"data": {"user_id": uid, "reason": reason}}
+            bandata = {"data": {"user_id": str(uid).strip(), "reason": str(reason)}}
             url = (
                 "https://api.twitch.tv/helix/moderation/bans?"
-                + "broadcaster_id=" + channelid
-                + "&moderator_id=" + clientlogin['user_id']
+                + "broadcaster_id=" + str(channelid)
+                + "&moderator_id=" + str(clientlogin['user_id'])
             )
-            r = requests.post(url, headers=self.apiheaderpost, data=bdata)
+            r = requests.post(url, headers=self.apiheaderpost, json=bandata)
+            print("Status Code", r.status_code)
+            print("JSON Response ", r.json())
             
         else:
-            print(f"UID too short")"""
+            print(f"UID too short")
 
     def joinchannel(self, channel): # channel name must start with #
         lchannel = str.lower(channel)
@@ -326,7 +328,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             try:
                 if cmd in {"!commands", "!help"}:
                     print(
-                        f"!addmod, !addtrig, !banall, !banspambot, !bot, !chanfilteron, !chanfilteroff, !chanid, !chantrig, !commands, !getuserfollows, !getuserinfo, !help, !modlist, !reloadconfig, !repeatercount, !repeateroff, !repeateron, !showchatters, !uchatters, !ucount\r\n"
+                        f"!addmod, !addtrig, !banall, !banknownbots, !banspambot, !bot, !chanfilteron, !chanfilteroff, !chanid, !chantrig, !commands, !getuserfollows, !getuserinfo, !help, !modlist, !reloadconfig, !repeatercount, !repeateroff, !repeateron, !showchatters, !uchatters, !ucount\r\n"
                     )
 
                 elif "!uchatters" in cmd:
@@ -381,24 +383,24 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                         except Exception as e:
                             print(f"Something went wrong.\r\n{e}")
 
-                # elif "!banknownbots" in cmd:
-                #    splitcmd = cmd.split(" ")
-                #    if len(splitcmd) != 2:
-                #        print(f"Usage: knownbots.txt from CommanderRoot tool. One UID per line.\n !banknownbots channel\r\n")
-                #    else:
-                #        try:
-                #            if "#" in splitcmd[1]:
-                #                print("!banknownbots channel")
-                #            else:
-                #                chanuid = self.apigetchannelid(splitcmd[1])
-                #                print(f"Banning UIDs")
-                #                f = open("knownbots.txt")
-                #                for x in f:
-                #                    print(f"--- Banning {x} in {splitcmd[1]}.")
-                #                    self.apibanuid(x, chanuid, "Known Spambot via CommanderRoot")
-                #                    time.sleep(1.5)
-                #        except Exception as e:
-                #            print(f"Error in banknownbots\n {e}")
+                elif "!banknownbots" in cmd:
+                    splitcmd = cmd.split(" ")
+                    if len(splitcmd) != 2:
+                        print(f"Usage: knownbots.txt from CommanderRoot tool. One UID per line.\n !banknownbots channel\r\n")
+                    else:
+                        try:
+                            if "#" in splitcmd[1]:
+                                print("!banknownbots channel")
+                            else:
+                                chanuid = str(self.apigetchannelid(splitcmd[1]))
+                                print(f"Banning UIDs")
+                                f = open("knownbots.txt")
+                                for x in f:
+                                    print(f"--- Banning {x} in {splitcmd[1]}.")
+                                    self.apibanuid(x, chanuid, "Known Spambot via CommanderRoot")
+                                    time.sleep(2)
+                        except Exception as e:
+                            print(f"Error in banknownbots\n {e}")
 
                 elif "!bot" in cmd:
                     splitcmd = cmd.split(" ")

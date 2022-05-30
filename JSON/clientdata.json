@@ -4,6 +4,6 @@
     "client_id": "",
     "client_secret": "",
     "redirect_uri": "http://localhost",
-    "scope": "channel:moderate chat:edit chat:read whispers:read whispers:edit",
+    "scope": "channel:moderate chat:edit chat:read whispers:read whispers:edit moderator:manage:banned_users",
     "unixexpire": 0
 }
