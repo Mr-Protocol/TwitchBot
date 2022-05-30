@@ -285,8 +285,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 + "&moderator_id=" + str(clientlogin['user_id'])
             )
             r = requests.post(url, headers=self.apiheaderpost, json=bandata)
-            print("Status Code", r.status_code)
-            print("JSON Response ", r.json())
+            # print("Status Code", r.status_code)
+            # print("JSON Response ", r.json())
             
         else:
             print(f"UID too short")
@@ -398,7 +398,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                                 for x in f:
                                     print(f"--- Banning {x} in {splitcmd[1]}.")
                                     self.apibanuid(x, chanuid, "Known Spambot via CommanderRoot")
-                                    time.sleep(2)
+                                    time.sleep(1.7)
                         except Exception as e:
                             print(f"Error in banknownbots\n {e}")
 
