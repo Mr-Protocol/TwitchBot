@@ -398,7 +398,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                                 for x in f:
                                     print(f"--- Banning {x} in {splitcmd[1]}.")
                                     self.apibanuid(x, chanuid, "Known Spambot via CommanderRoot")
-                                    time.sleep(1.7)
+                                    time.sleep(3)
                         except Exception as e:
                             print(f"Error in banknownbots\n {e}")
 
