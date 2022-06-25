@@ -140,6 +140,17 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 time.sleep(60)
                 os.execl(sys.executable, sys.executable, * sys.argv) # Restarts the program.
 
+    def apiheaderupdate(self):
+        self.apiheader = {
+                    "Authorization": "Bearer " + self.token,
+                    "Client-ID": self.ClientID
+                    }
+        self.apiheaderpost = {
+                    "Authorization": "Bearer " + self.token,
+                    "Client-ID": self.ClientID,
+                    "Content-Type": "application/json"
+                    }
+
     # If it doesn't receive a chat message in 1 hour, restart program.
     # Randomly chat will just stop being shown/logged. Not sure why.
     def chatheartbeat(self):
@@ -148,6 +159,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 time.sleep(60 * 60) # 1 hour
                 print(f"Checking token.")
                 self.token = TOA.checktoken()
+                self.apiheaderupdate()
                 print(f"Checking heartbeat...")
                 if (int(time.time()) - self.chatheartbeattime) >= 3600:
                     print(f"{self.timestamp()} - Chat Heartbeat Fail...")
@@ -223,6 +235,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         try:
             print(f"Checking token.")
             self.token = TOA.checktoken()
+            self.apiheaderupdate()
             if len(str(self.ClientID)) > 2:
                 url = "https://api.twitch.tv/helix/users?login=" + channel
                 r = requests.get(url, headers=self.apiheader).json()
@@ -241,6 +254,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
     def apigetuserinfo(self, username):
         print(f"Checking token.")
         self.token = TOA.checktoken()
+        self.apiheaderupdate()
         if len(self.ClientID) > 2:
             url = "https://api.twitch.tv/helix/users?login=" + username
             r = requests.get(url, headers=self.apiheader).json()
@@ -250,6 +264,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
     def apigetfollowerslist(self, username, ignorejoinlist = None):
         self.token = TOA.checktoken()
+        self.apiheaderupdate()
         if len(str(self.ClientID)) > 2:
             followinglist = []
             url = (
@@ -277,6 +292,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
     def apibanuid(self, uid, channelid, reason):
         self.token = TOA.checktoken()
+        self.apiheaderupdate()
         if len(uid) > 5:
             bandata = {"data": {"user_id": str(uid).strip(), "reason": str(reason)}}
             url = (
@@ -285,8 +301,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 + "&moderator_id=" + str(clientlogin['user_id'])
             )
             r = requests.post(url, headers=self.apiheaderpost, json=bandata)
-            # print("Status Code", r.status_code)
-            # print("JSON Response ", r.json())
+            print("Status Code", r.status_code)
+            print("JSON Response ", r.json())
             
         else:
             print(f"UID too short")
