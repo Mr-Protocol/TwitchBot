@@ -74,7 +74,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             auto_join_follow_thread = threading.Thread(target=self.ajchannels_sync)
             auto_join_follow_thread.daemon = True
             auto_join_follow_thread.start()
-        system(f"title TwitchBot @ {self.timestamp()} - {username}")
+        # system(f"title TwitchBot @ {self.timestamp()} - {username}")
         print(f"{self.timestamp()}\r\nConnecting to {server} on port {port} as {username}...\r\n")
         factory = irc.connection.Factory(wrapper=ssl.wrap_socket)
         irc.bot.SingleServerIRCBot.__init__(self, [(server, port, "oauth:" + self.token)], username, username,connect_factory = factory)
