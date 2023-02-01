@@ -20,8 +20,6 @@
 
 #### Send automatic "Thank you" message if gifted a sub.
 
-#### Chat text triggers, copy/pasta mode, giveaway/repeater mode.
-
 #### Mod text triggers.
 
 * User safelist for chat/mod triggers
@@ -29,10 +27,6 @@
 #### Terminal commands when running.
 
 * Use !help
-
-#### Giveaway/Repeater mode.
-
-* Automatically repeats message in chat if it was used X times in a row.
 
 #### Logs
 
