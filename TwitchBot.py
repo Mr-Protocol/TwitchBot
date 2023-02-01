@@ -10,7 +10,6 @@
 # pip install requests
 
 from datetime import timezone
-from os import system
 import sys
 import irc.bot
 import requests
@@ -27,7 +26,6 @@ import ssl
 import json
 import TwitchOAuth as TOA
 import scriptconfig as cfg
-# import loggingdb as SQLDB
 
 # --------------------------------------------------------------------------
 # ---------------------------------- MAGIC ---------------------------------
@@ -81,18 +79,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         factory = irc.connection.Factory(wrapper=ssl.wrap_socket)
         irc.bot.SingleServerIRCBot.__init__(self, [(server, port, "oauth:" + self.token)], username, username,connect_factory = factory)
         self.sub_epoch = 0
-        if cfg.EnableChatTriggers:
-            self.chat_epoch = 0
-        if cfg.EnableCopyPasta:
-            self.epochCopyPasta = 0
         if cfg.EnableModTriggers:
             self.dbModChannels = []
-        if cfg.EnableKeywordRepeater:
-            self.RepeaterEpoch = 0
-            self.dbRepeaterKeyword = {}
-        if cfg.EnableChatTracking:
-            self.dbChatters = {}
-            self.ChattersStartTime = self.timestamp(0)
         if cfg.AutoJoinHosts and cfg.LogAutoJoinHostChannels:
             if os.path.exists("Logs/Auto Join Hosts/AutoJoinHostChannels.txt"):
                 os.remove("Logs/Auto Join Hosts/AutoJoinHostChannels.txt")
@@ -107,9 +95,6 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         ReloadConfig_thread = threading.Thread(target=self.reloadconfigfile)
         ReloadConfig_thread.daemon = True
         ReloadConfig_thread.start()
-        activechannellist_thread = threading.Thread(target=self.activechannellist)
-        activechannellist_thread.daemon = True
-        activechannellist_thread.start()
         self.checklogdir("StartLog")
         f = open(f"Logs/StartLog/StartLog.txt", "a+", encoding="utf-8-sig",)
         f.write(f"{self.timestamp()} - Started - \r\n")
@@ -205,26 +190,6 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             else:
                 print(f"Config channels list is empty.\r\n")
 
-    # This will delete and re-create the active joined channels
-    def activechannellist(self):
-        while True:
-            time.sleep(60 * 5) # Every 5 min
-            if cfg.AutoJoinHosts:
-                self.checklogdir("Active Channels")
-                # Delete current file
-                try:
-                    os.remove("Logs/Active Channels/ActiveChannels.txt")
-                except:
-                    pass
-                f = open(
-                    f"Logs/Active Channels/ActiveChannels.txt",
-                    "a+",
-                    encoding="utf-8-sig",
-                )
-                for x in self.JoinedChannelsList:
-                    f.write(x + '\n')
-                f.close()
-
     def reloadconfigfile(self):
         while True:
             time.sleep(60 * 10)  # 10 min
@@ -293,33 +258,49 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
     def apibanuid(self, uid, channelid, reason):
         self.token = TOA.checktoken()
         self.apiheaderupdate()
-        if len(uid) > 5:
-            bandata = {"data": {"user_id": str(uid).strip(), "reason": str(reason)}}
-            url = (
-                "https://api.twitch.tv/helix/moderation/bans?"
-                + "broadcaster_id=" + str(channelid)
-                + "&moderator_id=" + str(clientlogin['user_id'])
-            )
-            r = requests.post(url, headers=self.apiheaderpost, json=bandata)
-            print("Status Code", r.status_code)
-            print("JSON Response ", r.json())
+        try:
+            if len(uid) > 5:
+                bandata = {"data": {"user_id": str(uid).strip(), "reason": str(reason)}}
+                url = (
+                    "https://api.twitch.tv/helix/moderation/bans?"
+                    + "broadcaster_id=" + str(channelid)
+                    + "&moderator_id=" + str(clientlogin['user_id'])
+                )
+                r = requests.post(url, headers=self.apiheaderpost, json=bandata)
+                print("Status Code", r.status_code)
+                print("JSON Response ", r.json())
             
-        else:
-            print(f"UID too short")
+            else:
+                print(f"UID too short")
+        except Exception as e:
+            print(f"Error in apibanuid\n {e}")
+            pass
+
+    def apibantimeoutuid(self, uid, channelid, dur, reason):
+        self.token = TOA.checktoken()
+        self.apiheaderupdate()
+        try:
+            if len(uid) > 5:
+                bandata = {"data": {"user_id": str(uid).strip(), "duration": str(dur), "reason": str(reason)}}
+                url = (
+                    "https://api.twitch.tv/helix/moderation/bans?"
+                    + "broadcaster_id=" + str(channelid)
+                    + "&moderator_id=" + str(clientlogin['user_id'])
+                )
+                r = requests.post(url, headers=self.apiheaderpost, json=bandata)
+                print("Status Code", r.status_code)
+                print("JSON Response ", r.json())
+            
+            else:
+                print(f"UID too short")
+        except Exception as e:
+            print(f"Error in apibantimeoutuid\n {e}")
+            pass
 
     def joinchannel(self, channel): # channel name must start with #
         lchannel = str.lower(channel)
         if lchannel not in self.JoinedChannelsList:
             print(f"Attempting to join: {lchannel}")
-            """# Add channel to SQLite Database
-            exists = SQLDB.dbaddchancheck(lchannel[1:])
-            if not exists:
-                try:
-                    SQLDB.dbaddchan(int(self.apigetchannelid(lchannel[1:])),lchannel[1:])
-                    time.sleep(2)
-                except:
-                    print("Error: Skipping SQL command.")
-                    pass"""
             self.connection.join(lchannel)
             self.JoinedChannelsList.append(lchannel)
 
@@ -344,79 +325,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             try:
                 if cmd in {"!commands", "!help"}:
                     print(
-                        f"!addmod, !addtrig, !banall, !banknownbots, !banspambot, !bot, !chanfilteron, !chanfilteroff, !chanid, !chantrig, !commands, !getuserfollows, !getuserinfo, !help, !modlist, !reloadconfig, !repeatercount, !repeateroff, !repeateron, !showchatters, !uchatters, !ucount\r\n"
+                        f"!addmod, !addtrig, !bot, !chanfilteron, !chanfilteroff, !chanid, !chantrig, !commands, !getuserfollows, !getuserinfo, !help, !modlist, !reloadconfig\r\n"
                     )
-
-                elif "!uchatters" in cmd:
-                    splitcmd = cmd.split(" ")
-                    if len(splitcmd) == 1:
-                        print(f"Usage: !uchatters #channel\r\n")
-                    else:
-                        print(f"There are {len(self.dbChatters[splitcmd[1]])} chatters since {self.ChattersStartTime}. in {splitcmd[1]}")
-                        print(f"Current Time: {self.timestamp(0)}\r\n")
-
-                elif "!banall" in cmd:
-                    splitcmd = cmd.split(" ")
-                    if len(splitcmd) != 2:
-                        print(f"!banall - Bans list in all channels with moderator.\r\nUsage: Create a .txt file in script path with the list of names and reason separated by ;\r\n!banall banlist.txt\r\n Example banlist.txt:\r\nspambot123;Spambot account\r\n")
-                    else:
-                        try:
-                            for mchan in range(len(self.dbModChannels)): # Rotates through moderator channels
-                                f = open(splitcmd[1],"r")
-                                print(f"Trying bans for channel: {self.dbModChannels[mchan]}")
-                                try:
-                                    for x in f: # Goes down the .txt list and splits Twich account and reason
-                                        if ";" in x:
-                                            splitlist = x.split(";")
-                                            print(f"---- Banning {splitlist[0]} in {self.dbModChannels[mchan]} - Reason {str.rstrip(splitlist[1])}.")
-                                            self.sendmsg(self.dbModChannels[mchan], "/ban " + str.lower(str.rstrip(splitlist[0])) + " " + str.rstrip(splitlist[1]))
-                                            time.sleep(10) # Do not set any lower. Will flood and disconnect bot
-                                        else:
-                                            continue
-                                except Exception as e:
-                                    print(f"Error with list. \r\n{e}")
-                                f.close()
-                                time.sleep(1)
-                        except Exception as e:
-                            print(f"Something went wrong - mod chans loop\r\n{e}")
-
-                elif "!banspambot" in cmd:
-                    splitcmd = cmd.split(" ")
-                    if len(splitcmd) != 3:
-                        print(f"Usage: Create a spambotlist.txt in the root path of script. One account per line in lowercase.\n !banspambot spambotlist.txt #channel\r\n")
-                    else:
-                        try:
-                            print(f"Trying bans.")
-                            f = open(splitcmd[1],"r")
-                            for x in f:
-                                print(f"---- Banning {x} in {splitcmd[2]}.")
-                                buser = str.lower(str.rstrip(x))
-                                bchan = str.lower(str.rstrip(splitcmd[2]))
-
-                                self.sendmsg(bchan, "/ban " + buser + " Suspected spam bot.")
-                                time.sleep(2) #Do not set any lower. Will flood and disconnect bot
-                            f.close()
-                        except Exception as e:
-                            print(f"Something went wrong.\r\n{e}")
-
-                elif "!banknownbots" in cmd:
-                    splitcmd = cmd.split(" ")
-                    if len(splitcmd) != 2:
-                        print(f"Usage: knownbots.txt from CommanderRoot tool. One UID per line.\n !banknownbots channel\r\n")
-                    else:
-                        try:
-                            if "#" in splitcmd[1]:
-                                print("!banknownbots channel")
-                            else:
-                                chanuid = str(self.apigetchannelid(splitcmd[1]))
-                                print(f"Banning UIDs")
-                                f = open("knownbots.txt")
-                                for x in f:
-                                    print(f"--- Banning {x} in {splitcmd[1]}.")
-                                    self.apibanuid(x, chanuid, "Known Spambot via CommanderRoot")
-                                    time.sleep(3)
-                        except Exception as e:
-                            print(f"Error in banknownbots\n {e}")
 
                 elif "!bot" in cmd:
                     splitcmd = cmd.split(" ")
@@ -427,21 +337,6 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                             splitcmd[1],
                             f"Beep Bop Boop Beep... I'm not a bot, I'm a real man!",
                         )
-
-                elif "!ucount" in cmd:
-                    splitcmd = cmd.split(" ")
-                    if len(splitcmd) == 1:
-                        print(f"Usage: !ucount #channel username\r\n")
-                    else:
-                        currentchannel = splitcmd[1]
-                        ucountuser = splitcmd[2]
-                        try:
-                            print(
-                                f"The user {ucountuser} has {self.dbChatters[currentchannel][ucountuser]} messages since {self.ChattersStartTime}."
-                            )
-                            print(f"Current Time: {self.timestamp(0)}\r\n")
-                        except:
-                            print(f"User not found\r\n")
 
                 elif cmd == "!chanfilteron":
                     cfg.ChanFilters = 1
@@ -457,44 +352,6 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                         print(f"Get channel id. !chanid channel")
                     else:
                         print(f"{self.apigetchannelid(splitcmd[1])}")
-
-                elif cmd == "!repeateron":
-                    cfg.EnableKeywordRepeater = 1
-                    print(
-                        f"Enabled keyword repeater. Count trigger: {cfg.KeywordRepeaterCount}\r\n"
-                    )
-
-                elif cmd == "!repeateroff":
-                    cfg.EnableKeywordRepeater = 0
-                    print(f"Disabled keyword repeater.\r\n")
-
-                elif "!repeatercount" in cmd:
-                    splitcmd = cmd.split(" ")
-                    if len(splitcmd) == 1:
-                        print(f"Usage: !repeatercount #")
-                    else:
-                        cfg.KeywordRepeaterCount = splitcmd[1]
-                        print(f"Keyword repeater count set to: {splitcmd[1]}\r\n")
-
-                elif "!showchatters" in cmd:
-                    splitcmd = cmd.split(" ")
-                    if len(splitcmd) == 1:
-                        print(
-                            f"Shows number of messages and chatters of #channel. Highest to lowest sort."
-                        )
-                        print(f"Usage: !showchatters #channel\r\n")
-                    else:
-                        currentchannel = splitcmd[1]
-                        sorted_d = sorted(
-                            (
-                                (value, key)
-                                for (key, value) in self.dbChatters[
-                                    currentchannel
-                                ].items()
-                            ),
-                            reverse=True,
-                        )
-                        print(f"Chatters in {currentchannel}: {sorted_d}\r\n")
 
                 elif cmd == "!modlist":
                     print(f"{self.dbModChannels}")
@@ -634,6 +491,10 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             if x["key"] == "mod":
                 if x["value"] == "1":
                     isamod = True
+            if x["key"] == "user-id":
+                chatuserid = x["value"]
+            if x["key"] == "room-id":
+                roomid = x["value"]
             if x["key"] == "badges":
                 if "vip" in str(x["value"]):
                     isavip = True
@@ -696,23 +557,6 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             + themsg
         )
 
-        """# Chat logging to SQLDB
-        dbbroadcaster = 0
-        dbmod = 0
-        dbvip = 0
-        dbsub = 0
-        if isbroadcaster:
-            dbbroadcaster = 1
-        if isamod:
-            dbmod = 1
-        if isavip:
-            dbvip = 1
-        if isasub:
-            dbsub = 1
-        if cfg.EnableLogChatMessages:
-            if "GLOBAL" in cfg.ChatLogChannels or currentchannel in cfg.ChatLogChannels or currentchannel in self.dbModChannels:
-                SQLDB.dbaddchatlog(currentchannel[1:],chatuser,themsg,dbbroadcaster,dbmod,dbvip,dbsub)"""
-
         # ASCII ART - Log potential messages for future mod triggers
         if cfg.LogAscii:
             if any(x in cfg.LogAsciiSet for x in themsg):
@@ -725,104 +569,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 )
                 f.close()
 
-        # Repeater Mode aka Giveaway Mode
-        if cfg.EnableKeywordRepeater:  # Counting keyword
-            if currentchannel in self.dbRepeaterKeyword:
-                pass
-            else:
-                self.dbRepeaterKeyword.update({currentchannel: ("", 0)})            
-            
-            if self.dbRepeaterKeyword[currentchannel][0] == themsg:
-                self.dbRepeaterKeyword.update(
-                    {
-                        currentchannel: (
-                            themsg,
-                            self.dbRepeaterKeyword[currentchannel][1] + 1,
-                        )
-                    }
-                )
-                if self.dbRepeaterKeyword[currentchannel][1] >= cfg.KeywordRepeaterCount:
-                    if time.time() - self.RepeaterEpoch >= 30:  # A little anti-spam
-                        self.sendmsg(currentchannel, themsg)
-                        self.dbRepeaterKeyword.update({currentchannel: ("", 0)})
-                        self.RepeaterEpoch = time.time()
-            else:  # New keyword
-                self.dbRepeaterKeyword.update({currentchannel: (themsg, 0)})
-
-        # CopyPasta Mode
-        if cfg.EnableCopyPasta:
-            if currentchannel in cfg.CopyPastaTriggers:
-                for x in range(len(cfg.CopyPastaTriggers[currentchannel])):
-                    if str.lower(cfg.CopyPastaTriggers[currentchannel][x]) in str.lower(
-                        themsg
-                    ):
-                        if time.time() - self.epochCopyPasta >= 90:
-                            self.epochCopyPasta = time.time()
-                            self.sendmsg(currentchannel, themsg)
-                            print(f"{self.timestamp()} {currentchannel} {self.username}: {themsg}\r\n")
-
-        # Tracking Chatters Info
-        if cfg.EnableChatTracking:
-            if currentchannel in self.dbChatters:
-                if str.lower(chatuser) in self.dbChatters[currentchannel]:
-                    self.dbChatters[currentchannel][str.lower(chatuser)] += 1
-                else:
-                    self.dbChatters[currentchannel][str.lower(chatuser)] = 1
-            else:
-                self.dbChatters[currentchannel] = {str.lower(chatuser): 1}
-
-        # Chat Triggers - uses lcase themsg directly
-        if cfg.EnableChatTriggers:
-            for ChanAndGlobal in cfg.ChatTriggers:
-                if currentchannel == ChanAndGlobal or ChanAndGlobal == "GLOBAL":
-                    for x in range(len(cfg.ChatTriggers[ChanAndGlobal])):
-                        if str.lower(cfg.ChatTriggers[ChanAndGlobal][x][0]) in str.lower(themsg):
-                            cresponse = cfg.ChatTriggers[ChanAndGlobal][x][1]
-                            if cfg.ChatTriggers[ChanAndGlobal][x][2]:
-                                cresponse = f"{cresponse} {chatuser}"
-                            if cfg.AutomatedRespondEnabled:
-                                cresponse = f"{cresponse} {cfg.AutomatedResponseMsg}"
-                            # Log it
-                            self.checklogdir("ChatTriggers")
-                            f = open(
-                                f"Logs/ChatTriggers/{logchan}_ChatTriggerLog.txt",
-                                "a+",
-                                encoding="utf-8-sig",
-                            )
-                            f.write(f"{self.timestamp()} TRIGGER EVENT: {currentchannel}{chatheader}{chatuser}: {themsg}\r\n")
-                            f.close()
-                            if currentchannel in self.dbModChannels or (time.time() - self.chat_epoch >= 30):  # A little anti-spam for triggered words
-                                if currentchannel not in self.dbModChannels:
-                                    self.chat_epoch = time.time()
-                                if str.lower(self.username) == str.lower(chatuser):
-                                    time.sleep(1.5)
-                                self.sendmsg(currentchannel, cresponse)
-                                print(f"{self.timestamp()} {currentchannel} - {self.username}: {cresponse}")
-                                f = open(
-                                    f"Logs/ChatTriggers/{logchan}_ChatTriggerLog.txt",
-                                    "a+",
-                                    encoding="utf-8-sig",
-                                )
-                                f.write(f"{self.timestamp()} SENT: {chatheader}{self.username}: {cresponse}\r\n")
-                                f.close()
-
         # Mod Triggers - uses the lcase themsg and splits words via spaces
-        # Timeout Non-ASCII Chat
-        if cfg.EnableModTriggers:
-            if cfg.EnableNonASCIITimeout:
-                if currentchannel in cfg.TimeoutNonASCII:
-                    if str(themsg).isascii() == False:
-                        self.sendmsg(currentchannel, f"/timeout {chatuser} 1 Automated - Non-ASCII")
-                        print(f"{self.timestamp()} {currentchannel} - !MOD!-{self.username}: /timeout {chatuser} 1 Automated - Non-ASCII")
-                        f = open(
-                            f"Logs/ModTriggers/{logchan}_ModTriggerLog.txt",
-                            "a+",
-                            encoding="utf-8-sig",
-                        )
-                        f.write(f"{self.timestamp()} TRIGGER EVENT: {chatheader}{chatuser}: {themsg}\r\n")
-                        f.write(f"{self.timestamp()} SENT: !MOD!-{self.username}: /timeout {chatuser} 1 Automated - Non-ASCII\r\n")
-                        f.close()
-
         # Regular Mod Triggers
         if cfg.EnableModTriggers:
             # Skip parsing and triggers if the user is a mod/host, VIP, or in safelist, also if user is a sub
@@ -839,42 +586,37 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     for ChanAndGlobal in cfg.ModTriggers:
                         if currentchannel == ChanAndGlobal or ChanAndGlobal == "GLOBAL":
                             for x in range(len(cfg.ModTriggers[ChanAndGlobal])):
+                                # Matches text to the message
                                 if str.lower(cfg.ModTriggers[ChanAndGlobal][x][0]) in str.lower(themsg):
+                                    # Defines if it's a /ban or /timeout
                                     mresponse = cfg.ModTriggers[ChanAndGlobal][x][1]
                                     self.checklogdir("ModTriggers")
                                     # Handle mod text response
                                     if cfg.ModTriggers[ChanAndGlobal][x][2]:
+                                        # If there is a mod auto reponse y/n
                                         modresponse = cfg.ModTriggers[ChanAndGlobal][x][2]
                                         if cfg.ModTriggers[ChanAndGlobal][x][3]:
+                                            # If desired to tag the user 1/0
                                             modresponse = f"{modresponse} {chatuser}"
                                         self.sendmsg(currentchannel, f"{modresponse}")
                                         print(f"{self.timestamp()} {currentchannel} - !MOD!-{self.username}: {modresponse}")
                                     try:
-                                        splitresponse = mresponse.split(" ")
-                                        modoptions = ""
-                                        for x in splitresponse[1:]:
-                                            modoptions = f"{modoptions} {x}"
-                                        self.sendmsg(currentchannel, f"{splitresponse[0]} {chatuser}{modoptions}")
-                                        print(f"{self.timestamp()} {currentchannel} - !MOD!-{self.username}: {splitresponse[0]} {chatuser}{modoptions}")
+                                        splitresponse = mresponse.split(" ", 1)
+                                        if 'timeout' in splitresponse[0]:
+                                            self.apibantimeoutuid(chatuserid, roomid, splitresponse[1].split[" ",2][1], splitresponse[1].split[" ",2][2])
+                                        if 'ban' in splitresponse[0]:
+                                            self.apibanuid(chaturserid, roomid, splitresponse[1])
+                                        print(f"{self.timestamp()} {currentchannel} - !MOD!-{self.username}: {splitresponse[0]} {chatuser} {splitresponse[1]}")
                                         f = open(
                                             f"Logs/ModTriggers/{logchan}_ModTriggerLog.txt",
                                             "a+",
                                             encoding="utf-8-sig",
                                         )
                                         f.write(f"{self.timestamp()} TRIGGER EVENT: {chatheader}{chatuser}: {themsg}\r\n")
-                                        f.write(f"{self.timestamp()} SENT: !MOD!-{self.username}: {splitresponse[0]} {chatuser}{modoptions}\r\n")
+                                        f.write(f"{self.timestamp()} SENT: !MOD!-{self.username}: {splitresponse[0]} {chatuser} {splitresponse[1]}\r\n")
                                         f.close()
                                     except:
-                                        self.sendmsg(currentchannel, f"{mresponse} {chatuser}")
-                                        print(f"{self.timestamp()} {currentchannel} - !MOD!-{self.username}: {mresponse} {chatuser}")
-                                        f = open(
-                                            f"Logs/ModTriggers/{logchan}_ModTriggerLog.txt",
-                                            "a+",
-                                            encoding="utf-8-sig",
-                                        )
-                                        f.write(f"{self.timestamp()} TRIGGER EVENT: {chatheader}{chatuser}: {themsg}\r\n")
-                                        f.write(f"{self.timestamp()} SENT: !MOD!-{self.username}: {mresponse} {chatuser}\r\n")
-                                        f.close()
+                                        print(f"ERROR IN MODTRIGGER")
 
     def on_welcome(self, c, e):
         # You must request specific capabilities before you can use them
@@ -1049,35 +791,14 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 if banduration:
                     if banreason:
                         banmsg = f"{self.timestamp()} {currentchannel} - {user} timeout for {banduration} seconds. {banreason}"
-                        # SQL log
-                        # SQLDB.dbaddclearchat(currentchannel[1:],user,banmsg,int(banduration),0)
                     else:
                         banmsg = f"{self.timestamp()} {currentchannel} - {user} timeout for {banduration} seconds."
-                        # SQL log
-                        # SQLDB.dbaddclearchat(currentchannel[1:],user,banmsg,int(banduration),0)
                 else:
                     if banreason:
                         banmsg = f"{self.timestamp()} {currentchannel} - {user} is banned. {banreason}"
-                        # SQL log
-                        # SQLDB.dbaddclearchat(currentchannel[1:],user,banmsg,0,1)
                     else:
                         banmsg = f"{self.timestamp()} {currentchannel} - {user} is banned."
-                        # SQL log
-                        # SQLDB.dbaddclearchat(currentchannel[1:],user,banmsg,0,1)
                 
-                # SQLite log testing - put enable/disable logic here eventually and add actual ban loop
-                """self.checklogdir("testing")
-                if SQLDB.banlist(currentchannel[1:],user):
-                    banlisttest = SQLDB.banlist(currentchannel[1:],user)
-                    if banlisttest:
-                        f = open(
-                            f"Logs/testing/banlisttest.txt",
-                            "a+",
-                            encoding="utf-8-sig",
-                        )
-                        f.write(f"{banlisttest}\r\n")
-                        f.close()"""
-
                 if cfg.ChanFilters and e.target not in cfg.ChanTermFilters:
                     pass
                 else:

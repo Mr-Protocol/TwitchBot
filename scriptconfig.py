@@ -112,7 +112,7 @@ AnnounceModeChanges = 0
 #------------------------------ Chat Triggers ------------------------------
 #---------------------------------------------------------------------------
 
-# Chat Triggers and Mod Triggers are automatically logged.
+# Mod Triggers are automatically logged.
 
 # Chat/Mod trigger safelist
 # SafelistUsers = ['mr_protocol','anotheruser','user3']
@@ -123,56 +123,6 @@ DontTriggerVIP = 0
 
 # Don't trigger on subscribers of channel
 DontTriggerSubs = 0
-
-# Add automated text to the end of triggers message.
-AutomatedRespondEnabled = 0
-
-# Automated text to append to normal triggers
-AutomatedResponseMsg = '(Automated Response)'
-
-# Enable Chat Triggers
-EnableChatTriggers = 0
-
-# Chat Triggers - ('Trigger','response', 1) 1 = tag user, 0 = don't tag user
-ChatTriggers = {
-    '#mr_protocol':[
-        ('Hype!', 'MORE HYPE!', 0),
-        ('sometriggerwordhere', 'FeelsBadMan', 0)
-    ],
-    '#thisisjustaplaceholder':[
-        ('Hype!', 'MORE HYPE!', 0),
-        ('sometriggerwordhere', 'FeelsBadMan', 0)
-    ],
-    '#thisisjustaplaceholder2':[
-        ('Hype!', 'MORE HYPE!', 0),
-        ('sometreiggerwordhere', 'FeelsBadMan', 0)
-    ],
-    # GLOBAL will try and do the commands in any channel.
-    'GLOBAL':[
-        ('Thisisjustaplaceholder','MORE HYPE!',1)
-    ]
-}
-
-# Enable Copy Pasta
-EnableCopyPasta = 0
-
-# Copy Pasta mode will repeat a message based on a word/phrase trigger. Whatever the user said that contains the word/phrase will be repeated.
-# Copy Pasta Triggers - ('Trigger')
-CopyPastaTriggers = {
-    '#mr_protocol':[
-        ('prime')
-    ],
-    '#channelnamehere':[
-        ('thisisjustaplaceholder')
-    ],
-    '#channelnamehere2':[
-        ('thisisjustaplaceholder')
-    ],
-    '#channelnamehere3':[
-        ('thisisjustaplaceholder'),
-        ('thisisjustaplaceholder2')
-    ]
-}
 
 # Mod Triggers - ('Trigger','mod action','Text response',1/0)
 # If the mod action is /timeout you can leave blank for default timeout or specify a number of seconds
@@ -187,14 +137,6 @@ CopyPastaTriggers = {
 
 #Enable Mod Triggers
 EnableModTriggers = 0
-
-# Timeout Non-ASCII chatters - Times out for 1 second
-# Needs EnableModTriggers enabled
-EnableNonASCIITimeout = 0
-
-# Timeout Non-ASCII chatters in these channels
-# TimeoutNonASCII = ['#mr_protocol', '#shroud']
-TimeoutNonASCII = ['#mr_protocol']
 
 # Example
 # ModTriggers = {
@@ -218,21 +160,9 @@ ModTriggers = {
     ]
 }
 
-# Keyword Repeater
-# Useful for when you have to type a keyword to enter a giveaway.
-# Use a Chat Trigger to setup a response if a message says "You Win"
-EnableKeywordRepeater = 0
-
-# Repeat/Send keyword after # of consecutive repeats.
-KeywordRepeaterCount = 7
-
 # Enable Bot Commands
 # Turns on terminal commands !enable or !commands or !help
 EnableBotCommands = 0
-
-# Enable tracking of chatters in channel
-# Keeps track of users chatting and how many messages
-EnableChatTracking = 0
 
 #---------------------------------------------------------------------------
 #----------------------------------- Logs ----------------------------------
