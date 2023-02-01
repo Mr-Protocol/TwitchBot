@@ -598,10 +598,11 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                                         print(f"{self.timestamp()} {currentchannel} - !MOD!-{self.username}: {modresponse}")
                                     try:
                                         splitresponse = mresponse.split(" ", 1)
+                                        print(splitresponse[0])
                                         if 'timeout' in splitresponse[0]:
-                                            self.apibantimeoutuid(chatuserid, roomid, splitresponse[1].split[" ",2][1], splitresponse[1].split[" ",2][2])
+                                            self.apibantimeoutuid(str(chatuserid), str(roomid), str(splitresponse[1].split(" ",1)[0]), str(splitresponse[1].split(" ",1)[1]))
                                         if 'ban' in splitresponse[0]:
-                                            self.apibanuid(chaturserid, roomid, splitresponse[1])
+                                            self.apibanuid(str(chatuserid), str(roomid), str(splitresponse[1]))
                                         print(f"{self.timestamp()} {currentchannel} - !MOD!-{self.username}: {splitresponse[0]} {chatuser} {splitresponse[1]}")
                                         f = open(
                                             f"Logs/ModTriggers/{logchan}_ModTriggerLog.txt",
@@ -611,8 +612,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                                         f.write(f"{self.timestamp()} TRIGGER EVENT: {chatheader}{chatuser}: {themsg}\r\n")
                                         f.write(f"{self.timestamp()} SENT: !MOD!-{self.username}: {splitresponse[0]} {chatuser} {splitresponse[1]}\r\n")
                                         f.close()
-                                    except:
-                                        print(f"ERROR IN MODTRIGGER")
+                                    except Exception as e:
+                                        print(e)
 
     def on_welcome(self, c, e):
         # You must request specific capabilities before you can use them

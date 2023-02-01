@@ -129,8 +129,8 @@ DontTriggerSubs = 0
 # If no text response is desired, put None without quotes
 # The 1/0 means put either a 1 or 0 to tag the chat user in the txt response. 1=tag 0=no tag
 
-# Usage: "/timeout <login> [duration][time unit] [reason]" - Temporarily prevent a user from chatting.
-# Duration (optional, default=10 minutes) must be a positive integer; time unit (optional, default=s) must be one of s, m, h, d, w; maximum duration is 2 weeks.
+# Usage: "/timeout <login> [duration in seconds] [reason]" - Temporarily prevent a user from chatting.
+# Duration (optional, default=10 minutes) must be a positive integer in seconds; maximum duration is 2 weeks.
 # Combinations like 1d2h are also allowed.
 
 # Usage: "/ban <username> [reason]" - Permanently prevent a user from chatting. Reason is optional and will be shown to the target user and other moderators. Use "unban" to remove a ban.
@@ -156,7 +156,7 @@ ModTriggers = {
     ],
     # GLOBAL apply to all channels where username has mod.
     'GLOBAL':[
-        ('█','/timeout 2m ASCII Art Char (Automated)',None,1) # most common ASCII Art Character
+        ('█','/timeout 120 ASCII Art Char (Automated)',None,1) # most common ASCII Art Character
     ]
 }
 
