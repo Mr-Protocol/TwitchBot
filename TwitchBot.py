@@ -400,9 +400,6 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
     # Checks config file for basic Chat and Mod trigger errors.
     def checktriggers(self,triggerlist):
         try:
-            if triggerlist == cfg.ChatTriggers:
-                c = 3
-                listname = "Chat Triggers"
             if triggerlist == cfg.ModTriggers:
                 c = 4
                 listname = "Mod Triggers"
