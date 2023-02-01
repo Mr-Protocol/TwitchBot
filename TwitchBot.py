@@ -435,7 +435,6 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         if self.token == "":
             print(f"Error: No OAUTH token defined")
             exit()
-        self.checktriggers(cfg.ChatTriggers)
         self.checktriggers(cfg.ModTriggers)
 
     def chatlogmessage(self, currentchannel, message):
