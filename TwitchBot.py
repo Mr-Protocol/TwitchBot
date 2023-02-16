@@ -66,6 +66,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         self.username = username
         self.configchannels = channels
         server = "irc.chat.twitch.tv"
+        # Original Port
+        # port = 6667
         port = 6697
         self.checkconfig()
         self.AJChannels = []
@@ -78,6 +80,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         print(f"{self.timestamp()}\r\nConnecting to {server} on port {port} as {username}...\r\n")
         factory = irc.connection.Factory(wrapper=ssl.wrap_socket)
         irc.bot.SingleServerIRCBot.__init__(self, [(server, port, "oauth:" + self.token)], username, username,connect_factory = factory)
+        # Original connect command, plaintext connection
+        # irc.bot.SingleServerIRCBot.__init__(self, [(server, port, 'oauth:'+token)], username, username)
         self.sub_epoch = 0
         if cfg.EnableModTriggers:
             self.dbModChannels = []
@@ -307,8 +311,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
     def joinchannellist(self, channel_list):
         for x in channel_list:
             self.joinchannel(x)
-            time.sleep(.5)
-            # JOINs are rate-limited to 50 JOINs/commands per 15 seconds. Additional JOINs sent after this will cause an unsuccessful login.
+            time.sleep(1)
+            # JOINs are rate-limited to 20 JOINs/commands per 10 seconds. Additional JOINs sent after this will cause an unsuccessful login.
         print("")
     
     def sendmsg(self, channel, message):
@@ -461,6 +465,17 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         )
         f.write(f"{edata}\r\n\r\n")
         f.close()
+
+    def threadautojoin(self):
+        # joins channels you are following if enabled
+        if cfg.FollowerAutoJoin:
+            print(f"Joining all followed channels.\r\n")
+            self.joinchannellist(self.apigetfollowerslist(self.username))
+
+        # joins specified channels
+        if len(self.configchannels) > 0:
+            print(f"Joining list of channels.")
+            self.joinchannellist(self.configchannels)
 
     def chattextparsing(self, edata):
         self.chatheartbeattime = int(time.time()) # Update time for chat heartbeat
@@ -617,23 +632,18 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
     def on_welcome(self, c, e):
         # You must request specific capabilities before you can use them
-        c.cap("REQ", ":twitch.tv/membership")
-        c.cap("REQ", ":twitch.tv/tags")
-        c.cap("REQ", ":twitch.tv/commands")
+        c.cap("REQ", ":twitch.tv/membership twitch.tv/tags twitch.tv/commands")
+        # c.cap("REQ", ":twitch.tv/membership")
+        # c.cap("REQ", ":twitch.tv/tags")
+        # c.cap("REQ", ":twitch.tv/commands")
 
         # Used for debugging.
         if cfg.debug_on_welcome:
             self.debuglog(e)
 
-        # joins channels you are following if enabled
-        if cfg.FollowerAutoJoin:
-            print(f"Joining all followed channels.\r\n")
-            self.joinchannellist(self.apigetfollowerslist(self.username))
-
-        # joins specified channels
-        if len(self.configchannels) > 0:
-            print(f"Joining list of channels.")
-            self.joinchannellist(self.configchannels)
+        autojoin_thread = threading.Thread(target=self.threadautojoin)
+        autojoin_thread.daemon = True
+        autojoin_thread.start()
 
     def on_pubmsg(self, c, e):
         # Used for debugging.
