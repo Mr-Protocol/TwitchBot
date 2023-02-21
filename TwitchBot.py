@@ -26,6 +26,9 @@ import ssl
 import json
 import TwitchOAuth as TOA
 import scriptconfig as cfg
+import Twitch2Database as t2d
+
+DATABASE_LOCATION = os.path.dirname(os.path.relpath(__file__)) + 'TwitchChat.db'
 
 # --------------------------------------------------------------------------
 # ---------------------------------- MAGIC ---------------------------------
@@ -310,9 +313,10 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
     def joinchannellist(self, channel_list):
         for x in channel_list:
-            self.joinchannel(x)
-            time.sleep(1)
-            # JOINs are rate-limited to 20 JOINs/commands per 10 seconds. Additional JOINs sent after this will cause an unsuccessful login.
+            if x not in self.JoinedChannelsList:
+                self.joinchannel(x)
+                time.sleep(1)
+                # JOINs are rate-limited to 20 JOINs/commands per 10 seconds. Additional JOINs sent after this will cause an unsuccessful login.
         print("")
     
     def sendmsg(self, channel, message):
@@ -652,6 +656,16 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
         self.chattextparsing(e)
 
+        # SQL Database Stuff
+        try:
+            chat_json = json.loads(json.dumps(e.__dict__))
+            filtered_blocks = t2d.filter_message_block(chat_json)
+            t2d.populate_messages(DATABASE_LOCATION, filtered_blocks)
+        except:
+            print('\nSQL ERROR - PUBMSG recording failed.\n')
+            self.debuglog(e)
+            pass
+
     def on_userstate(self, c, e):
         # Used for debugging.
         if cfg.debug_on_userstate:
@@ -833,6 +847,32 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     f.close()
             except:
                 print(f"Something went wrong on_clearchat:\r\nError:\r\n{e}")
+
+        # SQL Database stuff
+        try:
+            ban_record = json.loads(json.dumps(e.__dict__))
+            filtered_blocks = t2d.filter_ban_block(ban_record)
+            t2d.populate_ban(DATABASE_LOCATION, filtered_blocks)
+        except:
+            print('\nSQL ERROR - Ban or Timeout recording failed.\n')
+            self.debuglog(e)
+            pass
+
+    def on_clearmsg(self, c, e):
+        # Shows when mod deletes single msg
+        # print(e)
+        try:
+            deleted_message = json.loads(json.dumps(e.__dict__))
+            filtered_blocks = t2d.filter_delete_block(deleted_message)
+            t2d.populate_deleted_msg(DATABASE_LOCATION, filtered_blocks)
+        except:
+            print('\nSQL ERROR - Deleted message recording failed.\n')
+            self.debuglog(e)
+            pass
+
+    def on_notice(self, c, e):
+        print(e)
+        self.debuglog(e)
 
     def on_globaluserstate(self, c, e):
         # Not sure if this is real or not
@@ -1116,6 +1156,9 @@ if __name__ == "__main__":
     with open('JSON/clientdata.json','r') as getlogin:
             clientlogin = json.load(getlogin)
             getlogin.close()
+    # SQL Database check
+    if not os.path.exists(DATABASE_LOCATION):
+        t2d.create_database(DATABASE_LOCATION)
     input_watcher = InputWatcher()
     input_watcher.start()
     botthread1 = threading.Thread(target=tbot,args=[str.lower(clientlogin['login']), token, cfg.Channels, input_watcher])
