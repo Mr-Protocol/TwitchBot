@@ -312,11 +312,9 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             self.JoinedChannelsList.append(lchannel)
 
     def joinchannellist(self, channel_list):
-        for x in channel_list:
-            if x not in self.JoinedChannelsList:
-                self.joinchannel(x)
-                time.sleep(1)
-                # JOINs are rate-limited to 20 JOINs/commands per 10 seconds. Additional JOINs sent after this will cause an unsuccessful login.
+        self.joinchannel(x)
+        time.sleep(1)
+        # JOINs are rate-limited to 20 JOINs/commands per 10 seconds. Additional JOINs sent after this will cause an unsuccessful login.
         print("")
     
     def sendmsg(self, channel, message):
