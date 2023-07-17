@@ -215,6 +215,9 @@ LogAutoJoinHosts = 0
 # Log Auto Join Channels - Logs the channels joined in a list
 LogAutoJoinHostChannels = 0
 
+# Graylog server logging, pubmsg will only log channels that are moderated or explicitly defined in ChatLogChannels
+LogToGraylog = 0
+
 #---------------------------------------------------------------------------
 #----------------------------------- Debug ---------------------------------
 #---------------------------------------------------------------------------
@@ -228,6 +231,7 @@ debug_on_pubmsg = 0
 debug_on_userstate = 0
 debug_on_usernotice = 0
 debug_on_clearchat = 0
+debug_on_clearmsg = 0
 debug_on_globaluserstate = 0
 debug_on_roomstate = 0
 debug_on_mode = 0
@@ -239,3 +243,4 @@ debug_on_privmsg = 0
 debug_on_privnotice = 0
 debug_on_pubnotice = 0
 debug_on_whisper = 0
+debug_on_notice = 0
