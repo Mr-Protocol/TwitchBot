@@ -26,9 +26,9 @@ def sendgraylog(data, host, port):
         client_socket.sendto(json_string[1:-1].encode(), (host, port))
 
         # Print the JSON string
-        print(json_string)
+        # print(json_string)
 
-        print("Data sent to Graylog successfully!")
+        # print("Data sent to Graylog successfully!")
 
     except ConnectionRefusedError:
         print("Failed to send data to the Graylog server.")

@@ -197,28 +197,25 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             else:
                 print(f"Config channels list is empty.\r\n")
 
-    def convert_data_to_json(data):
+    def convert_event_to_json(self, event):
         json_data = {
-            'type': data['type'],
-            'source': data['source'],
-            'target': data['target'],
+            'type': event.type,
+            'source': event.source,
+            'target': event.target,
+            'arguments': event.arguments
         }
 
-        if data['arguments']:
-            json_data['arguments'] = []
-            for argument in data['arguments']:
-                json_data['arguments'].append(argument)
-
-        if data['tags']:
-            for tag in data['tags']:
-                key = tag['key']
-                value = tag['value']
-                json_data[key] = value
+        if event.tags:
+            if isinstance(event.tags, list):
+                for tag in event.tags:
+                    json_data[tag['key']] = tag['value']
+            elif isinstance(event.tags, dict):
+                json_data.update(event.tags)
 
         return json_data
     
-    def graylogsend(data):
-        graylogdata = self.convert_data_to_json(data)
+    def graylogsend(self, event):
+        graylogdata = self.convert_event_to_json(event)
         graylogstring = json.dumps(graylogdata, ensure_ascii=False)
         graylog.graylogqueue(graylogstring)
     
@@ -477,8 +474,6 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 )
                 f.write(f"{message}\r\n")
                 f.close()
-        if cfg.LogToGraylog:
-            self.graylogsend(e)
 
     def debuglog(self, edata):
         self.checklogdir("Debug")
@@ -678,8 +673,11 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
     def on_pubmsg(self, c, e):
         # Used for debugging.
-        if cfg.debug_on_pubmsg:
-            self.debuglog(e)
+        # print(e)
+        currentchannel = e.target
+        if cfg.EnableLogChatMessages and cfg.LogToGraylog:
+            if ("GLOBAL" in cfg.ChatLogChannels) or (currentchannel in cfg.ChatLogChannels) or (currentchannel in self.dbModChannels):
+                self.graylogsend(e)
 
         self.chattextparsing(e)
 
