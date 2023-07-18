@@ -965,8 +965,10 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     )
 
     def on_join(self, c, e):
-        if cfg.LogToGraylog:
-            self.graylogsend(e)
+        currentchannel = e.target
+        if cfg.EnableLogChatMessages and cfg.LogToGraylog:
+            if ("GLOBAL" in cfg.ChatLogChannels) or (currentchannel in cfg.ChatLogChannels) or (currentchannel in self.dbModChannels):
+                self.graylogsend(e)
         # User joins the channel
         
         # Used for debugging.
@@ -1004,8 +1006,10 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 )
 
     def on_part(self, c, e):
-        if cfg.LogToGraylog:
-            self.graylogsend(e)
+        currentchannel = e.target
+        if cfg.EnableLogChatMessages and cfg.LogToGraylog:
+            if ("GLOBAL" in cfg.ChatLogChannels) or (currentchannel in cfg.ChatLogChannels) or (currentchannel in self.dbModChannels):
+                self.graylogsend(e)
         # User parts or leaves channel
         
         # Used for debugging.
@@ -1042,8 +1046,10 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 )
 
     def on_action(self, c, e):
-        if cfg.LogToGraylog:
-            self.graylogsend(e)
+        currentchannel = e.target
+        if cfg.EnableLogChatMessages and cfg.LogToGraylog:
+            if ("GLOBAL" in cfg.ChatLogChannels) or (currentchannel in cfg.ChatLogChannels) or (currentchannel in self.dbModChannels):
+                self.graylogsend(e)
         # When a user types /me in the chat and sends a message.
         # type: action, source: mr_protocol!mr_protocol@mr_protocol.tmi.twitch.tv, target: #mr_protocol, arguments: ['testing 12345'], tags: [{'key': 'badges', 'value': 'broadcaster/1,premium/1'}, {'key': 'color', 'value': '#00FF7F'}, {'key': 'display-name', 'value': 'Mr_Protocol'}, {'key': 'emotes', 'value': None}, {'key': 'flags', 'value': None}, {'key': 'id', 'value': 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'}, {'key': 'mod', 'value': '0'}, {'key': 'room-id', 'value': 'XXXXXXX'}, {'key': 'subscriber', 'value': '0'}, {'key': 'tmi-sent-ts', 'value': 'XXXXXXXXXXX'}, {'key': 'turbo', 'value': '0'}, {'key': 'user-id', 'value': 'XXXXXXXX'}, {'key': 'user-type', 'value': None}]
         
