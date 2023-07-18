@@ -682,8 +682,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         self.chattextparsing(e)
 
     def on_userstate(self, c, e):
-        if cfg.LogToGraylog:
-            self.graylogsend(e)
+        # if cfg.LogToGraylog:
+            # self.graylogsend(e)
         # Used for debugging.
         if cfg.debug_on_userstate:
             self.debuglog(e)
@@ -902,8 +902,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         f.close()
 
     def on_roomstate(self, c, e):
-        if cfg.LogToGraylog:
-            self.graylogsend(e)
+        # if cfg.LogToGraylog:
+            # self.graylogsend(e)
         # Shows current chat settings for channel
         # type: roomstate, source: tmi.twitch.tv, target: #CHANNEL, arguments: [], tags: [{'key': 'broadcaster-lang', 'value': None}, {'key': 'emote-only', 'value': '0'}, {'key': 'followers-only', 'value': '2'}, {'key': 'r9k', 'value': '0'}, {'key': 'rituals', 'value': '0'}, {'key': 'room-id', 'value': 'XXXXXXXX'}, {'key': 'slow', 'value': '0'}, {'key': 'subs-only', 'value': '0'}]
         
