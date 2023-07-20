@@ -122,7 +122,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         self.user_change_queue = queue.Queue()
 
         # Start a separate thread to handle user changes
-        threading.Thread(target=self.process_user_changes, args=(self.conn,), daemon=True).start()
+        threading.Thread(target=self.process_user_changes, args=(sqlite3.connect('user_log.db'),), daemon=True).start()
 
     def keepmealive(self):
         while True:
@@ -232,34 +232,32 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             importlib.reload(cfg)
             self.checkconfig
 
-    # Function to log user changes using a queue
     def log_user_change(self, userID, username, channel, timestamp, user_change_queue, conn):
         # Check if the user already exists in the database
-        self.c = self.conn.cursor()
-        self.c.execute("SELECT * FROM users WHERE userID=? AND username=?", (userID, username))
-        if self.c.fetchone() is not None:
+        c = conn.cursor()
+        c.execute("SELECT * FROM users WHERE userID=? AND username=?", (userID, username))
+        if c.fetchone() is not None:
             # User already exists, discard and continue
             return
 
         # User doesn't exist, insert new user data with timestamp and channel
-        self.c.execute("INSERT INTO users VALUES (?, ?, ?, ?)", (timestamp, userID, username, channel))
-        self.conn.commit()
+        c.execute("INSERT INTO users VALUES (?, ?, ?, ?)", (timestamp, userID, username, channel))
+        conn.commit()
 
-    # Function to process user changes from the queue
     def process_user_changes(self, conn):
         while True:
             # Retrieve the user change data from the queue
             userID, username, channel, timestamp = self.user_change_queue.get()
 
             # Log the user change
-            self.log_user_change(userID, username, channel, timestamp, self.user_change_queue, self.conn)
+            self.log_user_change(userID, username, channel, timestamp, self.user_change_queue, conn)
 
             # Mark the task as done
             self.user_change_queue.task_done()
 
             # Check if the queue is empty, and close the database connection if so
             if self.user_change_queue.empty():
-                self.conn.close()
+                conn.close()
 
     def apigetchannelid(self, channel):
         try:
