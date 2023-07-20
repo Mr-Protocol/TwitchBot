@@ -28,7 +28,7 @@ import TwitchOAuth as TOA
 import scriptconfig as cfg
 import graylog_sender as graylog
 import sqlite3
-
+import queue
 
 
 # --------------------------------------------------------------------------
