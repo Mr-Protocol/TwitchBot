@@ -119,7 +119,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     }
 
         # Create a queue for user changes
-        user_change_queue = queue.Queue()
+        self.user_change_queue = queue.Queue()
 
         # Start a separate thread to handle user changes
         threading.Thread(target=self.process_user_changes, args=(sqlite3.connect('user_log.db'),), daemon=True).start()
