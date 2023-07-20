@@ -719,10 +719,16 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
         # SQLite for username change tracker
         # Extract relevant data from the event e
-        userID = e.tags.get('user-id', None)
-        username = e.tags.get('display-name', None)
-        channel = e.target
-        timestamp = e.tags.get('tmi-sent-ts', None)
+        userID = None
+        username = None
+        for tag in event.tags:
+            if tag['key'] == 'user-id':
+                userID = tag['value']
+            elif tag['key'] == 'display-name':
+                username = tag['value']
+
+        channel = event.target
+        timestamp = next((tag['value'] for tag in event.tags if tag['key'] == 'tmi-sent-ts'), None)
 
         # Add user change data to the queue
         self.user_change_queue.put((userID, username, channel, timestamp))
