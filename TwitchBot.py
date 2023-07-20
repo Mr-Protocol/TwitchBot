@@ -122,7 +122,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         self.user_change_queue = queue.Queue()
 
         # Start a separate thread to handle user changes
-        threading.Thread(target=self.process_user_changes, args=(sqlite3.connect('user_log.db'),), daemon=True).start()
+        threading.Thread(target=self.process_user_changes, args=(self.conn,), daemon=True).start()
 
     def keepmealive(self):
         while True:
