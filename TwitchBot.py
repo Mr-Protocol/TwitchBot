@@ -235,31 +235,31 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
     # Function to log user changes using a queue
     def log_user_change(self, userID, username, channel, timestamp, user_change_queue, conn):
         # Check if the user already exists in the database
-        c = conn.cursor()
-        c.execute("SELECT * FROM users WHERE userID=? AND username=?", (userID, username))
-        if c.fetchone() is not None:
+        self.c = self.conn.cursor()
+        self.c.execute("SELECT * FROM users WHERE userID=? AND username=?", (userID, username))
+        if self.c.fetchone() is not None:
             # User already exists, discard and continue
             return
 
         # User doesn't exist, insert new user data with timestamp and channel
-        c.execute("INSERT INTO users VALUES (?, ?, ?, ?)", (timestamp, userID, username, channel))
-        conn.commit()
+        self.c.execute("INSERT INTO users VALUES (?, ?, ?, ?)", (timestamp, userID, username, channel))
+        self.conn.commit()
 
     # Function to process user changes from the queue
     def process_user_changes(self, conn):
         while True:
             # Retrieve the user change data from the queue
-            userID, username, channel, timestamp = user_change_queue.get()
+            userID, username, channel, timestamp = self.user_change_queue.get()
 
             # Log the user change
-            log_user_change(userID, username, channel, timestamp, user_change_queue, conn)
+            self.log_user_change(userID, username, channel, timestamp, user_change_queue, conn)
 
             # Mark the task as done
-            user_change_queue.task_done()
+            self.user_change_queue.task_done()
 
             # Check if the queue is empty, and close the database connection if so
-            if user_change_queue.empty():
-                conn.close()
+            if self.user_change_queue.empty():
+                self.conn.close()
 
     def apigetchannelid(self, channel):
         try:
