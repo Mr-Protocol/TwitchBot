@@ -252,7 +252,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             userID, username, channel, timestamp = self.user_change_queue.get()
 
             # Log the user change
-            self.log_user_change(userID, username, channel, timestamp, user_change_queue, conn)
+            self.log_user_change(userID, username, channel, timestamp, self.user_change_queue, self.conn)
 
             # Mark the task as done
             self.user_change_queue.task_done()
