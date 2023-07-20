@@ -721,14 +721,14 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         # Extract relevant data from the event e
         userID = None
         username = None
-        for tag in event.tags:
+        for tag in e.tags:
             if tag['key'] == 'user-id':
                 userID = tag['value']
             elif tag['key'] == 'display-name':
                 username = tag['value']
 
-        channel = event.target
-        timestamp = next((tag['value'] for tag in event.tags if tag['key'] == 'tmi-sent-ts'), None)
+        channel = e.target
+        timestamp = next((tag['value'] for tag in e.tags if tag['key'] == 'tmi-sent-ts'), None)
 
         # Add user change data to the queue
         self.user_change_queue.put((userID, username, channel, timestamp))
