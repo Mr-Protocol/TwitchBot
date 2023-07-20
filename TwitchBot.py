@@ -27,6 +27,7 @@ import json
 import TwitchOAuth as TOA
 import scriptconfig as cfg
 import graylog_sender as graylog
+import sqlite3
 
 
 
@@ -116,6 +117,12 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                     "Client-ID": self.ClientID,
                     "Content-Type": "application/json"
                     }
+
+        # Create a queue for user changes
+        user_change_queue = queue.Queue()
+
+        # Start a separate thread to handle user changes
+        threading.Thread(target=process_user_changes, args=(sqlite3.connect('user_log.db'),), daemon=True).start()
 
     def keepmealive(self):
         while True:
@@ -224,6 +231,35 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             time.sleep(60 * 10)  # 10 min
             importlib.reload(cfg)
             self.checkconfig
+
+    # Function to log user changes using a queue
+    def log_user_change(self, userID, username, channel, timestamp, user_change_queue, conn):
+        # Check if the user already exists in the database
+        c = conn.cursor()
+        c.execute("SELECT * FROM users WHERE userID=? AND username=?", (userID, username))
+        if c.fetchone() is not None:
+            # User already exists, discard and continue
+            return
+
+        # User doesn't exist, insert new user data with timestamp and channel
+        c.execute("INSERT INTO users VALUES (?, ?, ?, ?)", (timestamp, userID, username, channel))
+        conn.commit()
+
+    # Function to process user changes from the queue
+    def process_user_changes(self, conn):
+        while True:
+            # Retrieve the user change data from the queue
+            userID, username, channel, timestamp = user_change_queue.get()
+
+            # Log the user change
+            log_user_change(userID, username, channel, timestamp, user_change_queue, conn)
+
+            # Mark the task as done
+            user_change_queue.task_done()
+
+            # Check if the queue is empty, and close the database connection if so
+            if user_change_queue.empty():
+                conn.close()
 
     def apigetchannelid(self, channel):
         try:
@@ -681,6 +717,16 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
         self.chattextparsing(e)
 
+        # SQLite for username change tracker
+        # Extract relevant data from the event e
+        userID = e.tags.get('user-id', None)
+        username = e.tags.get('display-name', None)
+        channel = e.target
+        timestamp = e.tags.get('tmi-sent-ts', None)
+
+        # Add user change data to the queue
+        user_change_queue.put((userID, username, channel, timestamp))
+
     def on_userstate(self, c, e):
         # if cfg.LogToGraylog:
             # self.graylogsend(e)
@@ -1100,8 +1146,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             self.debuglog(e)
 
     def on_pubnotice(self, c, e):
-        if cfg.LogToGraylog:
-            self.graylogsend(e)
+        # if cfg.LogToGraylog:
+            # self.graylogsend(e)
         # Shows hosting message
         # Shows other channel options: slow mode, emote mode, etc.
 
