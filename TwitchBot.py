@@ -121,8 +121,20 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         # Create a queue for user changes
         self.user_change_queue = queue.Queue()
 
+        # Create the database connection and cursor
+        self.conn = sqlite3.connect('user_log.db')
+        self.c = self.conn.cursor()
+
+        # Create the users table if it doesn't exist
+        self.c.execute('''CREATE TABLE IF NOT EXISTS users
+                          (timestamp INTEGER, userID TEXT, username TEXT, channel TEXT)''')
+
+        # Commit the table creation and close the cursor
+        self.conn.commit()
+        self.c.close()
+
         # Start a separate thread to handle user changes
-        threading.Thread(target=self.process_user_changes, args=(sqlite3.connect('user_log.db'),), daemon=True).start()
+        threading.Thread(target=self.process_user_changes, daemon=True).start()
 
     def keepmealive(self):
         while True:
