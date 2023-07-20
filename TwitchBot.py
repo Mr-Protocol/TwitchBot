@@ -232,7 +232,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             importlib.reload(cfg)
             self.checkconfig
 
-    def log_user_change(self, userID, username, channel, timestamp, user_change_queue, conn):
+    def log_user_change(self, userID, username, channel, timestamp, conn):
         # Check if the user already exists in the database
         c = conn.cursor()
         c.execute("SELECT * FROM users WHERE userID=? AND username=?", (userID, username))
@@ -241,23 +241,20 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             return
 
         # User doesn't exist, insert new user data with timestamp and channel
-        c.execute("INSERT INTO users VALUES (?, ?, ?, ?)", (timestamp, userID, username, channel))
+        c.execute("INSERT INTO users (timestamp, userID, username, channel) VALUES (?, ?, ?, ?)", (timestamp, userID, username, channel))
         conn.commit()
 
-    def process_user_changes(self, conn):
+    def process_user_changes(self):
         while True:
             # Retrieve the user change data from the queue
             userID, username, channel, timestamp = self.user_change_queue.get()
-
-            # Log the user change
-            self.log_user_change(userID, username, channel, timestamp, self.user_change_queue, conn)
+            # Create a new SQLite connection for each thread
+            with sqlite3.connect('user_log.db') as conn:
+                # Log the user change
+                self.log_user_change(userID, username, channel, timestamp, conn)
 
             # Mark the task as done
             self.user_change_queue.task_done()
-
-            # Check if the queue is empty, and close the database connection if so
-            if self.user_change_queue.empty():
-                conn.close()
 
     def apigetchannelid(self, channel):
         try:
