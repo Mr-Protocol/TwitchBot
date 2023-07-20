@@ -725,7 +725,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         timestamp = e.tags.get('tmi-sent-ts', None)
 
         # Add user change data to the queue
-        user_change_queue.put((userID, username, channel, timestamp))
+        self.user_change_queue.put((userID, username, channel, timestamp))
 
     def on_userstate(self, c, e):
         # if cfg.LogToGraylog:
