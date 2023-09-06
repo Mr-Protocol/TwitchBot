@@ -305,19 +305,21 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         self.apiheaderupdate()
         if len(str(self.ClientID)) > 2:
             followinglist = []
-            url = (
-                "https://api.twitch.tv/helix/helix/channels/followed?user_id="
-                + user_id
-                + "&first=100"
-            )
-            r = requests.get(url, headers=self.apiheader).json()
-            while len(followinglist) < r["total"]:
+            url = 'https://api.twitch.tv/helix/channels/followed'
+            params = {
+                'user_id': self.botuserid,
+                'first': '100'
+            }
+            r = requests.get(url, headers=self.apiheader, params=params).json()
+            totalfollow = r['total']
+
+            while len(followinglist) < totalfollow:
                 print("Page of followers checked.")
                 for x in range(len(r["data"])):
                     followinglist.append("#" + str.lower(r["data"][x]["broadcaster_login"]))
                 if "cursor" in r["pagination"]:
                     cursorpage = r["pagination"]["cursor"]
-                    nexturl = url + "&after=" + cursorpage
+                    nexturl = url + '?user_id=' + self.botuserid + "&after=" + cursorpage
                     time.sleep(1)
                     r = requests.get(nexturl, headers=self.apiheader).json()
             if ignorejoinlist == None:
