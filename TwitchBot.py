@@ -314,7 +314,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             while len(followinglist) < r["total"]:
                 print("Page of followers checked.")
                 for x in range(len(r["data"])):
-                    followinglist.append("#" + str.lower(r["data"][x]["to_name"]))
+                    followinglist.append("#" + str.lower(r["data"][x]["broadcaster_login"]))
                 if "cursor" in r["pagination"]:
                     cursorpage = r["pagination"]["cursor"]
                     nexturl = url + "&after=" + cursorpage
