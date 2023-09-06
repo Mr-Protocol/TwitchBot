@@ -67,6 +67,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             print(e)
         self.token = token
         self.ClientID = clientdata['client_id']
+        self.botuserid = clientdata['user_id']
         self.username = username
         self.configchannels = channels
         server = "irc.chat.twitch.tv"
@@ -200,7 +201,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         while True:
             time.sleep(60 * 60 * 2)  # 2 hours
             print(f"Checking followers for updates to auto join...\r\n")
-            following = self.apigetfollowerslist(self.username)
+            following = self.apigetfollowerslist(self.username, self.botuserid)
             for x in following:
                 if x not in self.JoinedChannelsList:
                     print(f"Found new channel: {x}")
@@ -299,14 +300,14 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         else:
             print(f"Get User Info - apigetuser failed.")
 
-    def apigetfollowerslist(self, username, ignorejoinlist = None):
+    def apigetfollowerslist(self, username, user_id, ignorejoinlist = None):
         self.token = TOA.checktoken()
         self.apiheaderupdate()
         if len(str(self.ClientID)) > 2:
             followinglist = []
             url = (
-                "https://api.twitch.tv/helix/users/follows?from_id="
-                + self.apigetchannelid(str.lower(username))
+                "https://api.twitch.tv/helix/helix/channels/followed?user_id="
+                + user_id
                 + "&first=100"
             )
             r = requests.get(url, headers=self.apiheader).json()
@@ -396,7 +397,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             try:
                 if cmd in {"!commands", "!help"}:
                     print(
-                        f"!addmod, !addtrig, !bot, !chanfilteron, !chanfilteroff, !chanid, !chantrig, !commands, !getuserfollows, !getuserinfo, !help, !modlist, !reloadconfig\r\n"
+                        f"!addmod, !addtrig, !bot, !chanfilteron, !chanfilteroff, !chanid, !chantrig, !commands, !getuserinfo, !help, !modlist, !reloadconfig\r\n"
                     )
 
                 elif "!bot" in cmd:
@@ -430,21 +431,6 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 elif cmd == "!reloadconfig":
                     importlib.reload(cfg)
                     self.checkconfig()
-
-                elif "!getuserfollows" in cmd:
-                    splitcmd = cmd.split(" ")
-                    if len(splitcmd) == 1:
-                        print (
-                            f"Writes out the follower list to a file."
-                        )
-                        print(f"Usage: !getuserfollows mr_protocol\r\n")
-                    else:
-                        self.checklogdir("FollowList")
-                        f = open(f"Logs/FollowList/{splitcmd[1]}.txt", "a+", encoding="utf-8-sig")
-                        for x in self.apigetfollowerslist(splitcmd[1],1):
-                            f.write(x + '\n')
-                        f.close()
-                        print(f"Done creating follow list. Location: Logs/FollowList/{splitcmd[1]}.txt\r\n")
 
                 elif "!getuserinfo" in cmd:
                     splitcmd = cmd.split(" ")
@@ -537,7 +523,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         # joins channels you are following if enabled
         if cfg.FollowerAutoJoin:
             print(f"Joining all followed channels.\r\n")
-            self.joinchannellist(self.apigetfollowerslist(self.username))
+            self.joinchannellist(self.apigetfollowerslist(self.username, self.botuserid))
 
         # joins specified channels
         if len(self.configchannels) > 0:
