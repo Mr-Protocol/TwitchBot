@@ -215,9 +215,6 @@ LogAutoJoinHosts = 0
 # Log Auto Join Channels - Logs the channels joined in a list
 LogAutoJoinHostChannels = 0
 
-# Graylog server logging, pubmsg will only log channels that are moderated or explicitly defined in ChatLogChannels
-LogToGraylog = 0
-
 #---------------------------------------------------------------------------
 #----------------------------------- Debug ---------------------------------
 #---------------------------------------------------------------------------

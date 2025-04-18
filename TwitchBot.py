@@ -26,7 +26,6 @@ import ssl
 import json
 import TwitchOAuth as TOA
 import scriptconfig as cfg
-import graylog_sender as graylog
 import sqlite3
 import queue
 
@@ -83,7 +82,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             auto_join_follow_thread.start()
         # system(f"title TwitchBot @ {self.timestamp()} - {username}")
         print(f"{self.timestamp()}\r\nConnecting to {server} on port {port} as {username}...\r\n")
-        factory = irc.connection.Factory(wrapper=ssl.wrap_socket)
+        context = ssl.create_default_context()
+        factory = irc.connection.Factory(wrapper=lambda sock: context.wrap_socket(sock, server_hostname=server))
         irc.bot.SingleServerIRCBot.__init__(self, [(server, port, "oauth:" + self.token)], username, username,connect_factory = factory)
         # Original connect command, plaintext connection
         # irc.bot.SingleServerIRCBot.__init__(self, [(server, port, 'oauth:'+token)], username, username)
@@ -233,11 +233,6 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 json_data.update(event.tags)
 
         return json_data
-    
-    def graylogsend(self, event):
-        graylogdata = self.convert_event_to_json(event)
-        graylogstring = json.dumps(graylogdata, ensure_ascii=False)
-        graylog.graylogqueue(graylogstring)
     
     def reloadconfigfile(self):
         while True:
@@ -686,8 +681,6 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                                         print(e)
 
     def on_welcome(self, c, e):
-        if cfg.LogToGraylog:
-            self.graylogsend(e)
         # You must request specific capabilities before you can use them
         c.cap("REQ", ":twitch.tv/membership twitch.tv/tags twitch.tv/commands")
         # c.cap("REQ", ":twitch.tv/membership")
@@ -706,10 +699,6 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         # Used for debugging.
         # print(e)
         currentchannel = e.target
-        if cfg.EnableLogChatMessages and cfg.LogToGraylog:
-            if ("GLOBAL" in cfg.ChatLogChannels) or (currentchannel in cfg.ChatLogChannels) or (currentchannel in self.dbModChannels):
-                self.graylogsend(e)
-
         self.chattextparsing(e)
 
         # SQLite for username change tracker
@@ -729,8 +718,6 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         self.user_change_queue.put((userID, username, channel, timestamp))
 
     def on_userstate(self, c, e):
-        # if cfg.LogToGraylog:
-            # self.graylogsend(e)
         # Used for debugging.
         if cfg.debug_on_userstate:
             self.debuglog(e)
@@ -747,8 +734,6 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                         self.dbModChannels.append(currentchannel)
 
     def on_usernotice(self, c, e):
-        if cfg.LogToGraylog:
-            self.graylogsend(e)
         # Used for debugging.
         if cfg.debug_on_usernotice:
             self.debuglog(e)
@@ -852,8 +837,6 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 f.close()
 
     def on_clearchat(self, c, e):
-        if cfg.LogToGraylog:
-            self.graylogsend(e)
         # Shows when a user is banned
         # Mod uses /clear chat command
 
@@ -917,23 +900,17 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 print(f"Something went wrong on_clearchat:\r\nError:\r\n{e}")
 
     def on_clearmsg(self, c, e):
-        if cfg.LogToGraylog:
-            self.graylogsend(e)
         # Shows when mod deletes single msg
         # print(e)
         if cfg.debug_on_clearmsg:
             self.debuglog(e)
 
     def on_notice(self, c, e):
-        if cfg.LogToGraylog:
-            self.graylogsend(e)
         #print(e)
         if cfg.debug_on_notice:
             self.debuglog(e)
 
     def on_globaluserstate(self, c, e):
-        if cfg.LogToGraylog:
-            self.graylogsend(e)
         # Not sure if this is real or not
         # Used for debugging.
         if cfg.debug_on_globaluserstate:
@@ -949,8 +926,6 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         f.close()
 
     def on_roomstate(self, c, e):
-        # if cfg.LogToGraylog:
-            # self.graylogsend(e)
         # Shows current chat settings for channel
         # type: roomstate, source: tmi.twitch.tv, target: #CHANNEL, arguments: [], tags: [{'key': 'broadcaster-lang', 'value': None}, {'key': 'emote-only', 'value': '0'}, {'key': 'followers-only', 'value': '2'}, {'key': 'r9k', 'value': '0'}, {'key': 'rituals', 'value': '0'}, {'key': 'room-id', 'value': 'XXXXXXXX'}, {'key': 'slow', 'value': '0'}, {'key': 'subs-only', 'value': '0'}]
         
@@ -960,8 +935,6 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         pass
 
     def on_mode(self, c, e):
-        if cfg.LogToGraylog:
-            self.graylogsend(e)
         # Shows +/- mod permissions
         
         # Used for debugging.
@@ -1013,9 +986,6 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
     def on_join(self, c, e):
         currentchannel = e.target
-        if cfg.EnableLogChatMessages and cfg.LogToGraylog:
-            if ("GLOBAL" in cfg.ChatLogChannels) or (currentchannel in cfg.ChatLogChannels) or (currentchannel in self.dbModChannels):
-                self.graylogsend(e)
         # User joins the channel
         
         # Used for debugging.
@@ -1054,9 +1024,6 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
     def on_part(self, c, e):
         currentchannel = e.target
-        if cfg.EnableLogChatMessages and cfg.LogToGraylog:
-            if ("GLOBAL" in cfg.ChatLogChannels) or (currentchannel in cfg.ChatLogChannels) or (currentchannel in self.dbModChannels):
-                self.graylogsend(e)
         # User parts or leaves channel
         
         # Used for debugging.
@@ -1094,9 +1061,6 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
     def on_action(self, c, e):
         currentchannel = e.target
-        if cfg.EnableLogChatMessages and cfg.LogToGraylog:
-            if ("GLOBAL" in cfg.ChatLogChannels) or (currentchannel in cfg.ChatLogChannels) or (currentchannel in self.dbModChannels):
-                self.graylogsend(e)
         # When a user types /me in the chat and sends a message.
         # type: action, source: mr_protocol!mr_protocol@mr_protocol.tmi.twitch.tv, target: #mr_protocol, arguments: ['testing 12345'], tags: [{'key': 'badges', 'value': 'broadcaster/1,premium/1'}, {'key': 'color', 'value': '#00FF7F'}, {'key': 'display-name', 'value': 'Mr_Protocol'}, {'key': 'emotes', 'value': None}, {'key': 'flags', 'value': None}, {'key': 'id', 'value': 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'}, {'key': 'mod', 'value': '0'}, {'key': 'room-id', 'value': 'XXXXXXX'}, {'key': 'subscriber', 'value': '0'}, {'key': 'tmi-sent-ts', 'value': 'XXXXXXXXXXX'}, {'key': 'turbo', 'value': '0'}, {'key': 'user-id', 'value': 'XXXXXXXX'}, {'key': 'user-type', 'value': None}]
         
@@ -1107,8 +1071,6 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         self.chattextparsing(e)
 
     def on_hosttarget(self, c, e):
-        if cfg.LogToGraylog:
-            self.graylogsend(e)
         # Shows hosting info
         # type: hosttarget, source: tmi.twitch.tv, target: #CHANNEL, arguments: ['channelbeinghosted -'], tags: []
 
@@ -1125,11 +1087,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 f"HOSTTARGET-{self.timestamp()} {currentchannel} is hosting {targetchannel}."
             )
 
-    def on_privmsg(self, c, e):
-        if cfg.LogToGraylog:
-            self.graylogsend(e)
-        # type: privmsg, source: jtv!jtv@jtv.tmi.twitch.tv, target: mr_protocol, arguments: ['CutePuppy1337 is now hosting you.'], tags: []
-        
+    def on_privmsg(self, c, e):        
         # Used for debugging.
         if cfg.debug_on_privmsg:
             self.debuglog(e)
@@ -1138,17 +1096,11 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         print(f"{self.timestamp()} {hostmsg}")
 
     def on_privnotice(self, c, e):
-        if cfg.LogToGraylog:
-            self.graylogsend(e)
-        # type: privnotice, source: tmi.twitch.tv, target: l, arguments: ['This channel has been suspended.'], tags: [{'key': 'msg-id', 'value': 'msg_channel_suspended'}]
-
         # Used for debugging.
         if cfg.debug_on_privnotice:
             self.debuglog(e)
 
     def on_pubnotice(self, c, e):
-        # if cfg.LogToGraylog:
-            # self.graylogsend(e)
         # Shows hosting message
         # Shows other channel options: slow mode, emote mode, etc.
 
@@ -1209,8 +1161,6 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 print(f"Channel {LAJHChan} already joined.")
 
     def on_whisper(self, c, e):
-        if cfg.LogToGraylog:
-            self.graylogsend(e)
         # Received twitch direct messages
         # type: whisper, source: USER!USER@USER.tmi.twitch.tv, target: mr_protocol, arguments: ['THEMESSAGE'], tags: [{'key': 'badges', 'value': None}, {'key': 'color', 'value': None}, {'key': 'display-name', 'value': 'USERNAME'}, {'key': 'emotes', 'value': None}, {'key': 'message-id', 'value': 'XX'}, {'key': 'thread-id', 'value': 'XXXXXX_XXXXXXXX'}, {'key': 'turbo', 'value': '0'}, {'key': 'user-id', 'value': 'XXXXXXXX'}, {'key': 'user-type', 'value': None}]
 
